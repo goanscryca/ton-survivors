@@ -268,7 +268,7 @@
   <!-- HUD -->
   <div id="hud">
     <div class="hud-row">
-      <div class="badge">🔥 УРОВЕНЬ <span id="hud-level" style="color:#00d2ff">1</span> / 10</div>
+      <div class="badge" id="player-badge">🔥 УРОВЕНЬ <span id="hud-level" style="color:#00d2ff">1</span> / 10</div>
       <div class="badge">⏱️ <span id="hud-timer">00:00</span></div>
       <div class="badge">💀 <span id="hud-kills">0</span></div>
       <div class="badge">
@@ -305,11 +305,12 @@
     <button class="btn-primary" id="start-btn">В БОЙ ▶</button>
   </div>
 
-  <!-- Game Over Screen -->
+  /* Game Over Screen */
   <div id="gameover-screen" class="overlay-screen" style="display:none">
     <h1 class="screen-title">ВЫ ПОГИБЛИ</h1>
     <p id="gameover-stats" style="color:#b2becd; font-size: 15px; margin-top: 6px; line-height: 1.6;"></p>
     <button class="btn-primary" onclick="resetAndStartGame()">ПОПРОБОВАТЬ СНОВА 🔄</button>
+    <button class="btn-primary" style="background: linear-gradient(135deg, #a855f7, #6366f1); margin-top: 10px;" onclick="shareRecord()">ПОДЕЛИТЬСЯ В TELEGRAM 🚀</button>
   </div>
 
   <!-- Win Screen -->
@@ -318,6 +319,7 @@
     <p style="color:#ffd700; font-weight:700; font-size:18px;">10 волн пройдены, Босс повержен!</p>
     <p id="win-stats" style="color:#d8e2ec; font-size: 15px; margin-top: 10px; line-height: 1.6;"></p>
     <button class="btn-primary" onclick="resetAndStartGame()">ИГРАТЬ ЕЩЁ РАЗ 👑</button>
+    <button class="btn-primary" style="background: linear-gradient(135deg, #a855f7, #6366f1); margin-top: 10px;" onclick="shareRecord()">ПОДЕЛИТЬСЯ В TELEGRAM 🚀</button>
   </div>
 </div>
 
@@ -1131,6 +1133,7 @@ function gameLoop(timestamp) {
  * ------------------------------------------------------------- */
 function triggerGameOver() {
   isGameOver = true;
+  triggerHaptic('error');
   document.getElementById("gameover-stats").innerText = 
     `Вы продержались: ${Math.floor(gameTime)} сек.\nУничтожено врагов: ${kills}\nУровень героя: ${player.level}`;
   document.getElementById("gameover-screen").style.display = "flex";
@@ -1138,6 +1141,7 @@ function triggerGameOver() {
 
 function triggerVictory() {
   isGameWon = true;
+  triggerHaptic('success');
   document.getElementById("win-stats").innerText = 
     `Время победы: ${Math.floor(gameTime)} сек.\nУничтожено врагов: ${kills}\nУровень героя: ${player.level}`;
   document.getElementById("win-screen").style.display = "flex";
@@ -1249,11 +1253,49 @@ startBtn.addEventListener("touchend", (e) => {
   resetAndStartGame();
 });
 
+function triggerHaptic(type = 'light') {
+  try {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+      const hf = window.Telegram.WebApp.HapticFeedback;
+      if (type === 'light' || type === 'medium' || type === 'heavy') {
+        hf.impactOccurred(type);
+      } else if (type === 'success' || type === 'error' || type === 'warning') {
+        hf.notificationOccurred(type);
+      }
+    }
+  } catch(e) {}
+}
+
+function shareRecord() {
+  triggerHaptic('light');
+  const wave = Math.min(10, Math.floor(gameTime / 20) + 1);
+  const text = encodeURIComponent(`🔥 Я дошёл до ${wave}-й волны в TON Survivors (счёт: ${kills} врагов)! Сможешь продержаться дольше?`);
+  const appUrl = encodeURIComponent(window.location.href);
+  const tgUrl = `https://t.me/share/url?url=${appUrl}&text=${text}`;
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+    window.Telegram.WebApp.openTelegramLink(tgUrl);
+  } else {
+    window.open(tgUrl, '_blank');
+  }
+}
+
 function initApp() {
   if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
     try {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
+      tg.ready();
+      tg.expand();
+      if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+      if (tg.setHeaderColor) tg.setHeaderColor('#0f1016');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#0f1016');
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const u = tg.initDataUnsafe.user;
+        const name = u.first_name || u.username;
+        if (name) {
+          const badge = document.getElementById("player-badge");
+          if (badge) badge.innerText = `👤 ${name} • W1/10`;
+        }
+      }
     } catch(err) {}
   }
   setupCanvas();
