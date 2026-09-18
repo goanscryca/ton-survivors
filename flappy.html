@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TON Flappy: Cyber Flight</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  body {
+    background: #0a0c14;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #game-wrap {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    max-width: 460px;
+    max-height: 840px;
+    background: #0f121d;
+    box-shadow: 0 0 50px rgba(0, 210, 255, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  /* Overlays */
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(10, 12, 20, 0.85);
+    backdrop-filter: blur(6px);
+    padding: 24px;
+    text-align: center;
+    z-index: 20;
+    pointer-events: auto;
+  }
+  .title {
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #00d2ff, #7928ca);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0, 210, 255, 0.5);
+  }
+  .subtitle {
+    font-size: 15px;
+    color: #8c9bb5;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .score-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    padding: 16px 28px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .score-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #00d2ff;
+    margin-bottom: 4px;
+  }
+  .score-num {
+    font-size: 38px;
+    font-weight: 900;
+    color: #fff;
+  }
+  .btn-jump {
+    background: linear-gradient(135deg, #00d2ff, #0077b6);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 14px 40px;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 25px rgba(0, 210, 255, 0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-jump:active {
+    transform: scale(0.96);
+  }
+  #in-game-score {
+    position: absolute;
+    top: 24px;
+    width: 100%;
+    text-align: center;
+    font-size: 46px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 210, 255, 0.6);
+    pointer-events: none;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrap">
+  <canvas id="canvas"></canvas>
+  <div id="in-game-score">0</div>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="overlay">
+    <div class="title">TON FLAPPY</div>
+    <div class="subtitle">Управляй кибер-птицей в неоновом тоннеле TON.<br>Тапай по экрану или жми Пробел для взлёта!</div>
+    <div class="score-badge">
+      <div class="score-label">РЕКОРД</div>
+      <div class="score-num" id="best-score-start">0</div>
+    </div>
+    <button class="btn-jump" id="start-btn">ПОЛЕТЕЛИ ▶</button>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="overlay" style="display: none;">
+    <div class="title" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">СТОЛКНОВЕНИЕ!</div>
+    <div class="score-badge">
+      <div class="score-label">СЧЁТ</div>
+      <div class="score-num" id="final-score">0</div>
+      <div style="height: 8px;"></div>
+      <div class="score-label" style="color: #ffd700;">ЛУЧШИЙ РЕКОРД</div>
+      <div class="score-num" id="best-score-end" style="font-size: 24px; color: #ffd700;">0</div>
+    </div>
+    <button class="btn-jump" id="restart-btn">ЕЩЁ РАЗ 🔄</button>
+  </div>
+</div>
+
+<script>
+/* -------------------------------------------------------------
+ * 1. 8-BIT AUDIO SYNTH (Web Audio API)
+ * ------------------------------------------------------------- */
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+  }
+  init() {
+    try {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    } catch(e) {}
+  }
+  playFlap() {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(640, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch(e) {}
+  }
+  playScore() {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(780, now);
+      osc.frequency.exponentialRampToValueAtTime(1180, now + 0.12);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch(e) {}
+  }
+  playHit() {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(200, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    } catch(e) {}
+  }
+}
+const sfx = new SoundEngine();
+
+/* -------------------------------------------------------------
+ * 2. GAME STATE & CONSTANTS
+ * ------------------------------------------------------------- */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let W = 380;
+let H = 640;
+
+const GRAVITY = 1100; // px / sec^2
+const JUMP_IMPULSE = -360; // px / sec
+const PIPE_SPEED = 160; // px / sec
+const PIPE_SPAWN_INTERVAL = 1.65; // sec
+const PIPE_WIDTH = 58;
+const PIPE_GAP = 145;
+
+let gameState = "START"; // "START", "PLAYING", "GAMEOVER"
+let score = 0;
+let bestScore = parseInt(localStorage.getItem("ton_flappy_best") || "0", 10);
+let lastTime = 0;
+let pipeTimer = 0;
+
+// Bird
+const bird = {
+  x: 80,
+  y: 300,
+  radius: 15,
+  vy: 0,
+  rotation: 0,
+  wingAnim: 0
+};
+
+// Pipes & Particles
+let pipes = [];
+let particles = [];
+let stars = [];
+
+// Init Background Stars
+for (let i = 0; i < 40; i++) {
+  stars.push({
+    x: Math.random() * 500,
+    y: Math.random() * 900,
+    size: Math.random() * 2 + 1,
+    speed: Math.random() * 20 + 15,
+    alpha: Math.random() * 0.7 + 0.3
+  });
+}
+
+document.getElementById("best-score-start").innerText = bestScore;
+
+/* -------------------------------------------------------------
+ * 3. RESIZE & CANVAS SETUP
+ * ------------------------------------------------------------- */
+function resize() {
+  const wrap = document.getElementById("game-wrap");
+  W = wrap.clientWidth || 360;
+  H = wrap.clientHeight || 640;
+  canvas.width = W;
+  canvas.height = H;
+  bird.x = W * 0.26;
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* -------------------------------------------------------------
+ * 4. GAME ACTIONS
+ * ------------------------------------------------------------- */
+function flap() {
+  sfx.init();
+  if (gameState === "START") {
+    startGame();
+    return;
+  }
+  if (gameState === "PLAYING") {
+    bird.vy = JUMP_IMPULSE;
+    sfx.playFlap();
+    // Spawn jump particles
+    for (let i = 0; i < 5; i++) {
+      particles.push({
+        x: bird.x - 10,
+        y: bird.y + (Math.random() * 10 - 5),
+        vx: -Math.random() * 60 - 20,
+        vy: (Math.random() - 0.5) * 40,
+        color: "#00d2ff",
+        size: Math.random() * 3 + 2,
+        life: 0.3
+      });
+    }
+  }
+}
+
+function startGame() {
+  gameState = "PLAYING";
+  score = 0;
+  bird.y = H * 0.45;
+  bird.vy = JUMP_IMPULSE * 0.6;
+  bird.rotation = 0;
+  pipes = [];
+  particles = [];
+  pipeTimer = 0.8; // spawn first pipe quickly
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("gameover-screen").style.display = "none";
+  document.getElementById("in-game-score").innerText = "0";
+}
+
+function gameOver() {
+  gameState = "GAMEOVER";
+  sfx.playHit();
+  if (score > bestScore) {
+    bestScore = score;
+    localStorage.setItem("ton_flappy_best", bestScore);
+  }
+  document.getElementById("final-score").innerText = score;
+  document.getElementById("best-score-end").innerText = bestScore;
+  document.getElementById("gameover-screen").style.display = "flex";
+
+  // Crash explosion
+  for (let i = 0; i < 20; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 120 + 30;
+    particles.push({
+      x: bird.x,
+      y: bird.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color: i % 2 === 0 ? "#00d2ff" : "#ff416c",
+      size: Math.random() * 4 + 2,
+      life: 0.6
+    });
+  }
+}
+
+/* -------------------------------------------------------------
+ * 5. UPDATE & DRAW
+ * ------------------------------------------------------------- */
+function update(dt) {
+  // Stars background scroll
+  for (const st of stars) {
+    st.x -= st.speed * dt;
+    if (st.x < 0) st.x = W + Math.random() * 20;
+  }
+
+  // Update Particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x += pt.vx * dt;
+    pt.y += pt.vy * dt;
+    pt.life -= dt;
+    if (pt.life <= 0) particles.splice(i, 1);
+  }
+
+  if (gameState !== "PLAYING") {
+    // Idle gentle hover
+    bird.wingAnim += dt * 5;
+    bird.y = (H * 0.45) + Math.sin(bird.wingAnim) * 8;
+    bird.rotation = Math.sin(bird.wingAnim) * 0.1;
+    return;
+  }
+
+  // Bird physics
+  bird.vy += GRAVITY * dt;
+  bird.y += bird.vy * dt;
+
+  // Rotation based on velocity
+  const targetRot = Math.min(Math.PI / 3, Math.max(-Math.PI / 4, bird.vy * 0.0022));
+  bird.rotation += (targetRot - bird.rotation) * 10 * dt;
+
+  // Floor & Ceiling collision
+  if (bird.y - bird.radius <= 0) {
+    bird.y = bird.radius;
+    bird.vy = 0;
+  }
+  if (bird.y + bird.radius >= H - 15) {
+    bird.y = H - 15 - bird.radius;
+    gameOver();
+    return;
+  }
+
+  // Pipes spawn
+  pipeTimer += dt;
+  if (pipeTimer >= PIPE_SPAWN_INTERVAL) {
+    pipeTimer = 0;
+    const minTop = 60;
+    const maxTop = H - PIPE_GAP - 120;
+    const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+    pipes.push({
+      x: W + 10,
+      topHeight: topHeight,
+      bottomY: topHeight + PIPE_GAP,
+      passed: false
+    });
+  }
+
+  // Update Pipes & Collision
+  for (let i = pipes.length - 1; i >= 0; i--) {
+    const p = pipes[i];
+    p.x -= PIPE_SPEED * dt;
+
+    // Check pass for score
+    if (!p.passed && p.x + PIPE_WIDTH < bird.x - bird.radius) {
+      p.passed = true;
+      score++;
+      document.getElementById("in-game-score").innerText = score;
+      sfx.playScore();
+    }
+
+    // AABB vs Circle collision
+    const bx = bird.x;
+    const by = bird.y;
+    const br = bird.radius - 2;
+
+    // Upper pipe collision
+    const inUpperX = bx + br > p.x && bx - br < p.x + PIPE_WIDTH;
+    const inUpperY = by - br < p.topHeight;
+    // Lower pipe collision
+    const inLowerY = by + br > p.bottomY;
+
+    if (inUpperX && (inUpperY || inLowerY)) {
+      gameOver();
+      return;
+    }
+
+    // Remove off-screen pipes
+    if (p.x + PIPE_WIDTH < -20) {
+      pipes.splice(i, 1);
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // 1. Grid & Stars
+  ctx.fillStyle = "rgba(0, 210, 255, 0.4)";
+  for (const st of stars) {
+    ctx.globalAlpha = st.alpha;
+    ctx.fillRect(st.x, st.y, st.size, st.size);
+  }
+  ctx.globalAlpha = 1.0;
+
+  // Subtle background neon glow
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "rgba(15, 18, 29, 0.2)");
+  grad.addColorStop(1, "rgba(0, 50, 80, 0.25)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Pipes (Cyber Pillars)
+  for (const p of pipes) {
+    // Top Pipe
+    drawCyberPillar(p.x, 0, PIPE_WIDTH, p.topHeight, true);
+    // Bottom Pipe
+    drawCyberPillar(p.x, p.bottomY, PIPE_WIDTH, H - p.bottomY, false);
+  }
+
+  // 3. Particles
+  for (const pt of particles) {
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
+  }
+
+  // 4. Ground Line
+  ctx.strokeStyle = "#00d2ff";
+  ctx.shadowColor = "#00d2ff";
+  ctx.shadowBlur = 12;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, H - 15);
+  ctx.lineTo(W, H - 15);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // 5. Draw Bird (Cyber TON Crystal / Bird)
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  ctx.rotate(bird.rotation);
+
+  // Glow
+  ctx.shadowColor = "#00d2ff";
+  ctx.shadowBlur = 18;
+
+  // Outer Diamond / Crystal Body
+  ctx.fillStyle = "#00d2ff";
+  ctx.beginPath();
+  ctx.moveTo(0, -bird.radius);
+  ctx.lineTo(bird.radius + 4, 0);
+  ctx.lineTo(0, bird.radius);
+  ctx.lineTo(-bird.radius - 2, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Core Wing / Center Gem
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.moveTo(0, -6);
+  ctx.lineTo(6, 0);
+  ctx.lineTo(0, 6);
+  ctx.lineTo(-6, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Eye
+  ctx.fillStyle = "#0a0c14";
+  ctx.beginPath();
+  ctx.arc(4, -3, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+function drawCyberPillar(x, y, w, h, isTop) {
+  // Main Pillar Body
+  ctx.fillStyle = "#111726";
+  ctx.fillRect(x, y, w, h);
+
+  // Neon Border
+  ctx.strokeStyle = "#00d2ff";
+  ctx.shadowColor = "#00d2ff";
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+
+  // Inner Core Laser Line
+  ctx.strokeStyle = "rgba(0, 210, 255, 0.4)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + w / 2, y);
+  ctx.lineTo(x + w / 2, y + h);
+  ctx.stroke();
+
+  // Pillar Cap
+  const capH = 14;
+  const capY = isTop ? y + h - capH : y;
+  ctx.fillStyle = "#1e293b";
+  ctx.fillRect(x - 3, capY, w + 6, capH);
+  ctx.strokeRect(x - 3, capY, w + 6, capH);
+
+  ctx.shadowBlur = 0;
+}
+
+/* -------------------------------------------------------------
+ * 6. LOOP
+ * ------------------------------------------------------------- */
+function gameLoop(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = Math.min(0.08, (timestamp - lastTime) / 1000);
+  lastTime = timestamp;
+
+  update(dt);
+  draw();
+
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+/* -------------------------------------------------------------
+ * 7. INPUT LISTENERS (Desktop & Mobile)
+ * ------------------------------------------------------------- */
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.key === " " || e.key === "ArrowUp" || e.key === "w") {
+    e.preventDefault();
+    flap();
+  }
+});
+
+// Canvas click / touch
+canvas.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  flap();
+});
+
+// Buttons
+document.getElementById("start-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  startGame();
+});
+document.getElementById("restart-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  startGame();
+});
+</script>
+</body>
+</html>
