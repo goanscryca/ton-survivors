@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TON Survivors: 10 Levels</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
@@ -1201,21 +1202,23 @@ const joystickZone = document.getElementById("joystick-zone");
 const joystickKnob = document.getElementById("joystick-knob");
 
 window.addEventListener("touchstart", (e) => {
+  if (!gameStarted || isPaused || isGameOver || isGameWon) return;
   const t = e.touches[0];
-  if (t.clientY > window.innerHeight * 0.4) {
-    touchInput.active = true;
-    touchInput.startX = t.clientX;
-    touchInput.startY = t.clientY;
-    joystickZone.style.left = `${t.clientX - 65}px`;
-    joystickZone.style.top = `${t.clientY - 65}px`;
-    joystickZone.style.bottom = 'auto';
-    joystickZone.style.display = 'block';
-    joystickKnob.style.transform = `translate(0px, 0px)`;
-  }
-});
+  touchInput.active = true;
+  touchInput.startX = t.clientX;
+  touchInput.startY = t.clientY;
+  touchInput.dx = 0;
+  touchInput.dy = 0;
+  joystickZone.style.left = `${t.clientX - 65}px`;
+  joystickZone.style.top = `${t.clientY - 65}px`;
+  joystickZone.style.bottom = 'auto';
+  joystickZone.style.display = 'block';
+  joystickKnob.style.transform = `translate(0px, 0px)`;
+}, { passive: false });
 
 window.addEventListener("touchmove", (e) => {
   if (!touchInput.active) return;
+  e.preventDefault();
   const t = e.touches[0];
   const dx = t.clientX - touchInput.startX;
   const dy = t.clientY - touchInput.startY;
@@ -1230,7 +1233,7 @@ window.addEventListener("touchmove", (e) => {
 
   touchInput.dx = kx / maxR;
   touchInput.dy = ky / maxR;
-});
+}, { passive: false });
 
 window.addEventListener("touchend", () => {
   touchInput.active = false;
@@ -1239,14 +1242,29 @@ window.addEventListener("touchend", () => {
   joystickKnob.style.transform = `translate(0px, 0px)`;
 });
 
-document.getElementById("start-btn").onclick = () => {
+const startBtn = document.getElementById("start-btn");
+startBtn.addEventListener("click", resetAndStartGame);
+startBtn.addEventListener("touchend", (e) => {
+  e.stopPropagation();
   resetAndStartGame();
-};
+});
 
-window.onload = () => {
+function initApp() {
+  if (window.Telegram && window.Telegram.WebApp) {
+    try {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    } catch(err) {}
+  }
   setupCanvas();
   requestAnimationFrame(gameLoop);
-};
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 </script>
 </body>
 </html>
