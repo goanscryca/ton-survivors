@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Super Mario Bros: World 1-1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace, monospace;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  #game-wrap {
+    position: relative;
+    width: 100vw;
+    max-width: 540px;
+    height: 100vh;
+    background: #5c94fc;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOP RETRO NES HUD */
+  #hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    z-index: 10;
+    color: #fff;
+    text-shadow: 2px 2px #000;
+  }
+  .hud-col { display: flex; flex-direction: column; align-items: center; }
+  .hud-title { font-size: 10px; color: #ffcccb; }
+
+  /* CANVAS */
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* TOUCH CONTROLS (MOBILE ONSCREEN JOYPAD) */
+  #touch-controls {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 18px;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .touch-group {
+    display: flex;
+    gap: 12px;
+    pointer-events: auto;
+  }
+  .touch-btn {
+    width: 58px;
+    height: 58px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 1px 1px #000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    touch-action: none;
+  }
+  .touch-btn:active, .touch-btn.pressed {
+    background: rgba(255, 215, 0, 0.6);
+    border-color: #ffd700;
+    transform: scale(0.94);
+  }
+  .touch-btn.action {
+    background: rgba(220, 38, 38, 0.6);
+    border-color: #f87171;
+  }
+
+  /* OVERLAY (VICTORY / GAME OVER) */
+  #msg-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    z-index: 30;
+    text-align: center;
+    padding: 20px;
+  }
+  #msg-overlay.active { display: flex; }
+  .msg-title { font-size: 28px; font-weight: 900; color: #ffd700; text-shadow: 2px 2px #d97706; }
+  .msg-desc { font-size: 14px; color: #e2e8f0; line-height: 1.6; max-width: 320px; }
+  .btn-restart {
+    background: #10b981;
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    font-size: 16px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrap">
+  <!-- NES HUD -->
+  <div id="hud">
+    <div class="hud-col">
+      <span class="hud-title">MARIO</span>
+      <span id="hud-score">000000</span>
+    </div>
+    <div class="hud-col">
+      <span class="hud-title">COINS</span>
+      <span id="hud-coins">🪙x00</span>
+    </div>
+    <div class="hud-col">
+      <span class="hud-title">WORLD</span>
+      <span>1-1</span>
+    </div>
+    <div class="hud-col">
+      <span class="hud-title">TIME</span>
+      <span id="hud-time">400</span>
+    </div>
+  </div>
+
+  <!-- MAIN RETRO CANVAS -->
+  <canvas id="canvas" width="480" height="270"></canvas>
+
+  <!-- ONSCREEN JOYPAD CONTROLS -->
+  <div id="touch-controls">
+    <!-- D-PAD (LEFT / RIGHT) -->
+    <div class="touch-group">
+      <div class="touch-btn" id="btn-left">◀</div>
+      <div class="touch-btn" id="btn-right">▶</div>
+    </div>
+    <!-- ACTIONS (RUN & JUMP) -->
+    <div class="touch-group">
+      <div class="touch-btn action" id="btn-run" style="font-size:16px;">B</div>
+      <div class="touch-btn action" id="btn-jump" style="font-size:18px; background:rgba(37,99,235,0.7); border-color:#60a5fa;">A</div>
+    </div>
+  </div>
+
+  <!-- GAME OVER / CLEAR MODAL -->
+  <div id="msg-overlay">
+    <div class="msg-title" id="overlay-title">STAGE CLEAR!</div>
+    <div class="msg-desc" id="overlay-desc">Вы успешно прошли первый уровень World 1-1!</div>
+    <button class="btn-restart" onclick="restartLevel()">ИГРАТЬ СНОВА 🍄</button>
+  </div>
+</div>
+
+<script>
+/* -------------------------------------------------------------
+ * 1. 8-BIT CHIPTUNE SOUND ENGINE (WEB AUDIO API)
+ * ------------------------------------------------------------- */
+class RetroAudio {
+  constructor() { this.ctx = null; }
+  init() {
+    try {
+      if (!this.ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) this.ctx = new AudioContext();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    } catch(e) {}
+  }
+  playTone(freq, duration, type='square', vol=0.08) {
+    if (!this.ctx) return;
+    try {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(t); o.stop(t + duration);
+    } catch(e) {}
+  }
+  jump() {
+    if (!this.ctx) return;
+    try {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
+      o.type = 'square';
+      o.frequency.setValueAtTime(160, t);
+      o.frequency.exponentialRampToValueAtTime(580, t + 0.16);
+      g.gain.setValueAtTime(0.09, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(t); o.stop(t + 0.16);
+    } catch(e) {}
+  }
+  coin() {
+    this.playTone(987.77, 0.08, 'square', 0.08); // B5
+    setTimeout(() => this.playTone(1318.51, 0.28, 'square', 0.08), 80); // E6
+  }
+  stomp() {
+    this.playTone(180, 0.1, 'triangle', 0.15);
+  }
+  powerup() {
+    const notes = [330, 392, 659, 523, 587, 784];
+    notes.forEach((n, i) => setTimeout(() => this.playTone(n, 0.08, 'square', 0.06), i * 55));
+  }
+  death() {
+    const notes = [500, 420, 350, 280, 200, 140];
+    notes.forEach((n, i) => setTimeout(() => this.playTone(n, 0.1, 'sawtooth', 0.08), i * 80));
+  }
+  stageClear() {
+    const notes = [523, 659, 784, 1046, 784, 1046];
+    notes.forEach((n, i) => setTimeout(() => this.playTone(n, 0.14, 'square', 0.08), i * 110));
+  }
+}
+const sfx = new RetroAudio();
+
+/* -------------------------------------------------------------
+ * 2. TILEMAP & WORLD 1-1 DEFINITION (Classic SMB layout)
+ * ------------------------------------------------------------- */
+const TILE_SIZE = 16;
+const WORLD_HEIGHT = 15; // 15 tiles vertical = 240px
+// Legend:
+// '.' = empty sky
+// 'G' = ground block
+// 'B' = brick block
+// '?' = question block with coin
+// 'M' = question block with Super Mushroom
+// 'P' = pipe left, 'p' = pipe right, 'T' = pipe top left, 't' = pipe top right
+// 'F' = flagpole, 'C' = castle block
+
+const MAP_DATA = [
+  // 0 to 14 rows
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "....................................................................................................................................................................",
+  "...................................B.?.B............................................................................................................................",
+  "..................?.B?MB.......................................................B.B?B................................................................................",
+  "....................................................................................................................................................................",
+  "............................................Tt..................................................................................................................FFF.",
+  "....................Tt......................Pp...................Tt..........................Tt.................................................................FFF.",
+  "GGGGGGGGGGGGGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGPPGGGGGGGG..GGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGPPGGGGGGGG..GGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGGGGGPPGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+];
+
+const MAP_WIDTH = MAP_DATA[14].length;
+
+/* -------------------------------------------------------------
+ * 3. GAME STATE & MARIO PHYSICS
+ * ------------------------------------------------------------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let score = 0;
+let coins = 0;
+let timeLeft = 400;
+let gameOver = false;
+let stageClear = false;
+
+const mario = {
+  x: 40,
+  y: 190,
+  w: 12,
+  h: 15,
+  vx: 0,
+  vy: 0,
+  speed: 1.9,
+  jumpPower: -5.8,
+  grounded: false,
+  facing: 1, // 1: right, -1: left
+  isSuper: false,
+  invuln: 0
+};
+
+let enemies = [
+  { x: 340, y: 200, w: 14, h: 14, vx: -0.7, vy: 0, alive: true, squishTimer: 0 },
+  { x: 650, y: 200, w: 14, h: 14, vx: -0.7, vy: 0, alive: true, squishTimer: 0 },
+  { x: 820, y: 200, w: 14, h: 14, vx: -0.7, vy: 0, alive: true, squishTimer: 0 },
+  { x: 1200, y: 200, w: 14, h: 14, vx: -0.7, vy: 0, alive: true, squishTimer: 0 }
+];
+
+let items = []; // mushrooms, bouncing coins
+let particles = [];
+let cameraX = 0;
+
+/* -------------------------------------------------------------
+ * 4. INPUT CONTROLS (Keyboard & Touch Joypad)
+ * ------------------------------------------------------------- */
+const keys = { left: false, right: false, jump: false, run: false };
+
+window.addEventListener('keydown', e => {
+  sfx.init();
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'KeyZ') {
+    if (!keys.jump && mario.grounded) {
+      mario.vy = mario.jumpPower;
+      mario.grounded = false;
+      sfx.jump();
+    }
+    keys.jump = true;
+  }
+  if (e.code === 'ShiftLeft' || e.code === 'KeyX') keys.run = true;
+});
+
+window.addEventListener('keyup', e => {
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'KeyZ') keys.jump = false;
+  if (e.code === 'ShiftLeft' || e.code === 'KeyX') keys.run = false;
+});
+
+// Setup Touch Buttons
+function bindTouch(id, kName, isJump=false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const press = (e) => {
+    e.preventDefault();
+    sfx.init();
+    keys[kName] = true;
+    el.classList.add('pressed');
+    if (isJump && mario.grounded) {
+      mario.vy = mario.jumpPower;
+      mario.grounded = false;
+      sfx.jump();
+    }
+  };
+  const release = (e) => {
+    e.preventDefault();
+    keys[kName] = false;
+    el.classList.remove('pressed');
+  };
+  el.addEventListener('touchstart', press, { passive: false });
+  el.addEventListener('touchend', release, { passive: false });
+  el.addEventListener('mousedown', press);
+  el.addEventListener('mouseup', release);
+}
+bindTouch('btn-left', 'left');
+bindTouch('btn-right', 'right');
+bindTouch('btn-run', 'run');
+bindTouch('btn-jump', 'jump', true);
+
+/* -------------------------------------------------------------
+ * 5. COLLISION HELPERS
+ * ------------------------------------------------------------- */
+function getTile(tx, ty) {
+  if (ty < 0 || ty >= MAP_DATA.length || tx < 0 || tx >= MAP_WIDTH) return '.';
+  return MAP_DATA[ty][tx] || '.';
+}
+
+function setTile(tx, ty, char) {
+  if (ty < 0 || ty >= MAP_DATA.length || tx < 0 || tx >= MAP_WIDTH) return;
+  const row = MAP_DATA[ty];
+  MAP_DATA[ty] = row.substring(0, tx) + char + row.substring(tx + 1);
+}
+
+function isSolid(char) {
+  return char === 'G' || char === 'B' || char === '?' || char === 'M' ||
+         char === 'P' || char === 'p' || char === 'T' || char === 't' || char === 'D';
+}
+
+/* -------------------------------------------------------------
+ * 6. GAME LOOP & PHYSICS UPDATE
+ * ------------------------------------------------------------- */
+let lastFrame = 0;
+let timeTicker = 0;
+
+function update(dt) {
+  if (gameOver || stageClear) return;
+
+  // Time countdown
+  timeTicker += dt;
+  if (timeTicker >= 1) {
+    timeTicker -= 1;
+    timeLeft = Math.max(0, timeLeft - 1);
+    document.getElementById('hud-time').innerText = String(timeLeft).padStart(3, '0');
+    if (timeLeft === 0) { killMario(); return; }
+  }
+
+  // Mario Horizontal Movement
+  const targetSpeed = keys.run ? mario.speed * 1.5 : mario.speed;
+  if (keys.left) {
+    mario.vx = Math.max(-targetSpeed, mario.vx - 0.25);
+    mario.facing = -1;
+  } else if (keys.right) {
+    mario.vx = Math.min(targetSpeed, mario.vx + 0.25);
+    mario.facing = 1;
+  } else {
+    mario.vx *= 0.8;
+    if (Math.abs(mario.vx) < 0.05) mario.vx = 0;
+  }
+
+  // Gravity
+  mario.vy = Math.min(6.5, mario.vy + 0.32);
+
+  // Horizontal Collision
+  mario.x += mario.vx;
+  resolveCollision(mario, true);
+
+  // Vertical Collision
+  mario.grounded = false;
+  mario.y += mario.vy;
+  resolveCollision(mario, false);
+
+  // Fall into abyss
+  if (mario.y > 280) { killMario(); return; }
+
+  // Mario invulnerability countdown
+  if (mario.invuln > 0) mario.invuln -= dt;
+
+  // Camera smooth follow (NES style: only forward)
+  if (mario.x - cameraX > 200) {
+    cameraX = mario.x - 200;
+  }
+
+  // Flagpole check (x around 2360)
+  if (mario.x >= (MAP_WIDTH - 15) * TILE_SIZE) {
+    winStage();
+    return;
+  }
+
+  // Update Enemies
+  enemies.forEach(e => {
+    if (!e.alive) {
+      if (e.squishTimer > 0) e.squishTimer -= dt;
+      return;
+    }
+    e.x += e.vx;
+    // Enemy collision with walls/pipes
+    const tx = Math.floor((e.vx > 0 ? e.x + e.w : e.x) / TILE_SIZE);
+    const ty = Math.floor((e.y + e.h / 2) / TILE_SIZE);
+    if (isSolid(getTile(tx, ty))) {
+      e.vx = -e.vx;
+    }
+
+    // Mario vs Enemy Collision
+    if (checkAABB(mario, e)) {
+      if (mario.vy > 0 && mario.y + mario.h - mario.vy <= e.y + 6) {
+        // Stomp enemy!
+        e.alive = false;
+        e.squishTimer = 0.5;
+        mario.vy = -3.8; // bounce
+        sfx.stomp();
+        addScore(100);
+      } else if (mario.invuln <= 0) {
+        if (mario.isSuper) {
+          mario.isSuper = false;
+          mario.h = 15;
+          mario.invuln = 1.5;
+          sfx.stomp();
+        } else {
+          killMario();
+        }
+      }
+    }
+  });
+
+  // Update Items (Mushroom)
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    if (it.type === 'mushroom') {
+      it.vy = Math.min(4, it.vy + 0.25);
+      it.x += it.vx;
+      it.y += it.vy;
+
+      // Ground collision for mushroom
+      const btx = Math.floor((it.x + it.w / 2) / TILE_SIZE);
+      const bty = Math.floor((it.y + it.h) / TILE_SIZE);
+      if (isSolid(getTile(btx, bty))) {
+        it.y = bty * TILE_SIZE - it.h;
+        it.vy = 0;
+      }
+      // Wall reverse
+      const wtx = Math.floor((it.vx > 0 ? it.x + it.w : it.x) / TILE_SIZE);
+      if (isSolid(getTile(wtx, Math.floor((it.y + 4) / TILE_SIZE)))) {
+        it.vx = -it.vx;
+      }
+
+      // Collect mushroom!
+      if (checkAABB(mario, it)) {
+        mario.isSuper = true;
+        mario.h = 24;
+        mario.y -= 9;
+        addScore(1000);
+        sfx.powerup();
+        items.splice(i, 1);
+      }
+    }
+  }
+
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function resolveCollision(entity, horizontal) {
+  const leftTile = Math.floor(entity.x / TILE_SIZE);
+  const rightTile = Math.floor((entity.x + entity.w - 0.1) / TILE_SIZE);
+  const topTile = Math.floor(entity.y / TILE_SIZE);
+  const bottomTile = Math.floor((entity.y + entity.h - 0.1) / TILE_SIZE);
+
+  for (let ty = topTile; ty <= bottomTile; ty++) {
+    for (let tx = leftTile; tx <= rightTile; tx++) {
+      const tile = getTile(tx, ty);
+      if (isSolid(tile)) {
+        if (horizontal) {
+          if (entity.vx > 0) {
+            entity.x = tx * TILE_SIZE - entity.w;
+          } else if (entity.vx < 0) {
+            entity.x = (tx + 1) * TILE_SIZE;
+          }
+          entity.vx = 0;
+        } else {
+          if (entity.vy > 0) {
+            entity.y = ty * TILE_SIZE - entity.h;
+            entity.grounded = true;
+          } else if (entity.vy < 0) {
+            entity.y = (ty + 1) * TILE_SIZE;
+            hitBlock(tx, ty, tile);
+          }
+          entity.vy = 0;
+        }
+      }
+    }
+  }
+}
+
+function hitBlock(tx, ty, tile) {
+  if (tile === '?') {
+    setTile(tx, ty, 'D'); // D = Empty / Dead Block
+    coins++;
+    addScore(200);
+    sfx.coin();
+    document.getElementById('hud-coins').innerText = `🪙x${String(coins).padStart(2, '0')}`;
+    // Spawn coin particle
+    particles.push({
+      x: tx * TILE_SIZE + 4, y: ty * TILE_SIZE - 12,
+      vx: 0, vy: -3, life: 0.35, color: '#ffd700', size: 8
+    });
+  } else if (tile === 'M') {
+    setTile(tx, ty, 'D');
+    sfx.powerup();
+    // Spawn Super Mushroom
+    items.push({
+      x: tx * TILE_SIZE,
+      y: (ty - 1) * TILE_SIZE,
+      w: 14,
+      h: 14,
+      vx: 1.1,
+      vy: -1.5,
+      type: 'mushroom'
+    });
+  } else if (tile === 'B') {
+    if (mario.isSuper) {
+      setTile(tx, ty, '.'); // Smash brick!
+      sfx.stomp();
+      addScore(50);
+      for (let k = 0; k < 4; k++) {
+        particles.push({
+          x: tx * TILE_SIZE + 4, y: ty * TILE_SIZE + 4,
+          vx: (Math.random() - 0.5) * 4, vy: -2 - Math.random() * 2,
+          life: 0.5, color: '#d85600', size: 5
+        });
+      }
+    } else {
+      sfx.stomp(); // bump sound
+    }
+  }
+}
+
+function checkAABB(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function addScore(pts) {
+  score += pts;
+  document.getElementById('hud-score').innerText = String(score).padStart(6, '0');
+  // Save highscore for Nexus Hub
+  localStorage.setItem('mario_score', score);
+}
+
+function killMario() {
+  gameOver = true;
+  sfx.death();
+  document.getElementById('overlay-title').innerText = 'GAME OVER';
+  document.getElementById('overlay-desc').innerText = `Марио потерял все жизни на World 1-1. Счёт: ${score}`;
+  document.getElementById('msg-overlay').classList.add('active');
+}
+
+function winStage() {
+  stageClear = true;
+  sfx.stageClear();
+  addScore(1000 + timeLeft * 50);
+  document.getElementById('overlay-title').innerText = 'STAGE CLEAR!';
+  document.getElementById('overlay-desc').innerText = `Поздравляем! Первый уровень World 1-1 успешно пройден!\nИтоговый счёт: ${score}`;
+  document.getElementById('msg-overlay').classList.add('active');
+}
+
+function restartLevel() {
+  document.getElementById('msg-overlay').classList.remove('active');
+  location.reload();
+}
+
+/* -------------------------------------------------------------
+ * 7. RENDERING ENGINE (AUTHENTIC PIXEL GRAPHICS)
+ * ------------------------------------------------------------- */
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(-Math.floor(cameraX), 0);
+
+  // 1. Draw Clouds and Bushes in Background
+  drawBackgroundDeco();
+
+  // 2. Draw Tiles
+  const startCol = Math.max(0, Math.floor(cameraX / TILE_SIZE));
+  const endCol = Math.min(MAP_WIDTH, startCol + 32);
+
+  for (let ty = 0; ty < MAP_DATA.length; ty++) {
+    for (let tx = startCol; tx < endCol; tx++) {
+      const tile = getTile(tx, ty);
+      const px = tx * TILE_SIZE;
+      const py = ty * TILE_SIZE;
+
+      if (tile === 'G') {
+        // Ground brick
+        ctx.fillStyle = '#d85600';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, 2);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(px, py + TILE_SIZE - 1, TILE_SIZE, 1);
+        ctx.fillRect(px + TILE_SIZE - 1, py, 1, TILE_SIZE);
+      } else if (tile === 'B') {
+        // Brick block
+        ctx.fillStyle = '#d85600';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = '#000';
+        ctx.strokeRect(px + 0.5, py + 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
+      } else if (tile === '?' || tile === 'M') {
+        // Question mark block
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = '#000';
+        ctx.strokeRect(px + 0.5, py + 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('?', px + 4, py + 12);
+      } else if (tile === 'D') {
+        // Empty brown block
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(px + 0.5, py + 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
+      } else if (tile === 'T' || tile === 't' || tile === 'P' || tile === 'p') {
+        // Green Pipe
+        ctx.fillStyle = '#00a800';
+        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = '#80d010';
+        ctx.fillRect(px + 2, py, 3, TILE_SIZE);
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(px + 0.5, py + 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
+      } else if (tile === 'F') {
+        // Flagpole
+        ctx.fillStyle = '#000';
+        ctx.fillRect(px + 7, py, 2, TILE_SIZE);
+        if (ty === 1) {
+          // Ball top
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath(); ctx.arc(px + 8, py + 3, 4, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+  }
+
+  // 3. Draw Items (Super Mushroom)
+  items.forEach(it => {
+    if (it.type === 'mushroom') {
+      ctx.fillStyle = '#e11d48'; // Red cap
+      ctx.beginPath();
+      ctx.arc(it.x + 7, it.y + 6, 7, Math.PI, 0, false);
+      ctx.fill();
+      ctx.fillStyle = '#fff'; // Spots
+      ctx.fillRect(it.x + 3, it.y + 2, 3, 3);
+      ctx.fillRect(it.x + 8, it.y + 2, 3, 3);
+      ctx.fillStyle = '#fde047'; // Stem
+      ctx.fillRect(it.x + 3, it.y + 6, 8, 8);
+    }
+  });
+
+  // 4. Draw Enemies (Goombas)
+  enemies.forEach(e => {
+    if (!e.alive) {
+      if (e.squishTimer > 0) {
+        // Squished flat goomba
+        ctx.fillStyle = '#a16207';
+        ctx.fillRect(e.x, e.y + 10, e.w, 4);
+      }
+      return;
+    }
+    // Brown walking Goomba
+    ctx.fillStyle = '#b45309';
+    ctx.beginPath();
+    ctx.arc(e.x + 7, e.y + 7, 7, 0, Math.PI * 2);
+    ctx.fill();
+    // Goomba Eyes
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(e.x + 2, e.y + 4, 3, 4);
+    ctx.fillRect(e.x + 8, e.y + 4, 3, 4);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(e.x + 3, e.y + 5, 2, 3);
+    ctx.fillRect(e.x + 9, e.y + 5, 2, 3);
+    // Feet
+    ctx.fillStyle = '#000';
+    ctx.fillRect(e.x, e.y + 11, 4, 3);
+    ctx.fillRect(e.x + 9, e.y + 11, 4, 3);
+  });
+
+  // 5. Draw Mario
+  if (mario.invuln <= 0 || Math.floor(Date.now() / 80) % 2 === 0) {
+    drawMarioSprite(mario.x, mario.y, mario.w, mario.h, mario.facing, mario.isSuper);
+  }
+
+  // 6. Draw Particles
+  particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  });
+
+  ctx.restore();
+}
+
+function drawMarioSprite(x, y, w, h, facing, isSuper) {
+  ctx.save();
+  ctx.translate(x + w / 2, y);
+  if (facing < 0) ctx.scale(-1, 1);
+
+  // Red Cap
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(-6, 0, 12, 4);
+  ctx.fillRect(-3, -2, 7, 3);
+
+  // Face / Skin
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(-6, 4, 10, 5);
+  // Mustache & Eye
+  ctx.fillStyle = '#000';
+  ctx.fillRect(1, 4, 2, 2); // eye
+  ctx.fillRect(0, 7, 6, 2); // mustache
+
+  if (isSuper) {
+    // Super Mario Overalls (Blue + Red Shirt)
+    ctx.fillStyle = '#e11d48'; // Red sleeves
+    ctx.fillRect(-6, 9, 12, 6);
+    ctx.fillStyle = '#2563eb'; // Blue overalls
+    ctx.fillRect(-4, 11, 8, 8);
+    // Shoes
+    ctx.fillStyle = '#854d0e';
+    ctx.fillRect(-5, 19, 4, 5);
+    ctx.fillRect(1, 19, 5, 5);
+  } else {
+    // Small Mario Overalls
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(-5, 9, 10, 5);
+    // Shoes
+    ctx.fillStyle = '#854d0e';
+    ctx.fillRect(-5, 13, 4, 2);
+    ctx.fillRect(1, 13, 4, 2);
+  }
+
+  ctx.restore();
+}
+
+function drawBackgroundDeco() {
+  // Classic Mario clouds
+  ctx.fillStyle = '#ffffff';
+  for (let c = 0; c < 15; c++) {
+    const cx = c * 220 + 80;
+    const cy = 45 + (c % 2) * 25;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+    ctx.arc(cx + 12, cy - 4, 18, 0, Math.PI * 2);
+    ctx.arc(cx + 26, cy, 14, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function tick(timestamp) {
+  if (!lastFrame) lastFrame = timestamp;
+  const dt = Math.min(0.05, (timestamp - lastFrame) / 1000);
+  lastFrame = timestamp;
+
+  update(dt);
+  draw();
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// Telegram WebApp Auto-expand
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://telegram.org/js/telegram-web-app.js';
+  s.async = true;
+  s.onload = function() {
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+      }
+    } catch(e) {}
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

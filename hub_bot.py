@@ -12,6 +12,7 @@ import urllib.parse
 import time
 
 HUB_URL = "https://goanscryca.github.io/ton-survivors/hub.html"
+MARIO_URL = "https://goanscryca.github.io/ton-survivors/mario.html"
 BATTLER_URL = "https://goanscryca.github.io/ton-survivors/battler.html"
 TYCOON_URL = "https://goanscryca.github.io/ton-survivors/tycoon.html"
 SURVIVORS_URL = "https://goanscryca.github.io/ton-survivors/"
@@ -54,15 +55,18 @@ def send_welcome(token: str, chat_id: int, first_name: str):
     text = (
         f"Добро пожаловать в **Nexus Hub**, {first_name}! 🌌\n\n"
         "🏛️ **Единый центр Web3-игр, приложений и маркетплейса:**\n\n"
-        "• Чистая витрина, готовая к запуску новых проектов и сервисов\n"
+        "• 🍄 **Super Mario: World 1-1** — первый уровень легендарного платформера с монетами, грибами и Гумбами!\n"
         "• Единый профиль: аватарка, никнейм, статус и привязка кошелька\n"
-        "• Магазин: прямые Web3-платежи и донаты на кошельки\n\n"
-        "Нажми **«ОТКРЫТЬ NEXUS HUB»** ниже для входа 👇"
+        "• Магазин: Web3-платежи и донаты на личные кошельки\n\n"
+        "Нажми **«ОТКРЫТЬ NEXUS HUB»** или запускай Марио прямо сейчас 👇"
     )
     keyboard = {
         "inline_keyboard": [
             [
                 {"text": "🌌 ОТКРЫТЬ NEXUS HUB 🚀", "web_app": {"url": HUB_URL}}
+            ],
+            [
+                {"text": "🍄 Играть в Super Mario 1-1", "web_app": {"url": MARIO_URL}}
             ]
         ]
     }
