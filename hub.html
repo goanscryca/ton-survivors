@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Nexus: Web3 Games & Apps Hub</title>
+<style>
+  :root {
+    --bg-dark: #090c15;
+    --bg-card: #121829;
+    --bg-card-hover: #18223a;
+    --bg-panel: #0d1322;
+    --cyan: #00d2ff;
+    --purple: #a855f7;
+    --gold: #ffd700;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --text-muted: #8b9bb4;
+    --border: rgba(0, 210, 255, 0.14);
+    --border-card: rgba(255, 255, 255, 0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #app {
+    width: 100vw;
+    max-width: 480px;
+    height: 100vh;
+    background: #080b14;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+  }
+
+  /* TOP HEADER BAR */
+  header {
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 30;
+    flex-shrink: 0;
+  }
+  .brand {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-wallet-btn {
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* MAIN TAB VIEW CONTAINER */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    padding-bottom: 80px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: flex; flex-direction: column; gap: 14px; }
+
+  /* SECTION TITLE & BANNERS */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .hero-banner {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.18), rgba(168, 85, 247, 0.22));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-badge {
+    background: var(--cyan);
+    color: #000;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 10px;
+    align-self: flex-start;
+  }
+  .hero-title { font-size: 17px; font-weight: 900; }
+  .hero-desc { font-size: 11px; color: #c4cfde; line-height: 1.4; }
+
+  /* ITEM CARDS (GAMES & APPS) */
+  .catalog-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .catalog-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    transition: transform 0.1s, border-color 0.15s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .catalog-card:active { transform: scale(0.98); }
+  .card-icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #19223a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-genre {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .card-stats-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 2px;
+  }
+  .level-badge {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .btn-play {
+    background: linear-gradient(135deg, var(--cyan), #0077b6);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* SHOP VIEW CARDS */
+  .shop-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .shop-title { font-size: 14px; font-weight: 900; }
+  .shop-price { font-size: 13px; font-weight: 900; color: var(--gold); }
+  .shop-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .btn-buy {
+    background: linear-gradient(135deg, var(--purple), #6366f1);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(168, 85, 247, 0.25);
+  }
+
+  /* -------------------------------------------------------------
+   * PROFILE VIEW STYLING
+   * ------------------------------------------------------------- */
+  .profile-header-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .avatar-wrap {
+    position: relative;
+    cursor: pointer;
+  }
+  .avatar-img {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #18223a;
+    border: 2px solid var(--cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+  }
+  .avatar-edit-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: var(--cyan);
+    color: #000;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-weight: 900;
+  }
+  .profile-user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .profile-username {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text);
+  }
+  .profile-bio {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+
+  /* EDIT PROFILE FORM BOX */
+  .form-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .form-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+  .form-input {
+    background: #090d18;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--cyan); }
+
+  /* AVATAR PICKER ROW */
+  .avatar-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+  .avatar-option {
+    background: #18223a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+  }
+  .avatar-option.selected {
+    border-color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* BOTTOM NAVIGATION BAR */
+  nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    z-index: 40;
+  }
+  .nav-item {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .nav-item .icon { font-size: 18px; }
+  .nav-item.active {
+    color: var(--cyan);
+  }
+  .nav-item.active .icon {
+    transform: translateY(-2px);
+    text-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 7, 14, 0.92);
+    backdrop-filter: blur(8px);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #0f152a;
+    border: 1px solid var(--cyan);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 0 35px rgba(0, 210, 255, 0.25);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header>
+    <div class="brand">
+      <span>🌌 NEXUS HUB</span>
+    </div>
+    <button class="header-wallet-btn" onclick="switchTab('profile')">
+      <span>👛</span>
+      <span id="top-wallet-display">Подключить</span>
+    </button>
+  </header>
+
+  <!-- MAIN TAB CONTENT PANES -->
+  <main>
+
+    <!-- 1. GAMES TAB (ИГРЫ) -->
+    <div id="tab-games" class="tab-pane active">
+      <div class="hero-banner">
+        <div class="hero-badge">ХИТ СЕЗОНА</div>
+        <div class="hero-title">Space Syndicate: Modular Fleet</div>
+        <div class="hero-desc">
+          Космический автобатлер с собственной верфью, синергиями и экономикой слияния звёзд.
+        </div>
+        <button class="btn-play" style="align-self:flex-start;" onclick="launch('battler.html')">ИГРАТЬ СЕЙЧАС 🚀</button>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">🎮 Каталог игр</div>
+        <div class="section-subtitle">5 доступно</div>
+      </div>
+
+      <div class="catalog-grid" id="games-catalog"></div>
+    </div>
+
+    <!-- 2. APPS TAB (ПРИЛОЖЕНИЯ) -->
+    <div id="tab-apps" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title">📱 Web3 Приложения & Утилиты</div>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted);">
+        Инструменты для инвесторов, охотников за баунти и пользователей экосистемы Telegram.
+      </p>
+
+      <div class="catalog-grid" id="apps-catalog"></div>
+    </div>
+
+    <!-- 3. SHOP TAB (МАГАЗИН) -->
+    <div id="tab-shop" class="tab-pane">
+      <div class="section-header">
+        <div class="section-title">🛍️ Игровой Маркетплейс</div>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted);">
+        Единый доступ к VIP-статусам, боевым пропускам и бустерам во всех играх Nexus.
+      </p>
+
+      <div class="catalog-grid">
+        <div class="shop-card">
+          <div class="shop-header">
+            <div class="shop-title">💎 Nexus All-Access Pass</div>
+            <div class="shop-price">0.5 TON / $2.5 SOL</div>
+          </div>
+          <div class="shop-desc">
+            Разблокирует VIP-скины во всех играх, +50% офлайн-доход в тайкуне и флагманский щит в автобатлере.
+          </div>
+          <button class="btn-buy" onclick="openPayment('pass')">КУПИТЬ В 1 КЛИК ⚡</button>
+        </div>
+
+        <div class="shop-card">
+          <div class="shop-header">
+            <div class="shop-title">⚛️ Квантовый Микро-Реактор</div>
+            <div class="shop-price">0.2 TON</div>
+          </div>
+          <div class="shop-desc">
+            Вечные +1000 kW энергии для майнинг-фермы в Cyber-Mining Tycoon.
+          </div>
+          <button class="btn-buy" onclick="openPayment('reactor')">КУПИТЬ ⚡</button>
+        </div>
+
+        <div class="shop-card">
+          <div class="shop-header">
+            <div class="shop-title">☕ Поддержка разработчика</div>
+            <div class="shop-price">Любая сумма</div>
+          </div>
+          <div class="shop-desc">
+            Прямой перевод на кошельки TON, Solana или EVM (Base/Arbitrum).
+          </div>
+          <button class="btn-buy" style="background:#20283e;" onclick="openPayment('donate')">ОТКРЫТЬ КОШЕЛЬКИ 💳</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PROFILE TAB (ПРОФИЛЬ) -->
+    <div id="tab-profile" class="tab-pane">
+      
+      <!-- Profile Card -->
+      <div class="profile-header-card">
+        <div class="avatar-wrap" onclick="openAvatarModal()">
+          <div class="avatar-img" id="prof-avatar-preview">👾</div>
+          <div class="avatar-edit-badge">✎</div>
+        </div>
+        <div class="profile-user-info">
+          <div class="profile-username" id="prof-name-display">Commander</div>
+          <div class="profile-bio" id="prof-bio-display">Пилот флота и квантовый майнер в Nexus.</div>
+          <div style="font-size:10px; color:var(--cyan); font-weight:800; margin-top:2px;" id="prof-wallet-display">
+            Кошелёк: Не привязан
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & Edit Form -->
+      <div class="form-box">
+        <div class="form-label">⚙️ Редактирование Профиля</div>
+
+        <label style="font-size:11px; color:var(--text-muted);">Никнейм / Логин:</label>
+        <input type="text" id="input-username" class="form-input" placeholder="Введите ваш никнейм">
+
+        <label style="font-size:11px; color:var(--text-muted);">О себе (Био):</label>
+        <textarea id="input-bio" class="form-input" rows="2" style="resize:none;" placeholder="Пара слов о себе..."></textarea>
+
+        <label style="font-size:11px; color:var(--text-muted);">Привязать кошелёк (TON / SOL / EVM):</label>
+        <input type="text" id="input-wallet" class="form-input" placeholder="UQDPtZOk... или 0x...">
+
+        <button class="btn-play" style="margin-top:4px;" onclick="saveProfile()">СОХРАНИТЬ ДАННЫЕ 💾</button>
+      </div>
+
+      <!-- Connected Games List with Player Level -->
+      <div class="section-header" style="margin-top:6px;">
+        <div class="section-title">🏆 Мои игры и уровень</div>
+      </div>
+      <div class="catalog-grid" id="profile-games-list"></div>
+
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav>
+    <button class="nav-item active" onclick="switchTab('games')">
+      <span class="icon">🎮</span>
+      <span>Игры</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('apps')">
+      <span class="icon">📱</span>
+      <span>Приложения</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('shop')">
+      <span class="icon">🛍️</span>
+      <span>Магазин</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('profile')">
+      <span class="icon">👤</span>
+      <span>Профиль</span>
+    </button>
+  </nav>
+
+  <!-- AVATAR PICKER MODAL -->
+  <div id="avatar-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="font-size:16px; font-weight:900; margin-bottom:12px; color:var(--cyan);">ВЫБЕРИТЕ АВАТАРКУ</h3>
+      <div class="avatar-picker" id="avatar-picker-grid"></div>
+      <button class="btn-play" style="width:100%; margin-top:14px; background:#20283e;" onclick="closeAvatarModal()">ЗАКРЫТЬ</button>
+    </div>
+  </div>
+
+  <!-- PAYMENT & WALLET MODAL -->
+  <div id="payment-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 id="pay-title" style="font-size:15px; font-weight:900; color:var(--cyan);">ОПЛАТА НА КОШЕЛЁК</h3>
+        <span onclick="closePayment()" style="cursor:pointer; font-size:18px; color:var(--text-muted);">✕</span>
+      </div>
+      <p id="pay-desc" style="font-size:11px; color:var(--text-muted); margin-bottom:12px;"></p>
+
+      <a id="ton-link" href="#" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:6px; background:#0098ea; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:800; font-size:12px; margin-bottom:10px;">
+        💎 Открыть в Tonkeeper / Wallet
+      </a>
+
+      <div style="font-size:10px; color:var(--cyan); font-weight:800; text-align:left; margin-bottom:2px;">АДРЕС TON:</div>
+      <div style="background:rgba(255,255,255,0.06); padding:6px; border-radius:6px; font-family:monospace; font-size:9px; word-break:break-all; margin-bottom:8px; cursor:pointer;" onclick="copyAddr('UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ')">
+        UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ 📋
+      </div>
+
+      <div style="font-size:10px; color:var(--purple); font-weight:800; text-align:left; margin-bottom:2px;">АДРЕС SOLANA:</div>
+      <div style="background:rgba(255,255,255,0.06); padding:6px; border-radius:6px; font-family:monospace; font-size:9px; word-break:break-all; margin-bottom:8px; cursor:pointer;" onclick="copyAddr('55D4Wx4ceLfgtQbNKnN97z5wEr55itibzEL83ANWqn1u')">
+        55D4Wx4ceLfgtQbNKnN97z5wEr55itibzEL83ANWqn1u 📋
+      </div>
+
+      <button class="btn-play" style="width:100%; background:#20283e; margin-top:4px;" onclick="closePayment()">ЗАКРЫТЬ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* -------------------------------------------------------------
+ * 1. HUB DATA & CATALOG
+ * ------------------------------------------------------------- */
+const GAMES = [
+  {
+    id: 'battler',
+    title: 'Space Syndicate',
+    genre: 'Космический автобатлер & Верфь',
+    icon: '🌌',
+    url: 'battler.html',
+    badge: 'NEW',
+    levelKey: 'space_battler_level',
+    defaultLevel: 1
+  },
+  {
+    id: 'tycoon',
+    title: 'Cyber-Mining Tycoon',
+    genre: 'Дата-центр, охлаждение, DEX',
+    icon: '⚡',
+    url: 'tycoon.html',
+    badge: 'ЭКОНОМИКА',
+    levelKey: 'tycoon_level',
+    defaultLevel: 1
+  },
+  {
+    id: 'survivors',
+    title: 'TON Survivors',
+    genre: 'Rogue-lite экшен на 10 волн',
+    icon: '⚔️',
+    url: 'index.html',
+    badge: 'ТОП',
+    levelKey: 'survivors_wave',
+    defaultLevel: 1
+  },
+  {
+    id: 'runner',
+    title: 'TON Runner: Neon Highway',
+    genre: '3D кибер-раннер с препятствиями',
+    icon: '🏃',
+    url: 'runner.html',
+    badge: 'АРКАДА',
+    levelKey: 'runner_score',
+    defaultLevel: 1
+  },
+  {
+    id: 'flappy',
+    title: 'TON Flappy: Cyber Flight',
+    genre: 'Неоновая аркада на реакцию',
+    icon: '🐦',
+    url: 'flappy.html',
+    badge: 'АРКАДА',
+    levelKey: 'flappy_best',
+    defaultLevel: 1
+  }
+];
+
+const APPS = [
+  {
+    id: 'portfolio',
+    title: 'Crypto Portfolio Radar',
+    desc: 'Трекер портфеля в сетях TON, Base, Solana и Arbitrum',
+    icon: '📊',
+    tag: 'ФИНАНСЫ',
+    status: 'БЕТА'
+  },
+  {
+    id: 'bounty',
+    title: 'AI Bounty Scout',
+    desc: 'Радар открытых крипто-баунти для разработчиков и агентов',
+    icon: '🤖',
+    tag: 'ЗАРАБОТОК',
+    status: 'СКОРО'
+  },
+  {
+    id: 'gas',
+    title: 'Multi-Chain Gas Watcher',
+    desc: 'Мониторинг копеечных комиссий за транзакции в реальном времени',
+    icon: '⛽',
+    tag: 'УТИЛИТА',
+    status: 'СКОРО'
+  }
+];
+
+const AVATARS = ['👾', '🤖', '🛸', '🚀', '🦊', '⚡', '👑', '🧙‍♂️', '🥷', '🌌', '💎', '🔥'];
+
+/* -------------------------------------------------------------
+ * 2. USER PROFILE STATE (LocalStorage Persisted)
+ * ------------------------------------------------------------- */
+const profile = {
+  username: 'Commander',
+  bio: 'Пилот флота и квантовый майнер в Nexus.',
+  wallet: '',
+  avatar: '👾'
+};
+
+function loadProfile() {
+  const saved = localStorage.getItem('nexus_hub_profile');
+  if (saved) {
+    try { Object.assign(profile, JSON.parse(saved)); } catch(e) {}
+  }
+  // Try get Telegram username
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+    const u = window.Telegram.WebApp.initDataUnsafe.user;
+    if (u && (!saved || profile.username === 'Commander')) {
+      profile.username = u.username ? '@' + u.username : (u.first_name || 'Player');
+    }
+  }
+  renderProfileUI();
+}
+
+function saveProfile() {
+  const u = document.getElementById('input-username').value.trim();
+  const b = document.getElementById('input-bio').value.trim();
+  const w = document.getElementById('input-wallet').value.trim();
+
+  if (u) profile.username = u;
+  profile.bio = b;
+  profile.wallet = w;
+
+  localStorage.setItem('nexus_hub_profile', JSON.stringify(profile));
+  renderProfileUI();
+  showToast('Профиль успешно обновлен! ✨');
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('hub-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'hub-toast';
+    toast.style.position = 'fixed';
+    toast.style.bottom = '75px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(0, 210, 255, 0.95)';
+    toast.style.color = '#000';
+    toast.style.padding = '8px 16px';
+    toast.style.borderRadius = '20px';
+    toast.style.fontWeight = '800';
+    toast.style.fontSize = '12px';
+    toast.style.zIndex = '999';
+    toast.style.boxShadow = '0 0 15px rgba(0, 210, 255, 0.5)';
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { if (toast) toast.style.display = 'none'; }, 2200);
+}
+
+function renderProfileUI() {
+  document.getElementById('prof-avatar-preview').innerText = profile.avatar;
+  document.getElementById('prof-name-display').innerText = profile.username;
+  document.getElementById('prof-bio-display').innerText = profile.bio || 'Нет описания';
+  
+  const wDisp = document.getElementById('prof-wallet-display');
+  const topW = document.getElementById('top-wallet-display');
+  if (profile.wallet) {
+    const shortW = profile.wallet.slice(0, 4) + '...' + profile.wallet.slice(-4);
+    wDisp.innerText = `Кошелёк: ${shortW}`;
+    topW.innerText = shortW;
+  } else {
+    wDisp.innerText = 'Кошелёк: Не привязан';
+    topW.innerText = 'Подключить';
+  }
+
+  document.getElementById('input-username').value = profile.username;
+  document.getElementById('input-bio').value = profile.bio;
+  document.getElementById('input-wallet').value = profile.wallet;
+
+  renderProfileGamesList();
+}
+
+function renderProfileGamesList() {
+  const c = document.getElementById('profile-games-list');
+  c.innerHTML = GAMES.map(g => {
+    // Read player level for this game from localStorage
+    let lvl = localStorage.getItem(g.levelKey) || g.defaultLevel;
+    return `
+      <div class="catalog-card">
+        <div class="card-icon-box">${g.icon}</div>
+        <div class="card-info">
+          <div class="card-title">${g.title}</div>
+          <div class="card-genre">${g.genre}</div>
+          <div class="card-stats-row">
+            <span class="level-badge">⭐ Уровень: ${lvl}</span>
+          </div>
+        </div>
+        <button class="btn-play" onclick="launch('${g.url}')">ИГРАТЬ ▶</button>
+      </div>
+    `;
+  }).join('');
+}
+
+/* -------------------------------------------------------------
+ * 3. RENDER CATALOGS (GAMES & APPS)
+ * ------------------------------------------------------------- */
+function renderCatalogs() {
+  // Games
+  const gContainer = document.getElementById('games-catalog');
+  gContainer.innerHTML = GAMES.map(g => {
+    let lvl = localStorage.getItem(g.levelKey) || g.defaultLevel;
+    return `
+      <div class="catalog-card">
+        <div class="card-icon-box">${g.icon}</div>
+        <div class="card-info">
+          <div class="card-title-row">
+            <div class="card-title">${g.title}</div>
+            <span style="font-size:9px; font-weight:800; color:var(--cyan);">${g.badge}</span>
+          </div>
+          <div class="card-genre">${g.genre}</div>
+          <div class="card-stats-row">
+            <span class="level-badge">Ур. игрока: ${lvl}</span>
+          </div>
+        </div>
+        <button class="btn-play" onclick="launch('${g.url}')">ИГРАТЬ ▶</button>
+      </div>
+    `;
+  }).join('');
+
+  // Apps
+  const aContainer = document.getElementById('apps-catalog');
+  aContainer.innerHTML = APPS.map(a => `
+    <div class="catalog-card">
+      <div class="card-icon-box" style="background:#131c31;">${a.icon}</div>
+      <div class="card-info">
+        <div class="card-title-row">
+          <div class="card-title">${a.title}</div>
+          <span style="font-size:9px; font-weight:800; color:var(--gold);">${a.status}</span>
+        </div>
+        <div class="card-genre">${a.desc}</div>
+      </div>
+      <button class="btn-play" style="background:#20293f; color:#8b9bb4;" onclick="alert('Приложение в процессе деплоя!')">ОТКРЫТЬ</button>
+    </div>
+  `).join('');
+}
+
+function launch(url) {
+  window.location.href = url;
+}
+
+/* -------------------------------------------------------------
+ * 4. TABS & AVATAR PICKER
+ * ------------------------------------------------------------- */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+  const t = document.getElementById(`tab-${tab}`);
+  if (t) t.classList.add('active');
+
+  const idx = ['games', 'apps', 'shop', 'profile'].indexOf(tab);
+  if (idx !== -1) {
+    document.querySelectorAll('.nav-item')[idx].classList.add('active');
+  }
+}
+
+function openAvatarModal() {
+  const g = document.getElementById('avatar-picker-grid');
+  g.innerHTML = AVATARS.map(av => `
+    <div class="avatar-option ${profile.avatar === av ? 'selected' : ''}" onclick="selectAvatar('${av}')">${av}</div>
+  `).join('');
+  document.getElementById('avatar-modal').classList.add('active');
+}
+
+function selectAvatar(av) {
+  profile.avatar = av;
+  localStorage.setItem('nexus_hub_profile', JSON.stringify(profile));
+  renderProfileUI();
+  closeAvatarModal();
+}
+
+function closeAvatarModal() {
+  document.getElementById('avatar-modal').classList.remove('active');
+}
+
+/* -------------------------------------------------------------
+ * 5. PAYMENT MODAL
+ * ------------------------------------------------------------- */
+function openPayment(type) {
+  const m = document.getElementById('payment-modal');
+  const t = document.getElementById('pay-title');
+  const d = document.getElementById('pay-desc');
+  const link = document.getElementById('ton-link');
+
+  const tonAddress = 'UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ';
+
+  if (type === 'pass') {
+    t.innerText = '💎 NEXUS ALL-ACCESS PASS';
+    d.innerText = 'Цена: 0.5 TON ($2.5). Открой в Tonkeeper или переведи на кошелёк с комментарием "HUB_PASS".';
+    link.href = `ton://transfer/${tonAddress}?amount=500000000&text=HUB_PASS`;
+  } else if (type === 'reactor') {
+    t.innerText = '⚛️ КВАНТОВЫЙ РЕАКТОР';
+    d.innerText = 'Цена: 0.2 TON ($1). Комментарий "REACTOR".';
+    link.href = `ton://transfer/${tonAddress}?amount=200000000&text=REACTOR`;
+  } else {
+    t.innerText = '☕ ДОНАТ РАЗРАБОТЧИКУ';
+    d.innerText = 'Любая сумма на TON, Solana или EVM (Base/Arbitrum). Спасибо за поддержку!';
+    link.href = `ton://transfer/${tonAddress}?text=DONATE`;
+  }
+
+  m.classList.add('active');
+}
+
+function closePayment() {
+  document.getElementById('payment-modal').classList.remove('active');
+}
+
+function copyAddr(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Адрес скопирован в буфер! 📋');
+  }).catch(() => { showToast('Адрес: ' + text.slice(0, 10) + '...'); });
+}
+
+// Telegram Safe Init
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://telegram.org/js/telegram-web-app.js';
+  s.async = true;
+  s.onload = function() {
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+      }
+    } catch(e) {}
+  };
+  document.head.appendChild(s);
+})();
+
+// Init
+loadProfile();
+renderCatalogs();
+</script>
+</body>
+</html>
