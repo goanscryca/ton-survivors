@@ -2,21 +2,24 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Space Syndicate: Auto-Battler</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Space Syndicate: Modular Fleet</title>
 <style>
   :root {
-    --bg-dark: #070913;
-    --bg-panel: #0e1326;
-    --border: rgba(0, 210, 255, 0.22);
+    --bg-dark: #070a14;
+    --bg-panel: #0d1326;
+    --bg-card: #131b36;
+    --bg-card-hover: #1b264d;
     --cyan: #00d2ff;
+    --blue: #1e90ff;
     --gold: #ffd700;
     --purple: #a855f7;
     --red: #ff4757;
     --green: #2ed573;
-    --blue: #1e90ff;
+    --shield: #0984e3;
     --text: #f1f2f6;
-    --text-dim: #747d8c;
+    --text-dim: #7d889b;
+    --border: rgba(0, 210, 255, 0.2);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
@@ -32,57 +35,73 @@
     width: 100vw;
     max-width: 480px;
     height: 100vh;
-    background: #090c1a;
+    background: #080c1b;
     display: flex;
     flex-direction: column;
     position: relative;
     box-shadow: 0 0 50px rgba(0,0,0,0.9);
   }
 
-  /* TOP HUD */
+  /* RESPONSIVE TOP BAR (No overflow/overlap) */
   header {
     background: var(--bg-panel);
     border-bottom: 1px solid var(--border);
-    padding: 10px 14px;
+    padding: 8px 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 10;
+    gap: 4px;
+    z-index: 20;
+    flex-shrink: 0;
   }
-  .hud-stat {
+  .hud-stats-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .hud-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 800;
-    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
   }
-  .badge-hp {
-    background: rgba(255, 71, 87, 0.15);
-    border: 1px solid rgba(255, 71, 87, 0.4);
-    color: var(--red);
-    padding: 4px 10px;
-    border-radius: 20px;
-  }
-  .badge-gold {
-    background: rgba(255, 215, 0, 0.15);
-    border: 1px solid rgba(255, 215, 0, 0.4);
-    color: var(--gold);
-    padding: 4px 10px;
-    border-radius: 20px;
-  }
-  .badge-wave {
-    background: rgba(0, 210, 255, 0.15);
-    border: 1px solid rgba(0, 210, 255, 0.4);
+  .hud-pill.hp { color: var(--red); border-color: rgba(255, 71, 87, 0.35); }
+  .hud-pill.gold { color: var(--gold); border-color: rgba(255, 215, 0, 0.35); }
+  .hud-pill.wave { color: var(--cyan); border-color: rgba(0, 210, 255, 0.35); }
+  
+  .btn-top {
+    background: rgba(0, 210, 255, 0.12);
+    border: 1px solid var(--cyan);
     color: var(--cyan);
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
   }
 
-  /* BATTLE ARENA CANVAS */
-  #arena-wrap {
+  /* MAIN VIEWPORTS */
+  .view-container {
     flex: 1;
     position: relative;
-    background: radial-gradient(circle at 50% 50%, #10172e 0%, #060812 100%);
+    overflow: hidden;
+    display: none;
+  }
+  .view-container.active { display: flex; flex-direction: column; }
+
+  /* BATTLE ARENA */
+  #arena-canvas-wrap {
+    flex: 1;
+    position: relative;
+    background: radial-gradient(circle at 50% 50%, #111833 0%, #050814 100%);
     overflow: hidden;
   }
   canvas {
@@ -90,241 +109,397 @@
     width: 100%;
     height: 100%;
   }
-  #synergy-panel {
+  #synergy-overlay {
     position: absolute;
     top: 8px;
     left: 8px;
-    background: rgba(14, 19, 38, 0.85);
+    background: rgba(13, 19, 38, 0.88);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 6px 10px;
     font-size: 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    backdrop-filter: blur(6px);
     pointer-events: none;
-    backdrop-filter: blur(4px);
     z-index: 5;
   }
-  .synergy-row {
+  .syn-item {
     display: flex;
     align-items: center;
     gap: 6px;
   }
-  .synergy-pill {
-    padding: 1px 6px;
+  .syn-badge {
+    padding: 1px 5px;
     border-radius: 4px;
     font-weight: 800;
+    background: #1c2644;
+    color: var(--text-dim);
   }
-  .syn-active {
+  .syn-badge.on {
     background: var(--cyan);
     color: #000;
     box-shadow: 0 0 6px var(--cyan);
   }
-  .syn-inactive {
-    background: #232b45;
-    color: var(--text-dim);
-  }
 
-  /* SHOP & RECRUITING PANEL */
-  #shop-panel {
+  /* BOTTOM DOCK (RECRUITING & CONTROLS) */
+  #battle-dock {
     background: var(--bg-panel);
     border-top: 1px solid var(--border);
-    padding: 10px 14px 16px 14px;
+    padding: 8px 10px 10px 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    z-index: 10;
+    gap: 8px;
+    flex-shrink: 0;
   }
-  .shop-controls {
+  .dock-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 6px;
   }
-  .btn-action {
-    background: #19223c;
+  .btn-dock {
+    background: var(--bg-card);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 6px 12px;
+    padding: 7px 10px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 4px;
-    transition: transform 0.08s;
+    transition: transform 0.08s, background 0.1s;
+    white-space: nowrap;
   }
-  .btn-action:active { transform: scale(0.95); }
-  .btn-action.start {
+  .btn-dock:active { transform: scale(0.96); }
+  .btn-dock.primary {
     background: linear-gradient(135deg, var(--green), #20bf6b);
     border: none;
     color: #fff;
-    padding: 8px 20px;
-    font-size: 14px;
-    box-shadow: 0 0 15px rgba(46, 213, 115, 0.4);
+    padding: 8px 18px;
+    font-size: 13px;
+    box-shadow: 0 0 12px rgba(46, 213, 115, 0.4);
+  }
+  .btn-dock.shipyard {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(0, 210, 255, 0.2));
+    border: 1px solid var(--purple);
+    color: #d8b4fe;
   }
 
-  /* SHIP SHOP CARDS */
-  .shop-grid {
+  /* SHOP CARDS */
+  .shop-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
-  .ship-card {
-    background: #141b33;
+  .shop-card {
+    background: var(--bg-card);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
-    padding: 6px;
+    padding: 6px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     cursor: pointer;
     transition: transform 0.1s, border-color 0.1s;
-    position: relative;
   }
-  .ship-card:active { transform: scale(0.96); }
-  .ship-card.tier-1 { border-color: rgba(255, 255, 255, 0.2); }
-  .ship-card.tier-2 { border-color: rgba(0, 210, 255, 0.5); box-shadow: 0 0 8px rgba(0, 210, 255, 0.15); }
-  .ship-card.tier-3 { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 0 10px rgba(168, 85, 247, 0.25); }
-  .ship-card.tier-4 { border-color: rgba(255, 215, 0, 0.7); box-shadow: 0 0 12px rgba(255, 215, 0, 0.3); }
+  .shop-card:active { transform: scale(0.95); }
+  .shop-card.t1 { border-color: rgba(255, 255, 255, 0.2); }
+  .shop-card.t2 { border-color: rgba(0, 210, 255, 0.5); box-shadow: 0 0 6px rgba(0, 210, 255, 0.15); }
+  .shop-card.t3 { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 0 8px rgba(168, 85, 247, 0.25); }
+  .shop-card.t4 { border-color: rgba(255, 215, 0, 0.7); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
 
-  .ship-icon { font-size: 24px; margin-bottom: 2px; }
-  .ship-name { font-size: 10px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-  .ship-role { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; }
-  .ship-cost {
-    font-size: 11px;
-    font-weight: 900;
-    color: var(--gold);
+  .shop-icon { font-size: 20px; margin-bottom: 2px; }
+  .shop-name { font-size: 9px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+  .shop-role { font-size: 8px; color: var(--text-dim); margin-bottom: 2px; }
+  .shop-cost { font-size: 10px; font-weight: 900; color: var(--gold); }
+
+  /* -----------------------------------------------------------
+   * MODULAR SHIPYARD VIEW (КОНСТРУКТОР КОРАБЛЕЙ)
+   * ----------------------------------------------------------- */
+  #shipyard-view {
+    padding: 12px;
+    overflow-y: auto;
+    gap: 12px;
+  }
+  .blueprint-box {
+    background: radial-gradient(circle at 50% 40%, #162044 0%, #0c1226 100%);
+    border: 1px solid var(--cyan);
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    position: relative;
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.15);
+  }
+  .blueprint-ship-visual {
+    font-size: 64px;
+    margin: 10px 0;
+    filter: drop-shadow(0 0 16px var(--cyan));
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+  .blueprint-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+  }
+  .b-stat-title { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
+  .b-stat-val { font-size: 13px; font-weight: 900; color: #fff; margin-top: 2px; }
+
+  .slots-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .slot-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .slot-label {
+    display: flex;
+    flex-direction: column;
     gap: 2px;
+  }
+  .slot-name { font-size: 12px; font-weight: 800; color: var(--text); }
+  .slot-desc { font-size: 10px; color: var(--text-dim); }
+  .btn-slot-cycle {
+    background: rgba(0, 210, 255, 0.15);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
   }
 
   /* MODAL */
   .modal-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(5, 7, 14, 0.9);
-    backdrop-filter: blur(6px);
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 7, 14, 0.92);
+    backdrop-filter: blur(8px);
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 24px;
+    padding: 20px;
     z-index: 100;
   }
   .modal-overlay.active { display: flex; }
-  .modal-card {
-    background: #0f1528;
+  .modal-box {
+    background: #0e142b;
     border: 1px solid var(--cyan);
     border-radius: 16px;
-    padding: 20px;
+    padding: 18px;
     width: 100%;
     max-width: 380px;
     text-align: center;
-    box-shadow: 0 0 40px rgba(0, 210, 255, 0.3);
+    box-shadow: 0 0 35px rgba(0, 210, 255, 0.3);
   }
   .address-pill {
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.12);
-    padding: 8px 10px;
+    padding: 8px;
     border-radius: 8px;
     font-family: monospace;
-    font-size: 11px;
+    font-size: 10px;
     word-break: break-all;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     cursor: pointer;
-    color: #fff;
   }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- TOP BAR -->
+
+  <!-- TOP COMPACT BAR (Responsive, no overlap) -->
   <header>
-    <div class="hud-stat badge-hp">❤️ <span id="hud-hp">100</span> HP</div>
-    <div class="hud-stat badge-wave">⚡ ВОЛНА <span id="hud-wave">1</span></div>
-    <div class="hud-stat badge-gold">💰 <span id="hud-gold">10</span> (+<span id="hud-interest">1</span>)</div>
-    <button class="btn-action" style="padding:4px 8px; font-size:11px;" onclick="openWeb3()">💎 VIP</button>
+    <div class="hud-stats-group">
+      <div class="hud-pill hp">❤️ <span id="hud-hp">100</span></div>
+      <div class="hud-pill gold">💰 <span id="hud-gold">15</span> (+<span id="hud-interest">1</span>)</div>
+      <div class="hud-pill wave">⚡ <span id="hud-wave">1</span></div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="btn-top" id="btn-tab-toggle" onclick="toggleShipyard()">🛠️ ВЕРФЬ</button>
+      <button class="btn-top" style="border-color:var(--gold); color:var(--gold);" onclick="openVIP()">💎 VIP</button>
+    </div>
   </header>
 
-  <!-- ARENA VIEW -->
-  <div id="arena-wrap">
-    <canvas id="arena"></canvas>
+  <!-- VIEW 1: BATTLE ARENA -->
+  <div id="arena-view" class="view-container active">
+    <div id="arena-canvas-wrap">
+      <canvas id="arena"></canvas>
 
-    <!-- Synergies Status -->
-    <div id="synergy-panel">
-      <div class="synergy-row">
-        <span>⚡ Рой:</span>
-        <span id="syn-swarm" class="synergy-pill syn-inactive">0/2</span>
+      <!-- Synergies Overlay -->
+      <div id="synergy-overlay">
+        <div class="syn-item">
+          <span>⚡ Рой:</span>
+          <span id="syn-swarm" class="syn-badge">0/2</span>
+        </div>
+        <div class="syn-item">
+          <span>🛡️ Эгида:</span>
+          <span id="syn-protector" class="syn-badge">0/2</span>
+        </div>
+        <div class="syn-item">
+          <span>🔥 Плазма:</span>
+          <span id="syn-plasma" class="syn-badge">0/2</span>
+        </div>
+        <div class="syn-item">
+          <span>🟣 Пустота:</span>
+          <span id="syn-void" class="syn-badge">0/2</span>
+        </div>
       </div>
-      <div class="synergy-row">
-        <span>🛡️ Щит:</span>
-        <span id="syn-protector" class="synergy-pill syn-inactive">0/2</span>
+    </div>
+
+    <!-- RECRUITMENT & CONTROLS DOCK -->
+    <div id="battle-dock">
+      <div class="dock-actions">
+        <div style="display:flex; gap:6px;">
+          <button class="btn-dock" id="btn-reroll" onclick="rerollShop()">🔄 Реролл (2💰)</button>
+          <button class="btn-dock" id="btn-level" onclick="buyLevelExp()">⬆️ <span id="hud-exp-btn">Опыт 0/4 (4💰)</span></button>
+        </div>
+        <button class="btn-dock primary" id="btn-fight" onclick="startBattle()">В БОЙ ⚔️</button>
       </div>
-      <div class="synergy-row">
-        <span>🔥 Плазма:</span>
-        <span id="syn-plasma" class="synergy-pill syn-inactive">0/2</span>
-      </div>
-      <div class="synergy-row">
-        <span>🟣 Пустота:</span>
-        <span id="syn-void" class="synergy-pill syn-inactive">0/2</span>
-      </div>
+
+      <!-- Shop Offers -->
+      <div class="shop-row" id="shop-cards"></div>
     </div>
   </div>
 
-  <!-- SHOP & BENCH -->
-  <div id="shop-panel">
-    <div class="shop-controls">
-      <div style="display:flex; gap:8px;">
-        <button class="btn-action" id="btn-reroll" onclick="rerollShop()">🔄 2💰</button>
-        <button class="btn-action" id="btn-levelup" onclick="buyExp()">⬆️ Ур.<span id="hud-level">1</span> (4💰)</button>
+  <!-- VIEW 2: MODULAR SHIPYARD (КОНСТРУКТОР КОРАБЛЕЙ) -->
+  <div id="shipyard-view" class="view-container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="font-size:16px; font-weight:900; color:var(--cyan);">🛠️ МОДУЛЬНАЯ ВЕРФЬ ФЛАГМАНА</h2>
+      <button class="btn-top" onclick="toggleShipyard()">✕ ЗАКРЫТЬ</button>
+    </div>
+    <p style="font-size:11px; color:var(--text-dim);">
+      Настраивай корпус, турели и ускорители флагмана. Модули влияют на весь боевой флот!
+    </p>
+
+    <!-- Flagship Blueprint Display -->
+    <div class="blueprint-box">
+      <div style="font-size:11px; font-weight:800; color:var(--cyan); letter-spacing:1px;">ЧЕРТЕЖ ФЛАГМАНА</div>
+      <div class="blueprint-ship-visual" id="bp-visual">🛸</div>
+      <div style="font-size:14px; font-weight:900;" id="bp-name">Тяжелый Крейсер «Авангард»</div>
+
+      <div class="blueprint-stats">
+        <div>
+          <div class="b-stat-title">Корпус HP</div>
+          <div class="b-stat-val" id="bp-hp" style="color:var(--green);">450</div>
+        </div>
+        <div>
+          <div class="b-stat-title">Щит DEF</div>
+          <div class="b-stat-val" id="bp-shield" style="color:var(--shield);">200</div>
+        </div>
+        <div>
+          <div class="b-stat-title">Урон DPS</div>
+          <div class="b-stat-val" id="bp-dps" style="color:var(--gold);">55</div>
+        </div>
       </div>
-      <button class="btn-action start" id="btn-fight" onclick="toggleBattlePhase()">В БОЙ ⚔️</button>
     </div>
 
-    <!-- 4 Shop Ship Cards -->
-    <div class="shop-grid" id="shop-cards"></div>
+    <!-- Module Slots -->
+    <div class="slots-container">
+      <!-- Slot 1: Chassis / Hull -->
+      <div class="slot-row">
+        <div class="slot-label">
+          <div class="slot-name">🏗️ Корпус и Палуба</div>
+          <div class="slot-desc" id="slot-desc-hull">Тяжелый Крейсер (+450 HP, +200 Щит)</div>
+        </div>
+        <button class="btn-slot-cycle" onclick="cycleModule('hull')">ИЗМЕНИТЬ 🔄</button>
+      </div>
+
+      <!-- Slot 2: Main Weapon -->
+      <div class="slot-row">
+        <div class="slot-label">
+          <div class="slot-name">🔫 Главное Орудие</div>
+          <div class="slot-desc" id="slot-desc-weapon">Плазменная Пушка (Сплэш-урон по площади)</div>
+        </div>
+        <button class="btn-slot-cycle" onclick="cycleModule('weapon')">ИЗМЕНИТЬ 🔄</button>
+      </div>
+
+      <!-- Slot 3: Engine / Thrusters -->
+      <div class="slot-row">
+        <div class="slot-label">
+          <div class="slot-name">🚀 Двигатель / Форсаж</div>
+          <div class="slot-desc" id="slot-desc-engine">Ионный Форсаж (+35% скорости атаки флота)</div>
+        </div>
+        <button class="btn-slot-cycle" onclick="cycleModule('engine')">ИЗМЕНИТЬ 🔄</button>
+      </div>
+
+      <!-- Slot 4: Defensive Systems -->
+      <div class="slot-row">
+        <div class="slot-label">
+          <div class="slot-name">🛡️ Защитная Система</div>
+          <div class="slot-desc" id="slot-desc-shield">Нано-Ремонтники (+15 HP/сек регенерация)</div>
+        </div>
+        <button class="btn-slot-cycle" onclick="cycleModule('defense')">ИЗМЕНИТЬ 🔄</button>
+      </div>
+    </div>
+
+    <button class="btn-dock primary" style="width:100%; justify-content:center; margin-top:10px;" onclick="toggleShipyard()">
+      СОХРАНИТЬ И В БОЙ 🚀
+    </button>
   </div>
 
-  <!-- WEB3 & REWARDS MODAL -->
-  <div id="web3-modal" class="modal-overlay">
-    <div class="modal-card">
-      <h3 style="font-size:18px; font-weight:900; color:var(--cyan); margin-bottom:8px;">🚀 ФЛАГМАНСКИЙ VIP-ПРОПУСК</h3>
-      <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px; line-height:1.5;">
-        Получи Золотой скин флота, постоянный стартовый капитал +30💰 и щит флагмана. Все переводы идут разработчику на кошелёк!
+  <!-- VIP / WEB3 MODAL -->
+  <div id="vip-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 style="font-size:16px; font-weight:900; color:var(--cyan); margin-bottom:6px;">🚀 ФЛАГМАНСКИЙ VIP-ПРОПУСК</h3>
+      <p style="font-size:11px; color:var(--text-dim); margin-bottom:12px; line-height:1.5;">
+        Золотой скин флота, постоянный стартовый капитал +30💰 и криогенный щит. Все средства уходят разработчику на кошелёк!
       </p>
 
-      <a id="ton-vip-btn" href="ton://transfer/UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ?amount=250000000&text=VIP_BATTLEPASS" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#0098ea; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:800; font-size:13px; margin-bottom:12px;">
-        <span>💎 Купить за 0.25 TON</span>
+      <a id="ton-vip-btn" href="ton://transfer/UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ?amount=250000000&text=VIP_BATTLEPASS" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#0098ea; color:#fff; text-decoration:none; padding:10px; border-radius:10px; font-weight:800; font-size:12px; margin-bottom:12px;">
+        <span>💎 Купить за 0.25 TON (Tonkeeper/Wallet)</span>
       </a>
 
-      <div style="font-size:11px; color:var(--cyan); font-weight:800; text-align:left; margin-bottom:2px;">TON Кошелёк:</div>
-      <div class="address-pill" onclick="copyAddr('UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ')">
+      <div style="font-size:10px; color:var(--cyan); font-weight:800; text-align:left; margin-bottom:2px;">TON Кошелёк:</div>
+      <div class="address-pill" onclick="copyText('UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ')">
         UQDPtZOk5t-pHxY6ST_2wVamaP4OxdjN4E_EbVEv8kZHZudJ 📋
       </div>
 
-      <div style="font-size:11px; color:var(--purple); font-weight:800; text-align:left; margin-bottom:2px;">Solana Кошелёк:</div>
-      <div class="address-pill" onclick="copyAddr('55D4Wx4ceLfgtQbNKnN97z5wEr55itibzEL83ANWqn1u')">
+      <div style="font-size:10px; color:var(--purple); font-weight:800; text-align:left; margin-bottom:2px;">Solana Кошелёк:</div>
+      <div class="address-pill" onclick="copyText('55D4Wx4ceLfgtQbNKnN97z5wEr55itibzEL83ANWqn1u')">
         55D4Wx4ceLfgtQbNKnN97z5wEr55itibzEL83ANWqn1u 📋
       </div>
 
-      <button class="btn-action" style="width:100%; justify-content:center; margin-top:8px;" onclick="closeWeb3()">ЗАКРЫТЬ</button>
+      <div style="font-size:10px; color:var(--green); font-weight:800; text-align:left; margin-bottom:2px;">EVM (Base / Arbitrum):</div>
+      <div class="address-pill" onclick="copyText('0xdEF1aeE7055cE03c808d3feefb08B18bbC8596E9')">
+        0xdEF1aeE7055cE03c808d3feefb08B18bbC8596E9 📋
+      </div>
+
+      <button class="btn-dock" style="width:100%; justify-content:center; margin-top:6px;" onclick="closeVIP()">ЗАКРЫТЬ</button>
     </div>
   </div>
+
 </div>
 
 <script>
 /* -------------------------------------------------------------
- * 1. SOUND ENGINE
+ * 1. SOUND SYSTEM
  * ------------------------------------------------------------- */
-class BattlerAudio {
+class SoundEngine {
   constructor() { this.ctx = null; }
   init() {
     try {
@@ -335,12 +510,12 @@ class BattlerAudio {
       if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     } catch(e) {}
   }
-  laser() {
+  laser(freq = 750) {
     if (!this.ctx) return;
     try {
       const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
-      o.type = 'sawtooth'; o.frequency.setValueAtTime(800, t); o.frequency.exponentialRampToValueAtTime(200, t + 0.08);
-      g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(180, t + 0.08);
+      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
       o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.08);
     } catch(e) {}
   }
@@ -348,63 +523,97 @@ class BattlerAudio {
     if (!this.ctx) return;
     try {
       const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
-      o.type = 'square'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.2);
-      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-      o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.2);
+      o.type = 'square'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(25, t + 0.25);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.25);
     } catch(e) {}
   }
   buy() {
     if (!this.ctx) return;
     try {
       const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime;
-      o.type = 'sine'; o.frequency.setValueAtTime(600, t); o.frequency.setValueAtTime(900, t + 0.06);
+      o.type = 'sine'; o.frequency.setValueAtTime(550, t); o.frequency.setValueAtTime(880, t + 0.06);
       g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
       o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.12);
     } catch(e) {}
   }
 }
-const sfx = new BattlerAudio();
+const sfx = new SoundEngine();
 
 /* -------------------------------------------------------------
- * 2. SHIP DATABASE (Archetypes, Synergies, Tiers)
+ * 2. MODULAR SHIPYARD PARTS DATABASE
  * ------------------------------------------------------------- */
-const SHIP_DB = [
-  { id: 'scout', name: 'Скаутер', tier: 1, cost: 1, role: 'Рой / Быстрый', icon: '🚀', hp: 160, atk: 22, range: 140, aspd: 1.1, syn: 'swarm', color: '#00d2ff' },
-  { id: 'aegis', name: 'Эгида-Фрегат', tier: 1, cost: 1, role: 'Щит / Танк', icon: '🛡️', hp: 380, atk: 14, range: 70, aspd: 0.7, syn: 'protector', color: '#1e90ff' },
-  { id: 'corvette', name: 'Корвет Плазмы', tier: 2, cost: 2, role: 'Плазма / AoE', icon: '🔥', hp: 260, atk: 32, range: 160, aspd: 0.9, syn: 'plasma', color: '#ff4757' },
-  { id: 'sniper', name: 'Снайпер Бездны', tier: 2, cost: 2, role: 'Пустота / Крит', icon: '🟣', hp: 190, atk: 48, range: 240, aspd: 0.6, syn: 'void', color: '#a855f7' },
-  { id: 'dread', name: 'Дредноут', tier: 3, cost: 3, role: 'Щит / Залп', icon: '🛸', hp: 580, atk: 42, range: 130, aspd: 0.8, syn: 'protector', color: '#ffd700' },
-  { id: 'carrier', name: 'Титан-Авианосец', tier: 4, cost: 4, role: 'Рой / Дроны', icon: '🌌', hp: 720, atk: 65, range: 200, aspd: 1.2, syn: 'swarm', color: '#2ed573' }
+const MODULES = {
+  hull: [
+    { id: 'cruiser', name: 'Тяжелый Крейсер «Авангард»', visual: '🛸', hp: 450, shield: 200, dps: 35, desc: 'Сбалансированный корпус (+450 HP, +200 Щит)' },
+    { id: 'destroyer', name: 'Дредноут «Колосс»', visual: '🪐', hp: 800, shield: 350, dps: 25, desc: 'Непробиваемая броня (+800 HP, +350 Щит)' },
+    { id: 'corvette', name: 'Скоростной Корвет «Призрак»', visual: '🚀', hp: 300, shield: 120, dps: 55, desc: 'Легкий и маневренный (+55 DPS, +25% уклонение)' }
+  ],
+  weapon: [
+    { id: 'plasma', name: 'Плазменная Пушка', dpsMod: 1.25, type: 'plasma', desc: 'Сплэш-урон по площади + поджог' },
+    { id: 'laser', name: 'Спаренные Тяжелые Лазеры', dpsMod: 1.1, type: 'laser', desc: 'Высокая скорострельность и пробитие' },
+    { id: 'missiles', name: 'Ракетная Батарея «Тайфун»', dpsMod: 1.4, type: 'missile', desc: 'Залповые ракеты с высоким критическим уроном' }
+  ],
+  engine: [
+    { id: 'ion', name: 'Ионный Форсаж', speedMod: 1.35, desc: '+35% к скорости атаки и маневренности флота' },
+    { id: 'warp', name: 'Варп-Катализатор', speedMod: 1.15, desc: 'Быстрое сближение и обход заграждений' },
+    { id: 'quantum', name: 'Квантовый Сингулярный Привод', speedMod: 1.5, desc: '+50% к скорости снарядов и атаки' }
+  ],
+  defense: [
+    { id: 'nano', name: 'Нано-Ремонтники', desc: '+18 HP/сек активная регенерация корпуса' },
+    { id: 'deflector', name: 'Энергетический Дефлектор', desc: 'Блокирует первые 150 единиц любого урона' },
+    { id: 'emp', name: 'ЭМИ-Поглотитель', desc: 'Снижает урон вражеских снарядов на 25%' }
+  ]
+};
+
+// Player's Selected Custom Blueprint
+const customShip = {
+  hullIdx: 0,
+  weaponIdx: 0,
+  engineIdx: 0,
+  defenseIdx: 0
+};
+
+/* -------------------------------------------------------------
+ * 3. SHOP SHIPS DATABASE
+ * ------------------------------------------------------------- */
+const RECRUITS = [
+  { id: 'scout', name: 'Скаутер', tier: 1, cost: 1, role: 'Рой / Темп', icon: '🚀', hp: 200, shield: 60, atk: 26, range: 160, aspd: 1.2, syn: 'swarm', color: '#00d2ff' },
+  { id: 'aegis', name: 'Эгида-Фрегат', tier: 1, cost: 1, role: 'Щит / Танк', icon: '🛡️', hp: 440, shield: 180, atk: 18, range: 80, aspd: 0.8, syn: 'protector', color: '#1e90ff' },
+  { id: 'corvette', name: 'Корвет Плазмы', tier: 2, cost: 2, role: 'Плазма / AoE', icon: '🔥', hp: 320, shield: 100, atk: 38, range: 170, aspd: 0.95, syn: 'plasma', color: '#ff4757' },
+  { id: 'sniper', name: 'Снайпер Бездны', tier: 2, cost: 2, role: 'Пустота / Крит', icon: '🟣', hp: 240, shield: 70, atk: 58, range: 250, aspd: 0.65, syn: 'void', color: '#a855f7' },
+  { id: 'dread', name: 'Дредноут', tier: 3, cost: 3, role: 'Щит / Залп', icon: '🛸', hp: 650, shield: 240, atk: 52, range: 140, aspd: 0.85, syn: 'protector', color: '#ffd700' },
+  { id: 'carrier', name: 'Титан-Авианосец', tier: 4, cost: 4, role: 'Рой / Дроны', icon: '🌌', hp: 850, shield: 300, atk: 80, range: 210, aspd: 1.25, syn: 'swarm', color: '#2ed573' }
 ];
 
 /* -------------------------------------------------------------
- * 3. GAME STATE & BOARD
+ * 4. GAME STATE
  * ------------------------------------------------------------- */
 let playerHp = 100;
 let wave = 1;
-let gold = 12;
-let commanderLevel = 1;
-let commanderExp = 0;
-let phase = 'PREP'; // 'PREP' or 'BATTLE'
+let gold = 15;
+let level = 1;
+let exp = 0;
+let expNeeded = 4;
+let phase = 'PREP'; // 'PREP' | 'BATTLE'
 
-// Board: 6 columns x 4 rows for player field
-let playerUnits = []; // { id, dbId, star, col, row, x, y, hp, maxHp, atk, aspd, cd, target }
-let enemyUnits = [];
+let playerFleet = []; // active units
+let enemyFleet = [];
 let projectiles = [];
 let particles = [];
 let shopOffer = [];
 
 /* -------------------------------------------------------------
- * 4. CANVAS SETUP & RENDERING
+ * 5. CANVAS & ARENA
  * ------------------------------------------------------------- */
 const canvas = document.getElementById('arena');
 const ctx = canvas.getContext('2d');
-let W = 400, H = 500;
+let W = 380, H = 450;
 
 function resize() {
-  const wrap = document.getElementById('arena-wrap');
+  const wrap = document.getElementById('arena-canvas-wrap');
   W = wrap.clientWidth || 380;
-  H = wrap.clientHeight || 500;
+  H = wrap.clientHeight || 450;
   canvas.width = W;
   canvas.height = H;
 }
@@ -412,34 +621,33 @@ window.addEventListener('resize', resize);
 resize();
 
 /* -------------------------------------------------------------
- * 5. FLEET RECRUITMENT & 3-STAR MERGE LOGIC
+ * 6. SHOP & LEVELING LOGIC (Bug-free, with Bench fallback)
  * ------------------------------------------------------------- */
 function generateShop() {
   shopOffer = [];
   for (let i = 0; i < 4; i++) {
-    // Weighted tier spawn by level
     const roll = Math.random();
-    let pickedTier = 1;
-    if (commanderLevel >= 4 && roll > 0.85) pickedTier = 4;
-    else if (commanderLevel >= 3 && roll > 0.65) pickedTier = 3;
-    else if (commanderLevel >= 2 && roll > 0.40) pickedTier = 2;
+    let maxTier = 1;
+    if (level >= 4 && roll > 0.8) maxTier = 4;
+    else if (level >= 3 && roll > 0.6) maxTier = 3;
+    else if (level >= 2 && roll > 0.35) maxTier = 2;
 
-    const pool = SHIP_DB.filter(s => s.tier <= pickedTier);
-    shopOffer.push(pool[Math.floor(Math.random() * pool.length)]);
+    const available = RECRUITS.filter(r => r.tier <= maxTier);
+    shopOffer.push(available[Math.floor(Math.random() * available.length)]);
   }
   renderShop();
 }
 
 function renderShop() {
-  const container = document.getElementById('shop-cards');
-  container.innerHTML = shopOffer.map((ship, idx) => {
-    if (!ship) return `<div class="ship-card" style="opacity:0.3;">Пусто</div>`;
+  const c = document.getElementById('shop-cards');
+  c.innerHTML = shopOffer.map((ship, idx) => {
+    if (!ship) return `<div class="shop-card" style="opacity:0.25;">Куплено</div>`;
     return `
-      <div class="ship-card tier-${ship.tier}" onclick="buyShip(${idx})">
-        <div class="ship-icon">${ship.icon}</div>
-        <div class="ship-name">${ship.name}</div>
-        <div class="ship-role">${ship.role}</div>
-        <div class="ship-cost">${ship.cost} 💰</div>
+      <div class="shop-card t${ship.tier}" onclick="buyShip(${idx})">
+        <div class="shop-icon">${ship.icon}</div>
+        <div class="shop-name">${ship.name}</div>
+        <div class="shop-role">${ship.role}</div>
+        <div class="shop-cost">${ship.cost} 💰</div>
       </div>
     `;
   }).join('');
@@ -449,11 +657,16 @@ function buyShip(idx) {
   sfx.init();
   if (phase !== 'PREP') return;
   const s = shopOffer[idx];
-  if (!s || gold < s.cost) return;
+  if (!s) return;
 
-  const maxFleet = commanderLevel + 1;
-  if (playerUnits.length >= maxFleet) {
-    alert(`Лимит флота (${maxFleet}) достигнут! Улучши уровень командира.`);
+  if (gold < s.cost) {
+    alert(`Не хватает золота! Нужно ${s.cost} 💰, у вас ${gold} 💰`);
+    return;
+  }
+
+  const maxUnitsOnBoard = level + 2; // e.g. Level 1 = 3 units, Level 2 = 4 units
+  if (playerFleet.length >= maxUnitsOnBoard) {
+    alert(`Флот заполнен (${playerFleet.length}/${maxUnitsOnBoard})! Прокачайте уровень командующего.`);
     return;
   }
 
@@ -461,61 +674,49 @@ function buyShip(idx) {
   shopOffer[idx] = null;
   sfx.buy();
 
-  // Add unit
-  const newUnit = {
+  const newShip = {
     id: Math.random().toString(36).substr(2, 9),
     dbId: s.id,
     star: 1,
-    col: playerUnits.length % 5,
-    row: Math.floor(playerUnits.length / 5),
+    name: s.name,
+    icon: s.icon,
     hp: s.hp,
     maxHp: s.hp,
+    shield: s.shield,
+    maxShield: s.shield,
     atk: s.atk,
     aspd: s.aspd,
     range: s.range,
     syn: s.syn,
     color: s.color,
-    icon: s.icon,
     cd: 0,
     side: 'player'
   };
-  playerUnits.push(newUnit);
+  playerFleet.push(newShip);
 
-  checkMerges();
+  check3StarMerges();
   updateSynergies();
   renderShop();
   updateHUD();
 }
 
-function checkMerges() {
-  // 3 of 1★ -> 1 of 2★
-  // 3 of 2★ -> 1 of 3★ (Titan)
-  ['scout', 'aegis', 'corvette', 'sniper', 'dread', 'carrier'].forEach(dbId => {
-    for (let star = 1; star <= 2; star++) {
-      const match = playerUnits.filter(u => u.dbId === dbId && u.star === star);
-      if (match.length >= 3) {
-        // Merge into one unit of star + 1
-        const uToKeep = match[0];
-        uToKeep.star = star + 1;
-        uToKeep.maxHp = Math.floor(uToKeep.maxHp * 1.9);
-        uToKeep.hp = uToKeep.maxHp;
-        uToKeep.atk = Math.floor(uToKeep.atk * 1.85);
+function buyLevelExp() {
+  sfx.init();
+  if (phase !== 'PREP') return;
+  if (gold < 4) {
+    alert('Нужно 4 золота для покупки опыта!');
+    return;
+  }
+  gold -= 4;
+  exp += 4;
+  sfx.buy();
 
-        // Remove the other 2
-        playerUnits = playerUnits.filter(u => u !== match[1] && u !== match[2]);
-        sfx.boom();
-
-        // Celebration particles
-        for (let k = 0; k < 20; k++) {
-          particles.push({
-            x: W / 2, y: H * 0.7,
-            vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200,
-            color: '#ffd700', life: 0.6, size: 4
-          });
-        }
-      }
-    }
-  });
+  while (exp >= expNeeded && level < 8) {
+    exp -= expNeeded;
+    level++;
+    expNeeded = level * 4;
+  }
+  updateHUD();
 }
 
 function rerollShop() {
@@ -523,123 +724,194 @@ function rerollShop() {
   if (phase !== 'PREP') return;
   if (gold >= 2) {
     gold -= 2;
+    sfx.buy();
     generateShop();
     updateHUD();
   }
 }
 
-function buyExp() {
-  sfx.init();
-  if (phase !== 'PREP') return;
-  if (gold >= 4 && commanderLevel < 6) {
-    gold -= 4;
-    commanderExp += 4;
-    const need = commanderLevel * 6;
-    if (commanderExp >= need) {
-      commanderLevel++;
-      commanderExp = 0;
+function check3StarMerges() {
+  RECRUITS.forEach(r => {
+    for (let s = 1; s <= 2; s++) {
+      const match = playerFleet.filter(u => u.dbId === r.id && u.star === s);
+      if (match.length >= 3) {
+        const survivor = match[0];
+        survivor.star = s + 1;
+        survivor.maxHp = Math.floor(survivor.maxHp * 1.9);
+        survivor.hp = survivor.maxHp;
+        survivor.maxShield = Math.floor(survivor.maxShield * 1.8);
+        survivor.shield = survivor.maxShield;
+        survivor.atk = Math.floor(survivor.atk * 1.85);
+
+        playerFleet = playerFleet.filter(u => u !== match[1] && u !== match[2]);
+        sfx.boom();
+
+        for (let k = 0; k < 25; k++) {
+          particles.push({
+            x: W / 2, y: H * 0.7,
+            vx: (Math.random() - 0.5) * 220, vy: (Math.random() - 0.5) * 220,
+            color: '#ffd700', life: 0.8, size: 4
+          });
+        }
+      }
     }
-    updateHUD();
-  }
+  });
 }
 
 /* -------------------------------------------------------------
- * 6. SYNERGIES & BUFFS
+ * 7. MODULAR SHIPYARD CONTROLLER
+ * ------------------------------------------------------------- */
+function toggleShipyard() {
+  sfx.init();
+  const arenaView = document.getElementById('arena-view');
+  const shipyardView = document.getElementById('shipyard-view');
+  const isShipyard = shipyardView.classList.contains('active');
+
+  if (isShipyard) {
+    shipyardView.classList.remove('active');
+    arenaView.classList.add('active');
+    resize();
+  } else {
+    arenaView.classList.remove('active');
+    shipyardView.classList.add('active');
+    renderShipyardUI();
+  }
+}
+
+function cycleModule(type) {
+  sfx.init();
+  sfx.buy();
+  if (type === 'hull') {
+    customShip.hullIdx = (customShip.hullIdx + 1) % MODULES.hull.length;
+  } else if (type === 'weapon') {
+    customShip.weaponIdx = (customShip.weaponIdx + 1) % MODULES.weapon.length;
+  } else if (type === 'engine') {
+    customShip.engineIdx = (customShip.engineIdx + 1) % MODULES.engine.length;
+  } else if (type === 'defense') {
+    customShip.defenseIdx = (customShip.defenseIdx + 1) % MODULES.defense.length;
+  }
+  renderShipyardUI();
+}
+
+function renderShipyardUI() {
+  const h = MODULES.hull[customShip.hullIdx];
+  const w = MODULES.weapon[customShip.weaponIdx];
+  const e = MODULES.engine[customShip.engineIdx];
+  const d = MODULES.defense[customShip.defenseIdx];
+
+  document.getElementById('bp-visual').innerText = h.visual;
+  document.getElementById('bp-name').innerText = h.name;
+  document.getElementById('bp-hp').innerText = h.hp;
+  document.getElementById('bp-shield').innerText = h.shield;
+  document.getElementById('bp-dps').innerText = Math.round(h.dps * w.dpsMod);
+
+  document.getElementById('slot-desc-hull').innerText = h.desc;
+  document.getElementById('slot-desc-weapon').innerText = `${w.name} (${w.desc})`;
+  document.getElementById('slot-desc-engine').innerText = `${e.name} (${e.desc})`;
+  document.getElementById('slot-desc-shield').innerText = `${d.name} (${d.desc})`;
+}
+
+/* -------------------------------------------------------------
+ * 8. SYNERGIES CALCULATION
  * ------------------------------------------------------------- */
 function updateSynergies() {
   const counts = { swarm: 0, protector: 0, plasma: 0, void: 0 };
-  const uniqueShips = new Set();
-
-  playerUnits.forEach(u => {
-    if (!uniqueShips.has(u.dbId)) {
-      uniqueShips.add(u.dbId);
+  const unique = new Set();
+  playerFleet.forEach(u => {
+    if (!unique.has(u.dbId)) {
+      unique.add(u.dbId);
       if (counts[u.syn] !== undefined) counts[u.syn]++;
     }
   });
 
   const sw = document.getElementById('syn-swarm');
   sw.innerText = `${counts.swarm}/2`;
-  sw.className = `synergy-pill ${counts.swarm >= 2 ? 'syn-active' : 'syn-inactive'}`;
+  sw.className = `syn-badge ${counts.swarm >= 2 ? 'on' : ''}`;
 
   const pr = document.getElementById('syn-protector');
   pr.innerText = `${counts.protector}/2`;
-  pr.className = `synergy-pill ${counts.protector >= 2 ? 'syn-active' : 'syn-inactive'}`;
+  pr.className = `syn-badge ${counts.protector >= 2 ? 'on' : ''}`;
 
   const pl = document.getElementById('syn-plasma');
   pl.innerText = `${counts.plasma}/2`;
-  pl.className = `synergy-pill ${counts.plasma >= 2 ? 'syn-active' : 'syn-inactive'}`;
+  pl.className = `syn-badge ${counts.plasma >= 2 ? 'on' : ''}`;
 
   const vd = document.getElementById('syn-void');
   vd.innerText = `${counts.void}/2`;
-  vd.className = `synergy-pill ${counts.void >= 2 ? 'syn-active' : 'syn-inactive'}`;
+  vd.className = `syn-badge ${counts.void >= 2 ? 'on' : ''}`;
 
   return counts;
 }
 
 /* -------------------------------------------------------------
- * 7. SPAWN ENEMY FLEET FOR WAVE
+ * 9. BALANCED ENEMY SPAWN & SMART TARGETING
  * ------------------------------------------------------------- */
-function spawnEnemyFleet() {
-  enemyUnits = [];
-  const enemyCount = Math.min(8, 2 + Math.floor(wave * 0.8));
+function spawnEnemies() {
+  enemyFleet = [];
+  // Balanced progression: Wave 1 has 2 small scout drones, boss on wave 5
+  const count = Math.min(7, 2 + Math.floor((wave - 1) * 0.5));
+  const isBossWave = (wave % 5 === 0);
 
-  for (let i = 0; i < enemyCount; i++) {
-    const isBoss = (wave % 5 === 0 && i === 0);
-    const db = SHIP_DB[Math.min(SHIP_DB.length - 1, Math.floor(Math.random() * (1 + Math.floor(wave / 3))))];
-    
-    enemyUnits.push({
+  for (let i = 0; i < count; i++) {
+    const isBoss = isBossWave && (i === 0);
+    const db = RECRUITS[Math.min(RECRUITS.length - 1, Math.floor(Math.random() * (1 + Math.floor(wave / 3))))];
+
+    const baseHp = isBoss ? 600 : Math.floor(db.hp * (0.75 + wave * 0.14));
+    const baseShield = isBoss ? 250 : Math.floor(db.shield * (0.6 + wave * 0.1));
+    const baseAtk = isBoss ? 45 : Math.floor(db.atk * (0.75 + wave * 0.12));
+
+    enemyFleet.push({
       id: 'e_' + i,
       dbId: db.id,
       star: isBoss ? 2 : 1,
-      col: i % 4,
-      row: Math.floor(i / 4),
-      hp: Math.floor(db.hp * (1 + wave * 0.28) * (isBoss ? 2.5 : 1)),
-      maxHp: Math.floor(db.hp * (1 + wave * 0.28) * (isBoss ? 2.5 : 1)),
-      atk: Math.floor(db.atk * (1 + wave * 0.2) * (isBoss ? 1.5 : 1)),
-      aspd: db.aspd,
-      range: db.range,
-      syn: db.syn,
-      color: isBoss ? '#ff4757' : '#ff6b81',
+      name: isBoss ? 'БОСС-АНОМАЛИЯ' : 'Дрон Чужих',
       icon: isBoss ? '👾' : '🛸',
-      cd: 0,
+      hp: baseHp,
+      maxHp: baseHp,
+      shield: baseShield,
+      maxShield: baseShield,
+      atk: baseAtk,
+      aspd: db.aspd * 0.85,
+      range: db.range,
+      color: isBoss ? '#ff4757' : '#ff6b81',
+      cd: 0.5,
       side: 'enemy'
     });
   }
 }
 
-/* -------------------------------------------------------------
- * 8. BATTLE SIMULATION
- * ------------------------------------------------------------- */
-function toggleBattlePhase() {
+function startBattle() {
   sfx.init();
-  if (phase === 'PREP') {
-    if (playerUnits.length === 0) {
-      alert('Найми хотя бы один корабль в магазине!');
-      return;
-    }
-    phase = 'BATTLE';
-    document.getElementById('btn-fight').innerText = 'БОЙ... ⚡';
-    document.getElementById('btn-fight').style.background = 'var(--red)';
-
-    // Position units on grid
-    const cellW = W / 5;
-    playerUnits.forEach((u, i) => {
-      u.x = cellW * (0.5 + (i % 5));
-      u.y = H * 0.70 + Math.floor(i / 5) * 55;
-      u.hp = u.maxHp;
-    });
-
-    spawnEnemyFleet();
-    const cellEW = W / 4;
-    enemyUnits.forEach((u, i) => {
-      u.x = cellEW * (0.5 + (i % 4));
-      u.y = H * 0.16 + Math.floor(i / 4) * 55;
-    });
-
+  if (phase !== 'PREP') return;
+  if (playerFleet.length === 0) {
+    alert('Наймите хотя бы один корабль во флот!');
+    return;
   }
+  phase = 'BATTLE';
+  document.getElementById('btn-fight').innerText = 'БОЙ... ⚡';
+  document.getElementById('btn-fight').style.background = 'var(--red)';
+
+  // Position Player Fleet: Tanks on frontline, DDs behind
+  const cellW = W / 5;
+  playerFleet.forEach((u, i) => {
+    const isTank = u.syn === 'protector';
+    u.x = cellW * (0.5 + (i % 5));
+    // Tanks placed ahead (closer to mid)
+    u.y = isTank ? H * 0.62 : H * 0.76;
+    u.hp = u.maxHp;
+    u.shield = u.maxShield;
+  });
+
+  // Position Enemies
+  spawnEnemies();
+  const cellEW = W / Math.max(1, enemyFleet.length);
+  enemyFleet.forEach((u, i) => {
+    u.x = cellEW * (0.5 + i);
+    u.y = H * 0.18 + (i % 2) * 45;
+  });
 }
 
-function resolveBattleEnd(victory) {
+function endBattle(victory) {
   phase = 'PREP';
   document.getElementById('btn-fight').innerText = 'В БОЙ ⚔️';
   document.getElementById('btn-fight').style.background = 'linear-gradient(135deg, var(--green), #20bf6b)';
@@ -647,20 +919,22 @@ function resolveBattleEnd(victory) {
 
   if (victory) {
     const interest = Math.min(5, Math.floor(gold / 10));
-    const winReward = 5 + wave;
-    gold += winReward + interest;
+    const reward = 5 + wave;
+    gold += reward + interest;
     wave++;
     sfx.buy();
   } else {
-    playerHp -= 12 + wave * 2;
+    playerHp -= 10 + wave * 2;
     sfx.boom();
     if (playerHp <= 0) {
-      alert(`ФЛОТ УНИЧТОЖЕН! Вы дошли до волны ${wave}.`);
+      alert(`Флот уничтожен! Вы дошли до волны ${wave}. Рестарт!`);
       playerHp = 100;
       wave = 1;
-      gold = 12;
-      commanderLevel = 1;
-      playerUnits = [];
+      gold = 15;
+      level = 1;
+      exp = 0;
+      expNeeded = 4;
+      playerFleet = [];
     }
   }
 
@@ -670,113 +944,90 @@ function resolveBattleEnd(victory) {
 }
 
 /* -------------------------------------------------------------
- * 9. MAIN LOOP & COMBAT TICK
+ * 10. REAL-TIME COMBAT ENGINE (Fair Targeting & Shields)
  * ------------------------------------------------------------- */
-let lastT = 0;
-function loop(timestamp) {
-  if (!lastT) lastT = timestamp;
-  const dt = Math.min(0.1, (timestamp - lastT) / 1000);
-  lastT = timestamp;
+let lastTime = 0;
+function tick(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = Math.min(0.1, (timestamp - lastTime) / 1000);
+  lastTime = timestamp;
 
   update(dt);
-  render();
+  draw();
 
-  requestAnimationFrame(loop);
+  requestAnimationFrame(tick);
 }
-requestAnimationFrame(loop);
+requestAnimationFrame(tick);
 
 function update(dt) {
   if (phase === 'BATTLE') {
-    // Check end condition
-    if (enemyUnits.length === 0) {
-      resolveBattleEnd(true);
-      return;
-    }
-    if (playerUnits.length === 0) {
-      resolveBattleEnd(false);
-      return;
-    }
+    if (enemyFleet.length === 0) { endBattle(true); return; }
+    if (playerFleet.length === 0) { endBattle(false); return; }
 
     const syn = updateSynergies();
-    const swarmAtkBonus = syn.swarm >= 2 ? 1.4 : 1.0;
+    const swarmBonus = syn.swarm >= 2 ? 1.4 : 1.0;
 
-    // Player units logic
-    playerUnits.forEach(u => {
+    // Modular stats bonus from customShip
+    const wMod = MODULES.weapon[customShip.weaponIdx].dpsMod;
+    const sMod = MODULES.engine[customShip.engineIdx].speedMod;
+
+    // Process Player Units
+    playerFleet.forEach(u => {
       u.cd -= dt;
-      // Find nearest enemy
-      let nearest = null, minDist = 9999;
-      enemyUnits.forEach(e => {
-        const d = Math.hypot(e.x - u.x, e.y - u.y);
-        if (d < minDist) { minDist = d; nearest = e; }
-      });
-
-      if (nearest) {
-        if (minDist <= u.range) {
-          // Attack
+      let target = findSmartTarget(u, enemyFleet);
+      if (target) {
+        const d = Math.hypot(target.x - u.x, target.y - u.y);
+        if (d <= u.range) {
           if (u.cd <= 0) {
-            u.cd = 1 / (u.aspd * swarmAtkBonus);
-            fireProjectile(u, nearest);
+            u.cd = 1 / (u.aspd * swarmBonus * sMod);
+            fireLaser(u, target, u.atk * wMod);
           }
         } else {
-          // Move towards
-          const angle = Math.atan2(nearest.y - u.y, nearest.x - u.x);
-          u.x += Math.cos(angle) * 75 * dt;
-          u.y += Math.sin(angle) * 75 * dt;
+          const angle = Math.atan2(target.y - u.y, target.x - u.x);
+          u.x += Math.cos(angle) * 70 * dt;
+          u.y += Math.sin(angle) * 70 * dt;
         }
       }
     });
 
-    // Enemy units logic
-    enemyUnits.forEach(e => {
-      e.cd -= dt;
-      let nearest = null, minDist = 9999;
-      playerUnits.forEach(p => {
-        const d = Math.hypot(p.x - e.x, p.y - e.y);
-        if (d < minDist) { minDist = d; nearest = p; }
-      });
-
-      if (nearest) {
-        if (minDist <= e.range) {
-          if (e.cd <= 0) {
-            e.cd = 1 / e.aspd;
-            fireProjectile(e, nearest);
+    // Process Enemy Units
+    enemyFleet.forEach(u => {
+      u.cd -= dt;
+      let target = findSmartTarget(u, playerFleet);
+      if (target) {
+        const d = Math.hypot(target.x - u.x, target.y - u.y);
+        if (d <= u.range) {
+          if (u.cd <= 0) {
+            u.cd = 1 / u.aspd;
+            fireLaser(u, target, u.atk);
           }
         } else {
-          const angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
-          e.x += Math.cos(angle) * 60 * dt;
-          e.y += Math.sin(angle) * 60 * dt;
+          const angle = Math.atan2(target.y - u.y, target.x - u.x);
+          u.x += Math.cos(angle) * 60 * dt;
+          u.y += Math.sin(angle) * 60 * dt;
         }
       }
     });
 
-    // Projectiles
+    // Move Projectiles
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i];
       const d = Math.hypot(p.tx - p.x, p.ty - p.y);
-      if (d < 15) {
-        // Hit target
+      if (d < 16) {
         if (p.target && p.target.hp > 0) {
-          p.target.hp -= p.dmg;
-          // Spawn sparks
-          for (let k = 0; k < 5; k++) {
-            particles.push({
-              x: p.x, y: p.y,
-              vx: (Math.random() - 0.5) * 100, vy: (Math.random() - 0.5) * 100,
-              color: p.color, life: 0.25, size: 3
-            });
-          }
+          applyDamage(p.target, p.dmg);
         }
         projectiles.splice(i, 1);
       } else {
         const angle = Math.atan2(p.ty - p.y, p.tx - p.x);
-        p.x += Math.cos(angle) * 380 * dt;
-        p.y += Math.sin(angle) * 380 * dt;
+        p.x += Math.cos(angle) * 390 * dt;
+        p.y += Math.sin(angle) * 390 * dt;
       }
     }
 
-    // Filter dead units
-    playerUnits = playerUnits.filter(u => u.hp > 0);
-    enemyUnits = enemyUnits.filter(u => u.hp > 0);
+    // Filter dead
+    playerFleet = playerFleet.filter(u => u.hp > 0);
+    enemyFleet = enemyFleet.filter(u => u.hp > 0);
   }
 
   // Update particles
@@ -789,46 +1040,90 @@ function update(dt) {
   }
 }
 
-function fireProjectile(from, to) {
-  sfx.laser();
+// Smart targeting: Focus lowest HP in range, or closest
+function findSmartTarget(unit, enemies) {
+  let best = null;
+  let minHp = 99999;
+  let minDist = 99999;
+
+  enemies.forEach(e => {
+    const d = Math.hypot(e.x - unit.x, e.y - unit.y);
+    if (d <= unit.range && e.hp < minHp) {
+      minHp = e.hp;
+      best = e;
+    } else if (!best && d < minDist) {
+      minDist = d;
+      best = e;
+    }
+  });
+  return best;
+}
+
+function applyDamage(unit, amount) {
+  // Shield absorbs first!
+  if (unit.shield > 0) {
+    if (unit.shield >= amount) {
+      unit.shield -= amount;
+      amount = 0;
+    } else {
+      amount -= unit.shield;
+      unit.shield = 0;
+    }
+  }
+  unit.hp -= amount;
+
+  // Sparks
+  for (let k = 0; k < 4; k++) {
+    particles.push({
+      x: unit.x, y: unit.y,
+      vx: (Math.random() - 0.5) * 90, vy: (Math.random() - 0.5) * 90,
+      color: unit.shield > 0 ? '#0984e3' : '#ff4757', life: 0.25, size: 3
+    });
+  }
+}
+
+function fireLaser(from, to, dmg) {
+  sfx.laser(from.side === 'player' ? 780 : 540);
   projectiles.push({
-    x: from.x,
-    y: from.y,
-    tx: to.x,
-    ty: to.y,
+    x: from.x, y: from.y,
+    tx: to.x, ty: to.y,
     target: to,
-    dmg: from.atk,
+    dmg: dmg,
     color: from.color
   });
 }
 
-function render() {
+/* -------------------------------------------------------------
+ * 11. DRAW ARENA
+ * ------------------------------------------------------------- */
+function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // Background grid
+  // Tactical starfield grid
   ctx.strokeStyle = 'rgba(0, 210, 255, 0.05)';
   ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 40) {
+  for (let x = 0; x < W; x += 36) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
   }
-  for (let y = 0; y < H; y += 40) {
+  for (let y = 0; y < H; y += 36) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
   }
 
-  // Draw Player Units
-  playerUnits.forEach((u, i) => {
+  // Draw Player Fleet
+  playerFleet.forEach((u, i) => {
     let px = u.x, py = u.y;
     if (phase === 'PREP') {
       const cellW = W / 5;
+      const isTank = u.syn === 'protector';
       px = cellW * (0.5 + (i % 5));
-      py = H * 0.70 + Math.floor(i / 5) * 55;
+      py = isTank ? H * 0.62 : H * 0.76;
     }
-    drawShip(px, py, u);
+    renderShipOnCanvas(px, py, u);
   });
 
-  // Draw Enemy Units
-  enemyUnits.forEach(u => {
-    drawShip(u.x, u.y, u);
+  // Draw Enemy Fleet
+  enemyFleet.forEach(u => {
+    renderShipOnCanvas(u.x, u.y, u);
   });
 
   // Draw Projectiles
@@ -849,67 +1144,76 @@ function render() {
   });
 }
 
-function drawShip(x, y, u) {
+function renderShipOnCanvas(x, y, u) {
   ctx.save();
   ctx.translate(x, y);
 
-  // Shadow / Glow
+  // Shield aura
+  if (u.shield > 0) {
+    ctx.strokeStyle = 'rgba(9, 132, 227, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Ship glow & icon
   ctx.shadowColor = u.color;
   ctx.shadowBlur = 10;
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(u.icon, 0, 0);
+  ctx.shadowBlur = 0;
 
-  // Star Indicator (1★, 2★, 3★)
+  // Star Rating
   if (u.star >= 2) {
     ctx.fillStyle = '#ffd700';
     ctx.font = 'bold 9px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('★'.repeat(u.star), 0, -18);
+    ctx.fillText('★'.repeat(u.star), 0, -20);
   }
 
-  // Ship Body (Shield ring)
-  ctx.strokeStyle = u.color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, 0, 15, 0, Math.PI * 2);
-  ctx.stroke();
+  // Shield & HP Bars
+  const barW = 32;
+  const barH = 3;
 
-  // Ship Icon
-  ctx.font = '16px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(u.icon, 0, 1);
+  // Blue Shield Bar
+  if (u.maxShield > 0) {
+    const sPct = Math.max(0, u.shield / u.maxShield);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-barW/2, 16, barW, barH);
+    ctx.fillStyle = '#0984e3';
+    ctx.fillRect(-barW/2, 16, barW * sPct, barH);
+  }
 
-  // HP Bar
+  // Green/Red HP Bar
   const hpPct = Math.max(0, u.hp / u.maxHp);
-  ctx.fillStyle = '#222';
-  ctx.fillRect(-16, 18, 32, 4);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-barW/2, 20, barW, barH);
   ctx.fillStyle = u.side === 'player' ? 'var(--green)' : 'var(--red)';
-  ctx.fillRect(-16, 18, 32 * hpPct, 4);
+  ctx.fillRect(-barW/2, 20, barW * hpPct, barH);
 
   ctx.restore();
 }
 
 /* -------------------------------------------------------------
- * 10. HUD & MODAL HELPERS
+ * 12. HUD & VIP MODAL
  * ------------------------------------------------------------- */
 function updateHUD() {
   document.getElementById('hud-hp').innerText = playerHp;
-  document.getElementById('hud-wave').innerText = wave;
   document.getElementById('hud-gold').innerText = gold;
   document.getElementById('hud-interest').innerText = Math.min(5, Math.floor(gold / 10));
-  document.getElementById('hud-level').innerText = commanderLevel;
+  document.getElementById('hud-wave').innerText = wave;
+  document.getElementById('hud-exp-btn').innerText = `Ур.${level} (${exp}/${expNeeded} XP)`;
 }
 
-function openWeb3() {
-  document.getElementById('web3-modal').classList.add('active');
-}
-function closeWeb3() {
-  document.getElementById('web3-modal').classList.remove('active');
-}
+function openVIP() { document.getElementById('vip-modal').classList.add('active'); }
+function closeVIP() { document.getElementById('vip-modal').classList.remove('active'); }
 
-function copyAddr(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Адрес кошелька скопирован!');
-  }).catch(() => { prompt('Адрес:', text); });
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(() => {
+    alert('Адрес скопирован в буфер обмена!');
+  }).catch(() => { prompt('Адрес:', txt); });
 }
 
 // Telegram Safe Init
@@ -928,10 +1232,11 @@ function copyAddr(text) {
   document.head.appendChild(s);
 })();
 
-// Init
+// Initialize
 generateShop();
 updateSynergies();
 updateHUD();
+renderShipyardUI();
 </script>
 </body>
 </html>
