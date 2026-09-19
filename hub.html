@@ -433,18 +433,9 @@
 
     <!-- 1. GAMES TAB (ИГРЫ) -->
     <div id="tab-games" class="tab-pane active">
-      <div class="hero-banner">
-        <div class="hero-badge">ХИТ СЕЗОНА</div>
-        <div class="hero-title">Space Syndicate: Modular Fleet</div>
-        <div class="hero-desc">
-          Космический автобатлер с собственной верфью, синергиями и экономикой слияния звёзд.
-        </div>
-        <button class="btn-play" style="align-self:flex-start;" onclick="launch('battler.html')">ИГРАТЬ СЕЙЧАС 🚀</button>
-      </div>
-
       <div class="section-header">
         <div class="section-title">🎮 Каталог игр</div>
-        <div class="section-subtitle">5 доступно</div>
+        <div class="section-subtitle" id="games-count-badge">0 доступно</div>
       </div>
 
       <div class="catalog-grid" id="games-catalog"></div>
@@ -453,11 +444,9 @@
     <!-- 2. APPS TAB (ПРИЛОЖЕНИЯ) -->
     <div id="tab-apps" class="tab-pane">
       <div class="section-header">
-        <div class="section-title">📱 Web3 Приложения & Утилиты</div>
+        <div class="section-title">📱 Приложения & Сервисы</div>
+        <div class="section-subtitle" id="apps-count-badge">0 доступно</div>
       </div>
-      <p style="font-size:12px; color:var(--text-muted);">
-        Инструменты для инвесторов, охотников за баунти и пользователей экосистемы Telegram.
-      </p>
 
       <div class="catalog-grid" id="apps-catalog"></div>
     </div>
@@ -611,87 +600,10 @@
 
 <script>
 /* -------------------------------------------------------------
- * 1. HUB DATA & CATALOG
+ * 1. HUB DATA & CATALOG (Чистая витрина, готова к заполнению)
  * ------------------------------------------------------------- */
-const GAMES = [
-  {
-    id: 'battler',
-    title: 'Space Syndicate',
-    genre: 'Космический автобатлер & Верфь',
-    icon: '🌌',
-    url: 'battler.html',
-    badge: 'NEW',
-    levelKey: 'space_battler_level',
-    defaultLevel: 1
-  },
-  {
-    id: 'tycoon',
-    title: 'Cyber-Mining Tycoon',
-    genre: 'Дата-центр, охлаждение, DEX',
-    icon: '⚡',
-    url: 'tycoon.html',
-    badge: 'ЭКОНОМИКА',
-    levelKey: 'tycoon_level',
-    defaultLevel: 1
-  },
-  {
-    id: 'survivors',
-    title: 'TON Survivors',
-    genre: 'Rogue-lite экшен на 10 волн',
-    icon: '⚔️',
-    url: 'index.html',
-    badge: 'ТОП',
-    levelKey: 'survivors_wave',
-    defaultLevel: 1
-  },
-  {
-    id: 'runner',
-    title: 'TON Runner: Neon Highway',
-    genre: '3D кибер-раннер с препятствиями',
-    icon: '🏃',
-    url: 'runner.html',
-    badge: 'АРКАДА',
-    levelKey: 'runner_score',
-    defaultLevel: 1
-  },
-  {
-    id: 'flappy',
-    title: 'TON Flappy: Cyber Flight',
-    genre: 'Неоновая аркада на реакцию',
-    icon: '🐦',
-    url: 'flappy.html',
-    badge: 'АРКАДА',
-    levelKey: 'flappy_best',
-    defaultLevel: 1
-  }
-];
-
-const APPS = [
-  {
-    id: 'portfolio',
-    title: 'Crypto Portfolio Radar',
-    desc: 'Трекер портфеля в сетях TON, Base, Solana и Arbitrum',
-    icon: '📊',
-    tag: 'ФИНАНСЫ',
-    status: 'БЕТА'
-  },
-  {
-    id: 'bounty',
-    title: 'AI Bounty Scout',
-    desc: 'Радар открытых крипто-баунти для разработчиков и агентов',
-    icon: '🤖',
-    tag: 'ЗАРАБОТОК',
-    status: 'СКОРО'
-  },
-  {
-    id: 'gas',
-    title: 'Multi-Chain Gas Watcher',
-    desc: 'Мониторинг копеечных комиссий за транзакции в реальном времени',
-    icon: '⛽',
-    tag: 'УТИЛИТА',
-    status: 'СКОРО'
-  }
-];
+const GAMES = [];
+const APPS = [];
 
 const AVATARS = ['👾', '🤖', '🛸', '🚀', '🦊', '⚡', '👑', '🧙‍♂️', '🥷', '🌌', '💎', '🔥'];
 
@@ -783,8 +695,17 @@ function renderProfileUI() {
 
 function renderProfileGamesList() {
   const c = document.getElementById('profile-games-list');
+  if (GAMES.length === 0) {
+    c.innerHTML = `
+      <div style="background:var(--bg-card); border:1px dashed var(--border); border-radius:12px; padding:24px; text-align:center; color:var(--text-muted);">
+        <div style="font-size:28px; margin-bottom:6px;">🎮</div>
+        <div style="font-size:13px; font-weight:800; color:var(--text);">Нет подключенных игр</div>
+        <div style="font-size:11px; margin-top:2px;">Витрина ожидает новых релизов</div>
+      </div>
+    `;
+    return;
+  }
   c.innerHTML = GAMES.map(g => {
-    // Read player level for this game from localStorage
     let lvl = localStorage.getItem(g.levelKey) || g.defaultLevel;
     return `
       <div class="catalog-card">
@@ -808,41 +729,71 @@ function renderProfileGamesList() {
 function renderCatalogs() {
   // Games
   const gContainer = document.getElementById('games-catalog');
-  gContainer.innerHTML = GAMES.map(g => {
-    let lvl = localStorage.getItem(g.levelKey) || g.defaultLevel;
-    return `
-      <div class="catalog-card">
-        <div class="card-icon-box">${g.icon}</div>
-        <div class="card-info">
-          <div class="card-title-row">
-            <div class="card-title">${g.title}</div>
-            <span style="font-size:9px; font-weight:800; color:var(--cyan);">${g.badge}</span>
-          </div>
-          <div class="card-genre">${g.genre}</div>
-          <div class="card-stats-row">
-            <span class="level-badge">Ур. игрока: ${lvl}</span>
-          </div>
+  const gCountBadge = document.getElementById('games-count-badge');
+  if (gCountBadge) gCountBadge.innerText = `${GAMES.length} доступно`;
+
+  if (GAMES.length === 0) {
+    gContainer.innerHTML = `
+      <div style="background:var(--bg-card); border:1px dashed var(--border); border-radius:14px; padding:36px 16px; text-align:center; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <div style="font-size:36px;">✨</div>
+        <div style="font-size:15px; font-weight:900; color:var(--text);">Чистая витрина</div>
+        <div style="font-size:12px; max-width:280px; line-height:1.4;">
+          Здесь скоро появятся совершенно новые проекты, игры и механики.
         </div>
-        <button class="btn-play" onclick="launch('${g.url}')">ИГРАТЬ ▶</button>
       </div>
     `;
-  }).join('');
+  } else {
+    gContainer.innerHTML = GAMES.map(g => {
+      let lvl = localStorage.getItem(g.levelKey) || g.defaultLevel;
+      return `
+        <div class="catalog-card">
+          <div class="card-icon-box">${g.icon}</div>
+          <div class="card-info">
+            <div class="card-title-row">
+              <div class="card-title">${g.title}</div>
+              <span style="font-size:9px; font-weight:800; color:var(--cyan);">${g.badge}</span>
+            </div>
+            <div class="card-genre">${g.genre}</div>
+            <div class="card-stats-row">
+              <span class="level-badge">Ур. игрока: ${lvl}</span>
+            </div>
+          </div>
+          <button class="btn-play" onclick="launch('${g.url}')">ИГРАТЬ ▶</button>
+        </div>
+      `;
+    }).join('');
+  }
 
   // Apps
   const aContainer = document.getElementById('apps-catalog');
-  aContainer.innerHTML = APPS.map(a => `
-    <div class="catalog-card">
-      <div class="card-icon-box" style="background:#131c31;">${a.icon}</div>
-      <div class="card-info">
-        <div class="card-title-row">
-          <div class="card-title">${a.title}</div>
-          <span style="font-size:9px; font-weight:800; color:var(--gold);">${a.status}</span>
+  const aCountBadge = document.getElementById('apps-count-badge');
+  if (aCountBadge) aCountBadge.innerText = `${APPS.length} доступно`;
+
+  if (APPS.length === 0) {
+    aContainer.innerHTML = `
+      <div style="background:var(--bg-card); border:1px dashed var(--border); border-radius:14px; padding:36px 16px; text-align:center; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <div style="font-size:36px;">📱</div>
+        <div style="font-size:15px; font-weight:900; color:var(--text);">Каталог приложений пуст</div>
+        <div style="font-size:12px; max-width:280px; line-height:1.4;">
+          Подготовка новых сервисов и Web3-инструментов к релизу.
         </div>
-        <div class="card-genre">${a.desc}</div>
       </div>
-      <button class="btn-play" style="background:#20293f; color:#8b9bb4;" onclick="alert('Приложение в процессе деплоя!')">ОТКРЫТЬ</button>
-    </div>
-  `).join('');
+    `;
+  } else {
+    aContainer.innerHTML = APPS.map(a => `
+      <div class="catalog-card">
+        <div class="card-icon-box" style="background:#131c31;">${a.icon}</div>
+        <div class="card-info">
+          <div class="card-title-row">
+            <div class="card-title">${a.title}</div>
+            <span style="font-size:9px; font-weight:800; color:var(--gold);">${a.status}</span>
+          </div>
+          <div class="card-genre">${a.desc}</div>
+        </div>
+        <button class="btn-play" style="background:#20293f; color:#8b9bb4;">ОТКРЫТЬ</button>
+      </div>
+    `).join('');
+  }
 }
 
 function launch(url) {
