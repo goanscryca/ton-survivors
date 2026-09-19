@@ -4,7 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TON Survivors: 10 Levels</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  // Safe non-blocking Telegram WebApp loader
+  (function() {
+    var s = document.createElement('script');
+    s.src = 'https://telegram.org/js/telegram-web-app.js';
+    s.async = true;
+    s.onload = function() {
+      try {
+        if (window.Telegram && window.Telegram.WebApp) {
+          Telegram.WebApp.ready();
+          Telegram.WebApp.expand();
+        }
+      } catch(e) {}
+    };
+    document.head.appendChild(s);
+  })();
+</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
@@ -305,7 +321,7 @@
     <button class="btn-primary" id="start-btn">В БОЙ ▶</button>
   </div>
 
-  /* Game Over Screen */
+  <!-- Game Over Screen -->
   <div id="gameover-screen" class="overlay-screen" style="display:none">
     <h1 class="screen-title">ВЫ ПОГИБЛИ</h1>
     <p id="gameover-stats" style="color:#b2becd; font-size: 15px; margin-top: 6px; line-height: 1.6;"></p>
@@ -539,8 +555,10 @@ function setupCanvas() {
 
 function resizeCanvas() {
   const container = document.getElementById("game-container");
-  canvas.width = container.clientWidth;
-  canvas.height = container.clientHeight;
+  const w = (container && container.clientWidth) || window.innerWidth || document.documentElement.clientWidth || 360;
+  const h = (container && container.clientHeight) || window.innerHeight || document.documentElement.clientHeight || 640;
+  canvas.width = w;
+  canvas.height = h;
 }
 
 /* -------------------------------------------------------------
@@ -1247,11 +1265,19 @@ window.addEventListener("touchend", () => {
 });
 
 const startBtn = document.getElementById("start-btn");
-startBtn.addEventListener("click", resetAndStartGame);
-startBtn.addEventListener("touchend", (e) => {
-  e.stopPropagation();
+let isStartingGame = false;
+function handleStartClick(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  if (isStartingGame) return;
+  isStartingGame = true;
+  setTimeout(() => { isStartingGame = false; }, 400);
   resetAndStartGame();
-});
+}
+startBtn.addEventListener("click", handleStartClick);
+startBtn.addEventListener("touchend", handleStartClick);
 
 function triggerHaptic(type = 'light') {
   try {
