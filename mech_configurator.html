@@ -20,11 +20,11 @@
       --text-dim: #64738c;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', monospace, sans-serif; user-select: none; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', monospace, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); position: fixed; }
 
-    /* Экраны переключения */
-    .screen { display: none; width: 100%; height: 100%; }
+    /* Экраны */
+    .screen { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
     .screen.active { display: flex; flex-direction: column; }
 
     /* Шапка ангара */
@@ -37,6 +37,7 @@
       align-items: center;
       padding: 0 12px;
       flex-shrink: 0;
+      z-index: 20;
     }
     .brand { font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
     .brand span { color: #8896ab; font-size: 0.75rem; font-weight: normal; }
@@ -66,6 +67,10 @@
       height: calc(100vh - 40px);
       width: 100%;
       overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .split-hangar { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
     }
 
     .left-half {
@@ -184,7 +189,7 @@
     .wep-ammo-limit { font-size: 0.65rem; color: var(--accent-warn); }
 
     /* ==========================================================
-       ЭКРАН БОЯ: ИЗОМЕТРИЧЕСКАЯ ГЕКСАГОНАЛЬНАЯ СЕТКА 15х15
+       ЭКРАН 2: ОПТИМИЗИРОВАННОЕ ПОЛЕ БОЯ 15х15 (ПОЛНЫЙ ЭКРАН)
        ========================================================== */
     #battle-screen {
       background: #05070a;
@@ -192,173 +197,244 @@
     }
 
     header.battle-hdr {
-      height: 42px;
+      height: 38px;
       background: #090c12;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 10px;
       flex-shrink: 0;
       z-index: 10;
     }
 
     .turn-indicator {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .turn-badge {
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 3px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: bold;
     }
     .turn-badge.player { background: rgba(0, 240, 255, 0.2); color: var(--accent); border: 1px solid var(--accent); }
     .turn-badge.enemy { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
 
+    /* Контейнер холста боя (занимает почти весь экран!) */
     .battle-canvas-wrap {
       flex: 1;
       position: relative;
       overflow: hidden;
-      background: #090c14;
+      background: #080b12;
+      touch-action: none;
     }
     #hex-canvas {
       width: 100%;
       height: 100%;
       display: block;
-      cursor: crosshair;
     }
 
-    /* Нижняя панель управления боем */
-    .battle-bottom-bar {
-      height: 110px;
-      background: #0b0e16;
-      border-top: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: 280px 1fr 300px;
-      padding: 8px 12px;
-      gap: 12px;
-      flex-shrink: 0;
-      z-index: 10;
-    }
-
-    @media (max-width: 900px) {
-      .battle-bottom-bar { grid-template-columns: 1fr; height: auto; }
-    }
-
-    /* Карточка юнита */
-    .combatant-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 6px 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .combatant-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; }
-    .hp-bar-track { height: 6px; background: #202636; border-radius: 3px; overflow: hidden; margin-top: 4px; }
-    .hp-bar-fill { height: 100%; background: var(--accent-ok); transition: width 0.2s; }
-
-    /* Панель фаз и оружия */
-    .action-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      justify-content: center;
-    }
-    .phase-selector {
-      display: flex;
-      gap: 6px;
-    }
-    .phase-btn {
-      flex: 1;
-      background: #141926;
-      border: 1px solid var(--border);
-      color: #9ab;
+    /* Плавающий тост последнего события (не сжимает холст!) */
+    .battle-toast-banner {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 17, 26, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      padding: 5px 14px;
+      border-radius: 20px;
       font-size: 0.75rem;
-      padding: 6px 4px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
+      color: #fff;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      z-index: 30;
+      max-width: 90%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    /* Плавающие экранные контролы (зум, центрирование, погода) */
+    .canvas-hud-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 25;
+    }
+    .hud-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid var(--border);
+      color: #d8e2ed;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      transition: all 0.12s;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
-    .phase-btn:hover { border-color: #4a5670; color: #fff; }
-    .phase-btn.active {
-      background: rgba(0, 240, 255, 0.15);
+    .hud-btn:hover { border-color: var(--accent); color: #fff; }
+
+    /* Всплывающее модальное окно полного лога */
+    .log-modal-backdrop {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .log-modal-backdrop.open { display: flex; }
+    .log-modal-card {
+      width: 100%;
+      max-width: 480px;
+      max-height: 70vh;
+      background: #0f1420;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .log-modal-hdr {
+      padding: 8px 12px;
+      background: #141b2b;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .log-modal-body {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 0.72rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #0a0d14;
+    }
+
+    /* УЛЬТРА-КОМПАКТНАЯ НИЖНЯЯ ПАНЕЛЬ УПРАВЛЕНИЯ БОЕМ (всего 52px!) */
+    .battle-dock-compact {
+      height: 54px;
+      background: #090c14;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      gap: 8px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* Мини-статус игрока */
+    .player-mini-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 90px;
+    }
+    .player-mini-hud .name { font-size: 0.65rem; font-weight: bold; color: var(--accent); white-space: nowrap; }
+    .player-mini-hud .hp-text { font-size: 0.62rem; color: #fff; display: flex; justify-content: space-between; }
+    .hp-mini-track { width: 100%; height: 5px; background: #1c2436; border-radius: 3px; overflow: hidden; }
+    .hp-mini-fill { height: 100%; background: var(--accent-ok); transition: width 0.2s; }
+
+    /* Центральные кнопки фаз */
+    .dock-phase-btns {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      justify-content: center;
+      max-width: 480px;
+    }
+    .dock-btn {
+      flex: 1;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #141926;
+      color: #ccd6e6;
+      font-size: 0.74rem;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .dock-btn:hover { border-color: #3f4c66; color: #fff; }
+    .dock-btn.active {
+      background: rgba(0, 240, 255, 0.2);
       border-color: var(--accent);
       color: #fff;
-      box-shadow: 0 0 8px rgba(0,240,255,0.2);
+      box-shadow: 0 0 8px rgba(0,240,255,0.3);
     }
-    .phase-btn.endturn {
+    .dock-btn.endturn {
       background: rgba(234, 179, 8, 0.15);
       border-color: var(--accent-warn);
       color: var(--accent-warn);
     }
-    .phase-btn.endturn:hover { background: rgba(234, 179, 8, 0.3); }
+    .dock-btn.endturn:hover { background: rgba(234, 179, 8, 0.25); }
 
-    .weapons-selector-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
+    /* Меню выбора оружия (раскрывается вверх при фазе атаки) */
+    .weapon-drawer-popup {
+      display: none;
+      position: absolute;
+      bottom: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f1422;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 6px;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      z-index: 40;
+      width: 92%;
+      max-width: 480px;
     }
-    .wep-fire-btn {
-      background: #121620;
-      border: 1px solid var(--border);
-      color: #d0d7e2;
-      border-radius: 3px;
-      padding: 4px;
-      font-size: 0.68rem;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      text-align: left;
-      transition: all 0.12s;
-    }
-    .wep-fire-btn:hover { border-color: var(--accent); }
-    .wep-fire-btn.active { border-color: var(--accent-danger); background: rgba(239, 68, 68, 0.15); color: #fff; }
-    .wep-fire-btn.empty { opacity: 0.4; cursor: not-allowed; border-color: #262c3d; }
-
-    /* Лог боя */
-    .combat-log-box {
-      background: #080a10;
+    .weapon-drawer-popup.open { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .drawer-wep-card {
+      background: #161c2b;
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 6px 8px;
-      font-size: 0.68rem;
-      color: #9cb;
-      overflow-y: auto;
+      padding: 4px;
+      cursor: pointer;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-    .log-line { line-height: 1.3; }
+    .drawer-wep-card.active { border-color: var(--accent-danger); background: rgba(239, 68, 68, 0.2); }
+    .drawer-wep-card.empty { opacity: 0.4; cursor: not-allowed; }
+    .drawer-wep-card .slot { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; }
+    .drawer-wep-card .name { font-size: 0.68rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-wep-card .ammo { font-size: 0.6rem; color: var(--accent-warn); }
+
+    .log-line { line-height: 1.35; }
     .log-line.p-hit { color: var(--accent); }
     .log-line.e-hit { color: var(--accent-danger); }
     .log-line.kill { color: var(--accent-warn); font-weight: bold; }
-
-    /* Плавающие подсказки на поле боя */
-    .weather-indicator {
-      font-size: 0.72rem;
-      color: #9bb;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      background: #131824;
-      padding: 4px 8px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-    }
-    .weather-indicator:hover { border-color: var(--accent); color: #fff; }
   </style>
 </head>
 <body>
@@ -367,13 +443,12 @@
      ЭКРАН 1: АНГАР / КОНФИГУРАТОР МЕХА (50% / 50%)
      ========================================================== -->
 <div id="hangar-screen" class="screen active">
-
   <header class="hangar-hdr">
     <div class="brand">
       ⚡ WANZER // FRONT MISSION <span>[HANGAR DOCK]</span>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <button class="chip" onclick="randomizeBuild()">🎲 Случайный ванзер</button>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="chip" onclick="randomizeBuild()">🎲 Случайный</button>
       <button class="btn-battle-deploy" onclick="deployToBattle()">
         ⚔️ В БОЙ НА ГЕКС-КАРТУ
       </button>
@@ -381,12 +456,11 @@
   </header>
 
   <div class="split-hangar">
-
     <!-- ЛЕВАЯ ПОЛОВИНА: ЧАСТИ И ИНСПЕКТОР -->
     <div class="left-half">
       <div class="parts-dock-bar">
-        <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">
-          Узлы каркаса (выберите узел или кликните по 3D модели)
+        <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase;">
+          Узлы каркаса (выберите или кликните по 3D модели)
         </div>
         <div class="parts-pills-grid" id="parts-pills-container"></div>
       </div>
@@ -428,98 +502,89 @@
         <div class="weapons-dock-grid" id="weapons-dock-grid"></div>
       </div>
     </div>
-
   </div>
-
 </div>
 
 <!-- ==========================================================
-     ЭКРАН 2: ПОЛЕ БОЯ 15х15 С ГЕКСАГОНАЛЬНОЙ СЕТКОЙ
+     ЭКРАН 2: ПОЛНОРАЗМЕРНОЕ ПОЛЕ БОЯ 15х15
      ========================================================== -->
 <div id="battle-screen" class="screen">
-
   <header class="battle-hdr">
-    <div style="display:flex; align-items:center; gap:12px;">
+    <div style="display:flex; align-items:center; gap:8px;">
       <button class="chip" onclick="returnToHangar()">⬅️ В Ангар</button>
       <div class="turn-indicator">
-        <span>РАУНД <b id="b-round-num">1</b>:</span>
+        <span>РД <b id="b-round-num">1</b>:</span>
         <span class="turn-badge player" id="b-turn-badge">ХОД ИГРОКА</span>
       </div>
     </div>
 
-    <div style="display:flex; align-items:center; gap:10px;">
-      <div class="weather-indicator" onclick="cycleWeather()" title="Кликните для смены погоды">
-        <span id="weather-icon">🌧️</span>
-        <span id="weather-name">Кислотный дождь</span>
-      </div>
-      <div style="font-size:0.75rem; color:var(--text-dim);">
-        СЕТКА: <b>15 x 15 ГЕКСОВ</b>
-      </div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <button class="chip" onclick="toggleLogModal()">📜 Лог боя</button>
     </div>
   </header>
 
-  <!-- Интерактивный холст боя -->
+  <!-- Интерактивный холст боя (занимает почти весь экран!) -->
   <div class="battle-canvas-wrap">
+    <!-- Плавающее уведомление о последнем выстреле/действии -->
+    <div class="battle-toast-banner" id="battle-toast">
+      ⚡ Бой начат: обнаружено 5 вражеских ванзеров
+    </div>
+
+    <!-- Экранные кнопки зума и центрирования -->
+    <div class="canvas-hud-controls">
+      <div class="hud-btn" onclick="zoomIn()" title="Приблизить">+</div>
+      <div class="hud-btn" onclick="zoomOut()" title="Отдалить">−</div>
+      <div class="hud-btn" onclick="centerOnPlayer()" title="Центр на моём мехе">🎯</div>
+      <div class="hud-btn" id="hud-weather-btn" onclick="cycleWeather()" title="Погода">🌧️</div>
+    </div>
+
     <canvas id="hex-canvas"></canvas>
   </div>
 
-  <!-- Нижняя панель управления фазами и стрельбой -->
-  <div class="battle-bottom-bar">
+  <!-- Выдвижное меню оружия (появляется над доком в фазе атаки) -->
+  <div class="weapon-drawer-popup" id="weapon-drawer"></div>
 
-    <!-- Выбранный юнит -->
-    <div class="combatant-card" id="active-combatant-card">
-      <div>
-        <div class="combatant-header">
-          <span id="c-name" style="color:var(--accent);">Мех Игрока (WZ-77)</span>
-          <span id="c-type" style="color:var(--text-dim); font-size:0.7rem;">ТИП: ВАНЗЕР</span>
-        </div>
-        <div style="font-size:0.7rem; color:#8896ab; margin-top:2px;" id="c-sub">
-          Точность: 85% // Скорость: 4 гекса
-        </div>
-      </div>
-      <div>
-        <div style="display:flex; justify-content:space-between; font-size:0.68rem;">
-          <span>ПРОЧНОСТЬ</span>
-          <b id="c-hp-text">3400 / 3400 HP</b>
-        </div>
-        <div class="hp-bar-track">
-          <div class="hp-bar-fill" id="c-hp-bar" style="width:100%;"></div>
-        </div>
-      </div>
+  <!-- Ультра-компактный док управления (54px) -->
+  <div class="battle-dock-compact">
+    <!-- Мини-статус меха игрока -->
+    <div class="player-mini-hud">
+      <div class="name">Titan WZ-77</div>
+      <div class="hp-text"><span>HP:</span><b id="dock-hp-val">3400</b></div>
+      <div class="hp-mini-track"><div class="hp-mini-fill" id="dock-hp-bar" style="width:100%;"></div></div>
     </div>
 
-    <!-- Фазы (Движение / Стрельба / Завершение хода) -->
-    <div class="action-panel">
-      <div class="phase-selector">
-        <button class="phase-btn active" id="btn-phase-move" onclick="setCombatPhase('move')">
-          🚶 1. Движение <span id="move-pts-badge">(4/4)</span>
-        </button>
-        <button class="phase-btn" id="btn-phase-attack" onclick="setCombatPhase('attack')">
-          🎯 2. Стрельба
-        </button>
-        <button class="phase-btn endturn" onclick="playerEndTurn()">
-          ⏭️ Завершить ход
-        </button>
-      </div>
-
-      <div class="weapons-selector-row" id="battle-weapons-row">
-        <!-- 4 кнопки оружия -->
-      </div>
+    <!-- Кнопки фаз хода -->
+    <div class="dock-phase-btns">
+      <button class="dock-btn active" id="dock-btn-move" onclick="setCombatPhase('move')">
+        <span>🚶 Шаг</span>
+        <span id="dock-move-pts" style="font-size:0.62rem; color:var(--accent);">(4/4 гекса)</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-attack" onclick="setCombatPhase('attack')">
+        <span>🎯 Огонь</span>
+        <span id="dock-wep-name" style="font-size:0.62rem; color:var(--accent-warn);">Выбрать оружие</span>
+      </button>
+      <button class="dock-btn endturn" onclick="playerEndTurn()">
+        <span>⏭️ Конец</span>
+        <span style="font-size:0.62rem;">Передать ход</span>
+      </button>
     </div>
-
-    <!-- Боевой лог -->
-    <div class="combat-log-box" id="combat-log">
-      <div class="log-line">⚡ Боевое развертывание: сектор 15x15. Обнаружено 5 вражеских ванзеров!</div>
-      <div class="log-line">👉 Выберите клетку для движения или цель для атаки.</div>
-    </div>
-
   </div>
+</div>
 
+<!-- Модальное окно истории лога -->
+<div class="log-modal-backdrop" id="log-modal">
+  <div class="log-modal-card">
+    <div class="log-modal-hdr">
+      <span>ЖУРНАЛ БОЕВЫХ ДЕЙСТВИЙ</span>
+      <button class="chip" onclick="toggleLogModal()">✕ Закрыть</button>
+    </div>
+    <div class="log-modal-body" id="combat-log-full"></div>
+  </div>
 </div>
 
 <script>
 // ==========================================
-// 1. КОНФИГУРАТОР И СИСТЕМА ДЕТАЛЕЙ
+// 1. СИСТЕМА КОНФИГУРАТОРА МЕХОВ
 // ==========================================
 const MANUFACTURERS = {
   russia: { id: 'russia', name: 'Россия', flag: '🇷🇺', bonus: '+25% HP, +15% Груз., +10% Масса', hpMod: 1.25, loadMod: 1.15, weightMod: 1.10, energyMod: 1.0, color: 0x475569 },
@@ -552,7 +617,7 @@ const WEAPONS = {
 const EXPANSION_MODULES = {
   arms: [
     { id: 'gyro', name: 'Гиростабилизатор отдачи', acc: 15, hp: 0, energy: 15, weight: 25 },
-    { id: 'servo', name: 'Сервоусилитель хвата (+25% урон клинка)', acc: 0, hp: 50, energy: 25, weight: 40 },
+    { id: 'servo', name: 'Сервоусилитель хвата (+25% урон)', acc: 0, hp: 50, energy: 25, weight: 40 },
     { id: 'fast_mag', name: 'Быстросъем обоймы', acc: 5, hp: 0, energy: 10, weight: 15 },
     { id: 'cooler', name: 'Тепловой радиатор', acc: 0, hp: 20, energy: -20, weight: 30 },
     { id: 'plates', name: 'Композитные наручи брони', acc: -3, hp: 150, energy: 0, weight: 65 }
@@ -562,7 +627,7 @@ const EXPANSION_MODULES = {
     { id: 'jump_jets', name: 'Импульсные прыжковые дюзы', loadBoost: 0, hp: 30, energy: 50, weight: 100 },
     { id: 'anchors', name: 'Магнитные грунтозацепы', acc: 10, hp: 70, energy: 15, weight: 45 },
     { id: 'armor_knees', name: 'Титановые наколенники', loadBoost: 0, hp: 210, energy: 0, weight: 75 },
-    { id: 'recuperator', name: 'Кинетический рекуператор шага', loadBoost: 0, hp: 20, energy: -35, weight: 35 }
+    { id: 'recuperator', name: 'Кинетический рекуператор', loadBoost: 0, hp: 20, energy: -35, weight: 35 }
   ]
 };
 
@@ -598,7 +663,6 @@ let activePartKey = 'torso';
 
 function calculateBuild() {
   let hp = 0, acc = 0, energyConsumed = 0, energyGenerated = 0, weight = 0, maxLoad = 1800;
-
   for (const [key, p] of Object.entries(build.parts)) {
     const base = PARTS[key];
     const r = RARITIES[p.rarity];
@@ -648,9 +712,7 @@ function calculateBuild() {
     energyGenerated,
     energyBalance: energyGenerated - energyConsumed,
     weight,
-    maxLoad,
-    isOverload: weight > maxLoad,
-    isEnergyDeficit: energyConsumed > energyGenerated
+    maxLoad
   };
 }
 
@@ -673,7 +735,6 @@ function renderUI() {
   document.getElementById('txt-weight').innerText = `${stats.weight}/${stats.maxLoad}`;
   document.getElementById('bar-weight').style.width = Math.min(100, (stats.weight / stats.maxLoad) * 100) + '%';
 
-  // Верхний список частей
   const pCont = document.getElementById('parts-pills-container');
   pCont.innerHTML = '';
   for (const [k, b] of Object.entries(PARTS)) {
@@ -693,10 +754,8 @@ function renderUI() {
     pCont.appendChild(el);
   }
 
-  // Инспектор
   renderInspector();
 
-  // Оружейные карточки
   const wGrid = document.getElementById('weapons-dock-grid');
   wGrid.innerHTML = '';
   [
@@ -795,7 +854,7 @@ function renderInspector() {
 function selectPart(k) { activePartKey = k; renderUI(); highlight3DPart(k); }
 function setRarity(k, r) { build.parts[k].rarity = r; renderUI(); update3DColors(); }
 function setMfg(k, m) { build.parts[k].mfg = m; renderUI(); update3DColors(); }
-function setWeapon(k, w) { build.parts[k].weapon = w; renderUI(); update3DWeapons(); }
+function setWeapon(k, w) { build.parts[k].weapon = w; renderUI(); }
 function setModule(k, idx, val) {
   if (!build.parts[k].modules) build.parts[k].modules = [];
   if (!val) build.parts[k].modules.splice(idx, 1);
@@ -809,15 +868,15 @@ function randomizeBuild() {
     p.mfg = mK[Math.floor(Math.random() * mK.length)];
     if (PARTS[k].hasWeapon) p.weapon = wK[Math.floor(Math.random() * wK.length)];
   }
-  renderUI(); update3DColors(); update3DWeapons();
+  renderUI(); update3DColors();
 }
 
-// 3D Моделька Front Mission Wanzer
+// 3D Модель Front Mission
 let scene, camera, renderer, mechGroup;
 let clickableParts = [], partMeshMap = {};
 let isDragging = false, startX = 0, mouseMoved = false, autoRotate = true;
 const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
-let defaultArmorMat, defaultFrameMat, highlightMat, visorMat, thrusterGlowMat, weaponMat;
+let defaultArmorMat, defaultFrameMat, highlightMat;
 
 function init3D() {
   const container = document.querySelector('.viewport-3d-wrap');
@@ -845,9 +904,6 @@ function init3D() {
   defaultArmorMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.35, metalness: 0.7 });
   defaultFrameMat = new THREE.MeshStandardMaterial({ color: 0x1a212d, roughness: 0.8, metalness: 0.6 });
   highlightMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00aacc, roughness: 0.2, metalness: 0.8 });
-  visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-  thrusterGlowMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
-  weaponMat = new THREE.MeshStandardMaterial({ color: 0x15181e, roughness: 0.3, metalness: 0.9 });
 
   mechGroup = buildInteractiveWanzer();
   scene.add(mechGroup);
@@ -918,7 +974,6 @@ function update3DColors() {
   const col = MANUFACTURERS[build.parts.torso.mfg].color || 0x475569;
   defaultArmorMat.color.setHex(col);
 }
-function update3DWeapons() {}
 
 function checkRaycastClick(cx, cy) {
   const canvas = document.getElementById('wanzer-canvas');
@@ -939,38 +994,40 @@ function animate3D() {
 }
 
 
-// ==========================================================
-// 2. ИЗОМЕТРИЧЕСКОЕ ПОЛЕ БОЯ 15х15 (ГЕКСАГОНАЛЬНАЯ СЕТКА)
-// ==========================================================
+// =========================================================================
+// 2. ОПТИМИЗИРОВАННОЕ ПОЛЕ БОЯ 15х15: PAN, ZOOM, ТОЧНЫЙ ТАП, ТОСТЫ
+// =========================================================================
 const GRID_COLS = 15;
 const GRID_ROWS = 15;
-const HEX_RADIUS = 28; // Размер гекса
-const HEX_HEIGHT = HEX_RADIUS * Math.sqrt(3);
-const HEX_WIDTH = HEX_RADIUS * 2;
+const BASE_HEX_R = 40; // Большие удобные гексы для пальца!
+const HEX_H = BASE_HEX_R * Math.sqrt(3);
+const HEX_W = BASE_HEX_R * 1.5;
 
 let bCanvas, bCtx;
-let combatPhase = 'move'; // 'move' | 'attack'
-let currentTurn = 'player'; // 'player' | 'enemy'
+let combatPhase = 'move';
+let currentTurn = 'player';
 let roundNum = 1;
 let selectedWeaponSlot = 'arm_r';
 let hoveredHex = null;
 let currentPath = [];
 let reachableHexes = [];
 
+// Камера (Pan & Zoom)
+let camX = 0, camY = 0, camZoom = 1.0;
+let isPanning = false, panStartX = 0, panStartY = 0, didPan = false;
+
 // Погода
 const WEATHERS = [
-  { id: 'rain', name: 'Кислотный дождь', icon: '🌧️', fog: 0.15 },
-  { id: 'snow', name: 'Снежная буря', icon: '❄️', fog: 0.25 },
-  { id: 'storm', name: 'ЭМИ Шторм', icon: '⚡', fog: 0.20 },
-  { id: 'clear', name: 'Чистое небо', icon: '☀️', fog: 0.0 }
+  { id: 'rain', name: 'Кислотный дождь', icon: '🌧️' },
+  { id: 'snow', name: 'Снежная буря', icon: '❄️' },
+  { id: 'storm', name: 'ЭМИ Шторм', icon: '⚡' },
+  { id: 'clear', name: 'Чистое небо', icon: '☀️' }
 ];
 let currentWeatherIdx = 0;
 let weatherParticles = [];
 
-// Карта местности: постройки, препятствия
-let obstacles = {}; // "col,row" -> { type: 'building' | 'ruins', hp: 300 }
-
-// Юниты на карте
+// Карта местности
+let obstacles = {};
 let playerUnit = null;
 let enemyUnits = [];
 
@@ -981,15 +1038,14 @@ function deployToBattle() {
   const stats = calculateBuild();
   playerUnit = {
     id: 'player',
-    name: 'Игрок // WZ-77A Titan',
-    col: 1,
+    name: 'Titan WZ-77',
+    col: 2,
     row: 7,
     maxHp: stats.hp,
     hp: stats.hp,
     acc: stats.acc,
     movePts: 4,
     maxMovePts: 4,
-    hasAttacked: false,
     weapons: {
       shoulder_l: { ...WEAPONS[build.parts.shoulder_l.weapon || 'none'], ammo: WEAPONS[build.parts.shoulder_l.weapon || 'none'].maxAmmo },
       shoulder_r: { ...WEAPONS[build.parts.shoulder_r.weapon || 'none'], ammo: WEAPONS[build.parts.shoulder_r.weapon || 'none'].maxAmmo },
@@ -998,34 +1054,35 @@ function deployToBattle() {
     }
   };
 
-  // Генерация 5 разнообразных вражеских мехов Front Mission
+  // 5 вражеских ванзеров Front Mission
   enemyUnits = [
-    { id: 'e1', name: 'Разведчик (Scout)', col: 12, row: 3, maxHp: 1100, hp: 1100, movePts: 5, range: 3, dmg: 70, color: '#f59e0b', type: 'Легкий ванзер' },
-    { id: 'e2', name: 'Штурмовик (Assault)', col: 13, row: 7, maxHp: 2200, hp: 2200, movePts: 3, range: 4, dmg: 140, color: '#ef4444', type: 'Тяжелый каркас' },
-    { id: 'e3', name: 'Снайпер (Sniper)', col: 14, row: 12, maxHp: 1300, hp: 1300, movePts: 2, range: 7, dmg: 260, color: '#ec4899', type: 'СУО Рельсотрон' },
-    { id: 'e4', name: 'Мечник (Striker)', col: 10, row: 5, maxHp: 1600, hp: 1600, movePts: 4, range: 1, dmg: 210, color: '#8b5cf6', type: 'Ближний бой' },
-    { id: 'e5', name: 'Командир (Commander)', col: 13, row: 10, maxHp: 3000, hp: 3000, movePts: 3, range: 5, dmg: 190, color: '#dc2626', type: 'Элитный мех' }
+    { id: 'e1', name: 'Разведчик (Scout)', col: 12, row: 3, maxHp: 1100, hp: 1100, movePts: 5, range: 3, dmg: 70, color: '#f59e0b', type: 'Легкий' },
+    { id: 'e2', name: 'Штурмовик (Assault)', col: 13, row: 7, maxHp: 2200, hp: 2200, movePts: 3, range: 4, dmg: 140, color: '#ef4444', type: 'Тяжелый' },
+    { id: 'e3', name: 'Снайпер (Sniper)', col: 14, row: 12, maxHp: 1300, hp: 1300, movePts: 2, range: 7, dmg: 260, color: '#ec4899', type: 'Рельса' },
+    { id: 'e4', name: 'Мечник (Striker)', col: 10, row: 5, maxHp: 1600, hp: 1600, movePts: 4, range: 1, dmg: 210, color: '#8b5cf6', type: 'Клинки' },
+    { id: 'e5', name: 'Командир (Commander)', col: 13, row: 10, maxHp: 3000, hp: 3000, movePts: 3, range: 5, dmg: 190, color: '#dc2626', type: 'Босс' }
   ];
 
-  // Генерация зданий и руин на сетке 15х15
+  // Постройки
   obstacles = {};
   const buildingCoords = [
-    [4,3], [4,4], [5,3], [7,6], [7,7], [7,8], [9,10], [9,11], [10,10],
-    [5,11], [5,12], [11,3], [11,4], [8,2], [8,13], [3,8], [12,8]
+    [5,3], [5,4], [7,6], [7,7], [8,7], [9,10], [9,11],
+    [5,11], [11,4], [8,2], [8,12], [4,8], [12,8]
   ];
   buildingCoords.forEach(([c, r]) => {
-    obstacles[`${c},${r}`] = { type: Math.random() > 0.4 ? 'building' : 'ruins', height: 28 };
+    obstacles[`${c},${r}`] = { type: 'building', height: 32 };
   });
 
   currentTurn = 'player';
   roundNum = 1;
   combatPhase = 'move';
   playerUnit.movePts = playerUnit.maxMovePts;
-  playerUnit.hasAttacked = false;
 
   initBattleCanvas();
+  centerOnPlayer();
   recalcReachableHexes();
   updateBattleHUD();
+  showToast('⚡ Бой начат: обнаружено 5 вражеских ванзеров!');
 }
 
 function returnToHangar() {
@@ -1038,17 +1095,72 @@ function initBattleCanvas() {
   bCtx = bCanvas.getContext('2d');
   resizeBattleCanvas();
 
-  bCanvas.addEventListener('mousemove', onHexMouseMove);
-  bCanvas.addEventListener('click', onHexClick);
+  // Мышь: Drag Pan + Click
+  bCanvas.addEventListener('mousedown', e => {
+    isPanning = true;
+    didPan = false;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStartX;
+    const dy = e.clientY - panStartY;
+    if (Math.hypot(dx, dy) > 5) {
+      didPan = true;
+      camX += dx / camZoom;
+      camY += dy / camZoom;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+    }
+  });
+  window.addEventListener('mouseup', e => {
+    if (isPanning && !didPan) {
+      const rect = bCanvas.getBoundingClientRect();
+      handleHexTap(e.clientX - rect.left, e.clientY - rect.top);
+    }
+    isPanning = false;
+  });
 
-  // Инициализация погодных частиц
+  // Сенсорные тапы и свайпы (Touch) для мобильных и Telegram WebView
+  bCanvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      isPanning = true;
+      didPan = false;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  bCanvas.addEventListener('touchmove', e => {
+    if (!isPanning || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - panStartX;
+    const dy = e.touches[0].clientY - panStartY;
+    if (Math.hypot(dx, dy) > 6) {
+      didPan = true;
+      camX += dx / camZoom;
+      camY += dy / camZoom;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  bCanvas.addEventListener('touchend', e => {
+    if (isPanning && !didPan && e.changedTouches.length > 0) {
+      const rect = bCanvas.getBoundingClientRect();
+      handleHexTap(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    }
+    isPanning = false;
+  });
+
+  // Частицы погоды
   weatherParticles = [];
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 90; i++) {
     weatherParticles.push({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      spd: 3 + Math.random() * 5,
-      len: 8 + Math.random() * 12
+      spd: 4 + Math.random() * 6,
+      len: 10 + Math.random() * 12
     });
   }
 
@@ -1063,38 +1175,53 @@ function resizeBattleCanvas() {
 }
 window.addEventListener('resize', resizeBattleCanvas);
 
-// Гексагональная математика (изометрический вид)
-function hexToPixel(col, row) {
-  const originX = bCanvas.width / 2 - (GRID_COLS * HEX_RADIUS * 1.5) / 2 + 60;
-  const originY = 60;
-
-  // Изометрическая проекция гексагональной сетки
-  const x = originX + col * HEX_RADIUS * 1.5;
-  const y = originY + row * HEX_HEIGHT + ((col & 1) ? HEX_HEIGHT / 2 : 0);
-
-  // Сплющивание по оси Y для создания угла обзора Front Mission
-  return { x: x, y: y * 0.85 };
+function zoomIn() { camZoom = Math.min(2.2, camZoom + 0.25); }
+function zoomOut() { camZoom = Math.max(0.65, camZoom - 0.25); }
+function centerOnPlayer() {
+  if (!playerUnit) return;
+  const p = getHexWorldPos(playerUnit.col, playerUnit.row);
+  camX = -p.x;
+  camY = -p.y;
 }
 
-function pixelToHex(px, py) {
-  let closest = null;
+// Преобразование координат
+function getHexWorldPos(col, row) {
+  const x = col * HEX_W;
+  const y = (row * HEX_H + ((col & 1) ? HEX_H / 2 : 0)) * 0.72; // Изометрия Front Mission
+  return { x, y };
+}
+
+function hexToScreen(col, row) {
+  const world = getHexWorldPos(col, row);
+  return {
+    x: (world.x + camX) * camZoom + bCanvas.width / 2,
+    y: (world.y + camY) * camZoom + bCanvas.height / 2
+  };
+}
+
+// Сверхточный поиск гекса при тапе (с учетом изометрического сжатия Y)
+function screenToHex(screenX, screenY) {
+  let bestHex = null;
   let minDist = 999999;
 
   for (let c = 0; c < GRID_COLS; c++) {
     for (let r = 0; r < GRID_ROWS; r++) {
-      const p = hexToPixel(c, r);
-      const d = Math.hypot(px - p.x, py - p.y);
-      if (d < minDist && d < HEX_RADIUS * 1.2) {
+      const p = hexToScreen(c, r);
+      const dx = screenX - p.x;
+      const dy = (screenY - p.y) / 0.72; // Нормализация Y
+      const d = Math.hypot(dx, dy);
+      const hitRadius = BASE_HEX_R * camZoom * 1.25;
+
+      if (d < minDist && d < hitRadius) {
         minDist = d;
-        closest = { col: c, row: r };
+        bestHex = { col: c, row: r };
       }
     }
   }
-  return closest;
+  return bestHex;
 }
 
 function getHexDistance(c1, r1, c2, r2) {
-  // Аксиальные координаты
   const q1 = c1, p1 = r1 - Math.floor(c1 / 2);
   const q2 = c2, p2 = r2 - Math.floor(c2 / 2);
   return (Math.abs(q1 - q2) + Math.abs(q1 + p1 - q2 - p2) + Math.abs(p1 - p2)) / 2;
@@ -1118,7 +1245,6 @@ function getNeighbors(col, row) {
   return res;
 }
 
-// Расчет доступных гексов для перемещения (BFS)
 function recalcReachableHexes() {
   reachableHexes = [];
   if (currentTurn !== 'player' || playerUnit.movePts <= 0) return;
@@ -1144,7 +1270,6 @@ function recalcReachableHexes() {
   }
 }
 
-// Поиск пути (A*)
 function findPath(start, goal) {
   const openSet = [start];
   const cameFrom = {};
@@ -1191,70 +1316,69 @@ function battleRenderLoop() {
   if (!bCtx || !bCanvas) return;
   bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
 
-  // 1. Сетка гексов 15х15
+  // 1. Отрисовка гексов 15х15
   for (let c = 0; c < GRID_COLS; c++) {
     for (let r = 0; r < GRID_ROWS; r++) {
       drawHexTile(c, r);
     }
   }
 
-  // 2. Подсветка доступного пути
+  // 2. Траектория пути
   if (combatPhase === 'move' && currentPath.length > 0) {
     drawPathLine();
   }
 
-  // 3. Препятствия / Постройки
+  // 3. Здания
   for (const [key, obs] of Object.entries(obstacles)) {
     const [c, r] = key.split(',').map(Number);
     drawBuilding(c, r, obs);
   }
 
   // 4. Юниты
-  // Игрок
   if (playerUnit && playerUnit.hp > 0) {
     drawMechUnit(playerUnit.col, playerUnit.row, '#00f0ff', playerUnit.name, playerUnit.hp, playerUnit.maxHp, true);
   }
 
-  // Враги
   enemyUnits.forEach(e => {
     if (e.hp > 0) {
       drawMechUnit(e.col, e.row, e.color, e.name, e.hp, e.maxHp, false);
     }
   });
 
-  // 5. Погодные эффекты (Дождь / Снег / ЭМИ)
+  // 5. Погода
   drawWeatherOverlay();
 
   requestAnimationFrame(battleRenderLoop);
 }
 
 function drawHexTile(col, row) {
-  const p = hexToPixel(col, row);
-  const isHovered = hoveredHex && hoveredHex.col === col && hoveredHex.row === row;
+  const p = hexToScreen(col, row);
+  const r = BASE_HEX_R * camZoom;
+
   const isReachable = reachableHexes.some(h => h.col === col && h.row === row);
+  const isSelected = hoveredHex && hoveredHex.col === col && hoveredHex.row === row;
 
   bCtx.beginPath();
   for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i + Math.PI / 6;
-    const hx = p.x + HEX_RADIUS * Math.cos(angle);
-    const hy = p.y + (HEX_RADIUS * 0.85) * Math.sin(angle);
+    const angle = (Math.PI / 3) * i;
+    const hx = p.x + r * Math.cos(angle);
+    const hy = p.y + (r * 0.72) * Math.sin(angle);
     if (i === 0) bCtx.moveTo(hx, hy);
     else bCtx.lineTo(hx, hy);
   }
   bCtx.closePath();
 
-  // Заливка гекса
   if (isReachable && combatPhase === 'move') {
-    bCtx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+    bCtx.fillStyle = 'rgba(0, 240, 255, 0.22)';
     bCtx.strokeStyle = '#00f0ff';
-    bCtx.lineWidth = 1.5;
-  } else if (isHovered) {
-    bCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-    bCtx.strokeStyle = '#9ab';
-    bCtx.lineWidth = 1;
+    bCtx.lineWidth = 2;
+  } else if (isSelected) {
+    bCtx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    bCtx.strokeStyle = '#fff';
+    bCtx.lineWidth = 2;
   } else {
-    bCtx.fillStyle = '#0f1420';
-    bCtx.strokeStyle = '#1b2333';
+    bCtx.fillStyle = '#0f1422';
+    bCtx.strokeStyle = '#1a2233';
     bCtx.lineWidth = 1;
   }
   bCtx.fill();
@@ -1262,109 +1386,103 @@ function drawHexTile(col, row) {
 }
 
 function drawBuilding(col, row, obs) {
-  const p = hexToPixel(col, row);
-  const h = obs.height;
+  const p = hexToScreen(col, row);
+  const h = obs.height * camZoom;
+  const r = BASE_HEX_R * camZoom;
 
-  // Изометрическая призматическая постройка
-  bCtx.fillStyle = obs.type === 'building' ? '#1e293b' : '#334155';
+  bCtx.fillStyle = '#1e293b';
   bCtx.strokeStyle = '#475569';
 
-  // Левая грань
+  // Изометрическая призма здания
   bCtx.beginPath();
-  bCtx.moveTo(p.x - 14, p.y + 4);
-  bCtx.lineTo(p.x, p.y + 12);
-  bCtx.lineTo(p.x, p.y + 12 - h);
-  bCtx.lineTo(p.x - 14, p.y + 4 - h);
+  bCtx.moveTo(p.x - r * 0.5, p.y + 4);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
+  bCtx.lineTo(p.x - r * 0.5, p.y + 4 - h);
   bCtx.closePath();
   bCtx.fill();
   bCtx.stroke();
 
-  // Правая грань
   bCtx.fillStyle = '#0f172a';
   bCtx.beginPath();
-  bCtx.moveTo(p.x, p.y + 12);
-  bCtx.lineTo(p.x + 14, p.y + 4);
-  bCtx.lineTo(p.x + 14, p.y + 4 - h);
-  bCtx.lineTo(p.x, p.y + 12 - h);
+  bCtx.moveTo(p.x, p.y + 14 * camZoom);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4 - h);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
   bCtx.closePath();
   bCtx.fill();
   bCtx.stroke();
 
   // Крыша
-  bCtx.fillStyle = '#38465c';
+  bCtx.fillStyle = '#334155';
   bCtx.beginPath();
-  bCtx.moveTo(p.x, p.y - 6 - h);
-  bCtx.lineTo(p.x + 14, p.y + 4 - h);
-  bCtx.lineTo(p.x, p.y + 12 - h);
-  bCtx.lineTo(p.x - 14, p.y + 4 - h);
+  bCtx.moveTo(p.x, p.y - 10 * camZoom - h);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4 - h);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
+  bCtx.lineTo(p.x - r * 0.5, p.y + 4 - h);
   bCtx.closePath();
   bCtx.fill();
   bCtx.stroke();
-
-  // Неоновые маяки на крыше
-  bCtx.fillStyle = '#ef4444';
-  bCtx.fillRect(p.x - 2, p.y + 2 - h, 4, 3);
 }
 
 function drawMechUnit(col, row, color, name, hp, maxHp, isPlayer) {
-  const p = hexToPixel(col, row);
+  const p = hexToScreen(col, row);
+  const s = camZoom;
 
-  // Тень под мехом
-  bCtx.fillStyle = 'rgba(0,0,0,0.5)';
+  // Тень
+  bCtx.fillStyle = 'rgba(0,0,0,0.55)';
   bCtx.beginPath();
-  bCtx.ellipse(p.x, p.y + 6, 16, 8, 0, 0, Math.PI * 2);
+  bCtx.ellipse(p.x, p.y + 8 * s, 18 * s, 9 * s, 0, 0, Math.PI * 2);
   bCtx.fill();
 
-  // Блочный изометрический корпус Ванзера
+  // Ванзер (Front Mission стиль)
   bCtx.fillStyle = color;
-  bCtx.fillRect(p.x - 10, p.y - 24, 20, 18);
+  bCtx.fillRect(p.x - 12 * s, p.y - 26 * s, 24 * s, 22 * s);
 
   // Наплечники
   bCtx.fillStyle = '#1e293b';
-  bCtx.fillRect(p.x - 14, p.y - 22, 5, 8);
-  bCtx.fillRect(p.x + 9, p.y - 22, 5, 8);
+  bCtx.fillRect(p.x - 17 * s, p.y - 24 * s, 6 * s, 10 * s);
+  bCtx.fillRect(p.x + 11 * s, p.y - 24 * s, 6 * s, 10 * s);
 
-  // Голова / Монокуляр
+  // Голова / сенсор
   bCtx.fillStyle = '#0f172a';
-  bCtx.fillRect(p.x - 5, p.y - 31, 10, 7);
+  bCtx.fillRect(p.x - 6 * s, p.y - 35 * s, 12 * s, 9 * s);
   bCtx.fillStyle = isPlayer ? '#00f0ff' : '#ef4444';
-  bCtx.fillRect(p.x - 3, p.y - 28, 6, 2);
+  bCtx.fillRect(p.x - 4 * s, p.y - 32 * s, 8 * s, 3 * s);
 
   // Орудие в руке
   bCtx.fillStyle = '#334155';
-  bCtx.fillRect(p.x + 10, p.y - 18, 3, 12);
+  bCtx.fillRect(p.x + 13 * s, p.y - 20 * s, 4 * s, 16 * s);
 
-  // Полоска HP над юнитом
-  const barW = 28;
-  const barH = 3;
-  bCtx.fillStyle = '#1a202c';
-  bCtx.fillRect(p.x - barW / 2, p.y - 38, barW, barH);
+  // Индикатор HP
+  const bw = 32 * s, bh = 4 * s;
+  bCtx.fillStyle = '#10141d';
+  bCtx.fillRect(p.x - bw / 2, p.y - 44 * s, bw, bh);
   bCtx.fillStyle = (hp / maxHp > 0.4) ? '#10b981' : '#ef4444';
-  bCtx.fillRect(p.x - barW / 2, p.y - 38, barW * (hp / maxHp), barH);
+  bCtx.fillRect(p.x - bw / 2, p.y - 44 * s, bw * (hp / maxHp), bh);
 }
 
 function drawPathLine() {
   if (currentPath.length === 0) return;
   bCtx.strokeStyle = '#00f0ff';
   bCtx.lineWidth = 3;
-  bCtx.setLineDash([5, 5]);
+  bCtx.setLineDash([6, 4]);
 
   bCtx.beginPath();
-  const startP = hexToPixel(playerUnit.col, playerUnit.row);
+  const startP = hexToScreen(playerUnit.col, playerUnit.row);
   bCtx.moveTo(startP.x, startP.y);
 
   currentPath.forEach(h => {
-    const p = hexToPixel(h.col, h.row);
+    const p = hexToScreen(h.col, h.row);
     bCtx.lineTo(p.x, p.y);
   });
   bCtx.stroke();
   bCtx.setLineDash([]);
 
-  // Кружок на конце пути
-  const endP = hexToPixel(currentPath[currentPath.length - 1].col, currentPath[currentPath.length - 1].row);
+  const endP = hexToScreen(currentPath[currentPath.length - 1].col, currentPath[currentPath.length - 1].row);
   bCtx.fillStyle = '#00f0ff';
   bCtx.beginPath();
-  bCtx.arc(endP.x, endP.y, 5, 0, Math.PI * 2);
+  bCtx.arc(endP.x, endP.y, 6, 0, Math.PI * 2);
   bCtx.fill();
 }
 
@@ -1390,83 +1508,116 @@ function drawWeatherOverlay() {
 function cycleWeather() {
   currentWeatherIdx = (currentWeatherIdx + 1) % WEATHERS.length;
   const w = WEATHERS[currentWeatherIdx];
-  document.getElementById('weather-icon').innerText = w.icon;
-  document.getElementById('weather-name').innerText = w.name;
-  logCombat(`🌤️ Погодные условия изменились: ${w.name}`);
+  document.getElementById('hud-weather-btn').innerText = w.icon;
+  showToast(`🌤️ Погода: ${w.name}`);
+  logCombat(`🌤️ Погода: ${w.name}`);
 }
 
-// Управление событиями мыши на поле боя
-function onHexMouseMove(e) {
-  const rect = bCanvas.getBoundingClientRect();
-  const h = pixelToHex(e.clientX - rect.left, e.clientY - rect.top);
+// ОБРАБОТКА ТАПА ПО ГЕКСУ
+function handleHexTap(screenX, screenY) {
+  if (currentTurn !== 'player') return;
+  const h = screenToHex(screenX, screenY);
+  if (!h) return;
+
   hoveredHex = h;
 
-  if (combatPhase === 'move' && currentTurn === 'player' && h) {
+  if (combatPhase === 'move') {
     const isReachable = reachableHexes.some(rh => rh.col === h.col && rh.row === h.row);
     if (isReachable) {
+      // Показать путь
       currentPath = findPath({ col: playerUnit.col, row: playerUnit.row }, h);
+      const target = reachableHexes.find(rh => rh.col === h.col && rh.row === h.row);
+      if (target && playerUnit.movePts >= target.cost) {
+        playerUnit.col = target.col;
+        playerUnit.row = target.row;
+        playerUnit.movePts -= target.cost;
+        currentPath = [];
+        showToast(`🚶 Шаг в [${target.col},${target.row}] // Очки хода: ${playerUnit.movePts}`);
+        logCombat(`🚶 Мех переместился в гекс [${target.col}, ${target.row}]. Осталось очков хода: ${playerUnit.movePts}`);
+        recalcReachableHexes();
+        updateBattleHUD();
+        if (playerUnit.movePts <= 0) {
+          setCombatPhase('attack');
+        }
+      }
     } else {
       currentPath = [];
     }
-  } else {
-    currentPath = [];
-  }
-}
-
-function onHexClick(e) {
-  if (currentTurn !== 'player') return;
-  const rect = bCanvas.getBoundingClientRect();
-  const h = pixelToHex(e.clientX - rect.left, e.clientY - rect.top);
-  if (!h) return;
-
-  if (combatPhase === 'move') {
-    // Перемещение
-    const target = reachableHexes.find(rh => rh.col === h.col && rh.row === h.row);
-    if (target && playerUnit.movePts >= target.cost) {
-      playerUnit.col = target.col;
-      playerUnit.row = target.row;
-      playerUnit.movePts -= target.cost;
-      logCombat(`🚶 Мех переместился в гекс [${target.col}, ${target.row}]. Осталось очков хода: ${playerUnit.movePts}`);
-      recalcReachableHexes();
-      updateBattleHUD();
-      if (playerUnit.movePts <= 0) {
-        setCombatPhase('attack');
-      }
-    }
   } else if (combatPhase === 'attack') {
-    // Стрельба по врагу
     const enemy = enemyUnits.find(u => u.hp > 0 && u.col === h.col && u.row === h.row);
     if (enemy) {
       playerAttackEnemy(enemy);
+    } else {
+      showToast('⚠️ Тапните по вражескому меху для атаки!');
     }
   }
 }
 
 function setCombatPhase(phase) {
   combatPhase = phase;
-  document.getElementById('btn-phase-move').classList.toggle('active', phase === 'move');
-  document.getElementById('btn-phase-attack').classList.toggle('active', phase === 'attack');
+  document.getElementById('dock-btn-move').classList.toggle('active', phase === 'move');
+  document.getElementById('dock-btn-attack').classList.toggle('active', phase === 'attack');
+
+  const drawer = document.getElementById('weapon-drawer');
+  if (phase === 'attack') {
+    renderWeaponDrawer();
+    drawer.classList.add('open');
+  } else {
+    drawer.classList.remove('open');
+    currentPath = [];
+  }
   recalcReachableHexes();
+}
+
+function renderWeaponDrawer() {
+  const drawer = document.getElementById('weapon-drawer');
+  drawer.innerHTML = '';
+  const slots = [
+    { k: 'shoulder_l', l: 'Плечо L' },
+    { k: 'shoulder_r', l: 'Плечо R' },
+    { k: 'arm_l', l: 'Рука L' },
+    { k: 'arm_r', l: 'Рука R' }
+  ];
+
+  slots.forEach(s => {
+    const w = playerUnit.weapons[s.k];
+    const isAct = (selectedWeaponSlot === s.k);
+    const isEmpty = w.maxAmmo > 0 && w.ammo <= 0;
+    const card = document.createElement('div');
+    card.className = `drawer-wep-card ${isAct ? 'active' : ''} ${isEmpty ? 'empty' : ''}`;
+    card.onclick = (e) => {
+      e.stopPropagation();
+      selectedWeaponSlot = s.k;
+      renderWeaponDrawer();
+      updateBattleHUD();
+      showToast(`🎯 Выбрано: ${w.name} [Дальность: ${w.range}г]`);
+    };
+    card.innerHTML = `
+      <div class="slot">${s.l}</div>
+      <div class="name">${w.name}</div>
+      <div class="ammo">${w.maxAmmo > 0 ? `Патроны: ${w.ammo}` : '∞'} // Дальн: ${w.range}г</div>
+    `;
+    drawer.appendChild(card);
+  });
 }
 
 function playerAttackEnemy(enemy) {
   const wep = playerUnit.weapons[selectedWeaponSlot];
   if (!wep || wep.type === 'none') {
-    logCombat(`⚠️ В слоте [${selectedWeaponSlot}] не установлено оружие!`);
+    showToast(`⚠️ В слоте [${selectedWeaponSlot}] нет оружия!`);
     return;
   }
   if (wep.maxAmmo > 0 && wep.ammo <= 0) {
-    logCombat(`⚠️ Боезапас ${wep.name} исчерпан! Выберите другое оружие.`);
+    showToast(`⚠️ Боезапас ${wep.name} пуст!`);
     return;
   }
 
   const dist = getHexDistance(playerUnit.col, playerUnit.row, enemy.col, enemy.row);
   if (dist > wep.range) {
-    logCombat(`⚠️ Цель вне досягаемости (${dist} гексов > макс. ${wep.range})!`);
+    showToast(`⚠️ Вне зоны поражения! Дистанция: ${dist}г > ${wep.range}г`);
     return;
   }
 
-  // Расчет выстрела
   if (wep.maxAmmo > 0) wep.ammo--;
   const hitChance = Math.min(95, Math.max(30, playerUnit.acc - dist * 5));
   const isHit = Math.random() * 100 < hitChance;
@@ -1474,33 +1625,35 @@ function playerAttackEnemy(enemy) {
   if (isHit) {
     const dmg = Math.round(wep.dmg * (0.9 + Math.random() * 0.2));
     enemy.hp -= dmg;
-    logCombat(`🎯 Выстрел из ${wep.name} по ${enemy.name}: ПОПАДАНИЕ! Нанесено ${dmg} урона.`, 'p-hit');
+    showToast(`💥 Попадание из ${wep.name}: -${dmg} HP!`);
+    logCombat(`🎯 Залп из ${wep.name} по ${enemy.name}: ПОПАДАНИЕ! Нанесено ${dmg} урона.`, 'p-hit');
 
     if (enemy.hp <= 0) {
       enemy.hp = 0;
+      showToast(`💀 ${enemy.name} уничтожен!`);
       logCombat(`💥 ${enemy.name} УНИЧТОЖЕН!`, 'kill');
     }
   } else {
-    logCombat(`💨 Выстрел из ${wep.name} по ${enemy.name}: ПРОМАХ! (${hitChance}% шанс)`, 'p-hit');
+    showToast(`💨 Промах по ${enemy.name}! (${hitChance}% шанс)`);
+    logCombat(`💨 Выстрел из ${wep.name} по ${enemy.name}: ПРОМАХ!`, 'p-hit');
   }
 
-  playerUnit.hasAttacked = true;
   updateBattleHUD();
   checkBattleEnd();
 }
 
-// Завершение хода игрока -> Переход хода к ИИ
 function playerEndTurn() {
   if (currentTurn !== 'player') return;
   currentTurn = 'enemy';
-  document.getElementById('b-turn-badge').innerText = 'ХОД ПРОТИВНИКА (ИИ)';
+  document.getElementById('b-turn-badge').innerText = 'ХОД ВРАГА (ИИ)';
   document.getElementById('b-turn-badge').className = 'turn-badge enemy';
+  document.getElementById('weapon-drawer').classList.remove('open');
+  showToast('⏭️ Ход игрока завершен. Противник атакует...');
   logCombat(`⏭️ Завершение хода игрока. Инициатива переходит к противнику!`);
 
   setTimeout(runAITurn, 800);
 }
 
-// Поведение ИИ (Ход противника)
 function runAITurn() {
   const aliveEnemies = enemyUnits.filter(e => e.hp > 0);
   if (aliveEnemies.length === 0) {
@@ -1511,7 +1664,6 @@ function runAITurn() {
   let index = 0;
   function processNextEnemy() {
     if (index >= aliveEnemies.length) {
-      // Возврат хода игроку
       startPlayerTurn();
       return;
     }
@@ -1519,7 +1671,6 @@ function runAITurn() {
     const enemy = aliveEnemies[index++];
     const distToPlayer = getHexDistance(enemy.col, enemy.row, playerUnit.col, playerUnit.row);
 
-    // 1. Движение к игроку, если далеко
     if (distToPlayer > enemy.range) {
       const path = findPath({ col: enemy.col, row: enemy.row }, { col: playerUnit.col, row: playerUnit.row });
       if (path.length > 0) {
@@ -1527,21 +1678,21 @@ function runAITurn() {
         if (step) {
           enemy.col = step.col;
           enemy.row = step.row;
-          logCombat(`🤖 ${enemy.name} совершает маневр сближения.`);
         }
       }
     }
 
-    // 2. Атака игрока, если в радиусе
     const newDist = getHexDistance(enemy.col, enemy.row, playerUnit.col, playerUnit.row);
     if (newDist <= enemy.range && playerUnit.hp > 0) {
       const hitRoll = Math.random() * 100;
       if (hitRoll < 75) {
         const dmg = Math.round(enemy.dmg * (0.85 + Math.random() * 0.3));
         playerUnit.hp -= dmg;
+        showToast(`🚨 ${enemy.name}: -${dmg} HP вашему меху!`);
         logCombat(`🚨 ${enemy.name} атакует ваш мех: -${dmg} HP!`, 'e-hit');
         if (playerUnit.hp <= 0) {
           playerUnit.hp = 0;
+          showToast(`💀 ВАШ МЕХ УНИЧТОЖЕН!`);
           logCombat(`💀 ВАШ МЕХ УНИЧТОЖЕН! ПОРАЖЕНИЕ.`, 'kill');
         }
       } else {
@@ -1564,15 +1715,16 @@ function startPlayerTurn() {
   document.getElementById('b-turn-badge').className = 'turn-badge player';
 
   playerUnit.movePts = playerUnit.maxMovePts;
-  playerUnit.hasAttacked = false;
   setCombatPhase('move');
   updateBattleHUD();
+  showToast(`🟢 Раунд ${roundNum}: Приводы перезаряжены!`);
   logCombat(`🟢 Раунд ${roundNum}: Ваши приводы перезаряжены. Очки хода: ${playerUnit.movePts}`);
 }
 
 function checkBattleEnd() {
   const aliveEnemies = enemyUnits.filter(e => e.hp > 0);
   if (aliveEnemies.length === 0) {
+    showToast(`🏆 ПОБЕДА! Все 5 вражеских ванзеров ликвидированы!`);
     logCombat(`🏆 ПОБЕДА! Все вражеские ванзеры ликвидированы!`, 'kill');
   }
 }
@@ -1580,43 +1732,28 @@ function checkBattleEnd() {
 function updateBattleHUD() {
   if (!playerUnit) return;
 
-  document.getElementById('move-pts-badge').innerText = `(${playerUnit.movePts}/${playerUnit.maxMovePts})`;
-  document.getElementById('c-hp-text').innerText = `${playerUnit.hp} / ${playerUnit.maxHp} HP`;
-  document.getElementById('c-hp-bar').style.width = Math.max(0, (playerUnit.hp / playerUnit.maxHp) * 100) + '%';
+  document.getElementById('dock-hp-val').innerText = `${playerUnit.hp}`;
+  document.getElementById('dock-hp-bar').style.width = Math.max(0, (playerUnit.hp / playerUnit.maxHp) * 100) + '%';
+  document.getElementById('dock-move-pts').innerText = `(${playerUnit.movePts}/${playerUnit.maxMovePts} гекса)`;
 
-  // Оружейные кнопки
-  const wRow = document.getElementById('battle-weapons-row');
-  wRow.innerHTML = '';
-  const slots = [
-    { k: 'shoulder_l', l: 'Плечо L' },
-    { k: 'shoulder_r', l: 'Плечо R' },
-    { k: 'arm_l', l: 'Рука L' },
-    { k: 'arm_r', l: 'Рука R' }
-  ];
+  const wep = playerUnit.weapons[selectedWeaponSlot];
+  document.getElementById('dock-wep-name').innerText = wep ? `${wep.name.split(' ')[0]} [${wep.ammo !== undefined ? wep.ammo : '∞'}]` : 'Выбрать';
+}
 
-  slots.forEach(s => {
-    const w = playerUnit.weapons[s.k];
-    const isAct = (selectedWeaponSlot === s.k);
-    const isEmpty = w.maxAmmo > 0 && w.ammo <= 0;
+function showToast(msg) {
+  const t = document.getElementById('battle-toast');
+  t.innerText = msg;
+  t.style.opacity = '1';
+  clearTimeout(t.timer);
+  t.timer = setTimeout(() => { t.style.opacity = '0.4'; }, 3500);
+}
 
-    const btn = document.createElement('button');
-    btn.className = `wep-fire-btn ${isAct ? 'active' : ''} ${isEmpty ? 'empty' : ''}`;
-    btn.onclick = () => {
-      selectedWeaponSlot = s.k;
-      setCombatPhase('attack');
-      updateBattleHUD();
-    };
-    btn.innerHTML = `
-      <b style="font-size:0.62rem; color:#8896ab;">${s.l}</b>
-      <span style="font-size:0.7rem; font-weight:bold;">${w.name}</span>
-      <span style="font-size:0.62rem; color:var(--accent-warn);">${w.maxAmmo > 0 ? `Запас: ${w.ammo}` : '∞'} // Дальн: ${w.range}г</span>
-    `;
-    wRow.appendChild(btn);
-  });
+function toggleLogModal() {
+  document.getElementById('log-modal').classList.toggle('open');
 }
 
 function logCombat(msg, type = '') {
-  const box = document.getElementById('combat-log');
+  const box = document.getElementById('combat-log-full');
   const line = document.createElement('div');
   line.className = `log-line ${type}`;
   line.innerText = msg;
@@ -1624,7 +1761,7 @@ function logCombat(msg, type = '') {
   box.scrollTop = box.scrollHeight;
 }
 
-// Инициализация
+// Запуск
 window.addEventListener('DOMContentLoaded', () => {
   renderUI();
   init3D();
