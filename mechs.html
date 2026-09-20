@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>WANZER // Front Mission Mech Configurator</title>
+  <title>WANZER // Front Mission 3D Configurator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     :root {
-      --bg-dark: #090b10;
-      --bg-panel: #11141d;
-      --bg-slot: #171b26;
-      --border-color: #262c3d;
-      --border-focus: #00f0ff;
-      --text-main: #dce3ed;
-      --text-muted: #6b778c;
+      --bg-dark: #080a0f;
+      --bg-panel: #0e121a;
+      --bg-card: #141924;
+      --bg-card-active: #1c2333;
+      --border: #222938;
+      --border-accent: #00f0ff;
+      --text: #d8e1ed;
+      --text-dim: #65728a;
       --accent: #00f0ff;
-      --accent-warn: #e5ad35;
-      --accent-danger: #f55252;
-      --accent-ok: #38c172;
+      --accent-warn: #eab308;
+      --accent-danger: #ef4444;
+      --accent-ok: #10b981;
 
       --r-white: #cfd6e0;
       --r-blue: #3b82f6;
@@ -27,361 +28,414 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', monospace, sans-serif; user-select: none; }
-    body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); }
 
-    /* Верхняя панель */
+    /* Шапка (40px) */
     header {
-      background: #0d1017;
-      border-bottom: 1px solid var(--border-color);
-      padding: 8px 16px;
+      height: 40px;
+      background: #0b0e14;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 44px;
+      padding: 0 14px;
       flex-shrink: 0;
     }
-    .brand { font-size: 0.95rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .brand span { color: #fff; font-size: 0.8rem; opacity: 0.7; }
-    .status-pill { font-size: 0.75rem; padding: 2px 8px; border-radius: 3px; font-weight: bold; background: rgba(56, 193, 114, 0.15); color: var(--accent-ok); border: 1px solid var(--accent-ok); }
-    .status-pill.danger { background: rgba(245, 82, 82, 0.15); color: var(--accent-danger); border-color: var(--accent-danger); }
-    .status-pill.warn { background: rgba(229, 173, 53, 0.15); color: var(--accent-warn); border-color: var(--accent-warn); }
+    .brand { font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .brand span { color: #8896ab; font-size: 0.75rem; font-weight: normal; }
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.5px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-ok);
+      border: 1px solid var(--accent-ok);
+    }
+    .status-badge.danger { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); border-color: var(--accent-danger); }
+    .status-badge.warn { background: rgba(234, 179, 8, 0.15); color: var(--accent-warn); border-color: var(--accent-warn); }
 
-    /* Основная сетка: Компактный интерфейс */
-    .hangar-grid {
+    /* Основной экран: СТРОГО 50% / 50% */
+    .split-container {
       display: grid;
-      grid-template-columns: 460px 1fr;
-      height: calc(100vh - 44px);
+      grid-template-columns: 50% 50%;
+      height: calc(100vh - 40px);
+      width: 100%;
       overflow: hidden;
     }
 
-    @media (max-width: 960px) {
-      body { overflow-y: auto; height: auto; }
-      .hangar-grid { grid-template-columns: 1fr; height: auto; overflow: visible; }
+    @media (max-width: 900px) {
+      html, body { overflow-y: auto; height: auto; }
+      .split-container { grid-template-columns: 1fr; height: auto; overflow: visible; }
     }
 
-    /* ЛЕВАЯ КОЛОНКА: ВЫБОР И РЕДАКТИРОВАНИЕ ЧАСТЕЙ */
-    .left-col {
+    /* ==========================================================
+       ЛЕВАЯ ПОЛОВИНА (50%): ЧАСТИ И ИНСПЕКТОР ВЫБРАННОГО УЗЛА
+       ========================================================== */
+    .left-half {
       background: var(--bg-panel);
-      border-right: 1px solid var(--border-color);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
       height: 100%;
+      overflow: hidden;
     }
 
-    .section-title {
-      font-size: 0.75rem;
+    /* Сетка быстрого выбора частей (8 узлов) */
+    .parts-dock-bar {
+      padding: 8px 12px;
+      background: #090d14;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .parts-dock-title {
+      font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: var(--text-muted);
-      padding: 10px 14px 6px;
-      background: rgba(0,0,0,0.25);
-      border-bottom: 1px solid var(--border-color);
+      color: var(--text-dim);
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+    }
+    .parts-pills-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
     }
 
-    /* Компактный список узлов */
-    .parts-accordion {
+    .part-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.12s ease;
+    }
+    .part-pill:hover { border-color: #3b4760; background: #181f2e; }
+    .part-pill.active { border-color: var(--accent); background: var(--bg-card-active); box-shadow: 0 0 8px rgba(0,240,255,0.2); }
+    .pill-icon { font-size: 0.95rem; }
+    .pill-text { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+    .pill-name { font-size: 0.72rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pill-sub { font-size: 0.62rem; color: var(--text-dim); }
+
+    /* Инспектор активной детали */
+    .part-inspector {
+      flex: 1;
+      padding: 12px 14px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      padding: 8px 10px;
-      gap: 6px;
+      gap: 12px;
     }
 
-    .part-card {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
+    .inspector-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
       border-radius: 4px;
-      padding: 8px 10px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .part-card:hover { border-color: #3b455e; }
-    .part-card.active { border-color: var(--accent); background: #1c2233; }
-
-    .part-header-row {
+      padding: 8px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .part-title-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .part-icon { font-size: 1.05rem; }
-    .part-name { font-size: 0.85rem; font-weight: 700; color: #fff; }
-    .part-mfg { font-size: 0.7rem; color: #8c9ba5; }
+    .insp-title { font-size: 0.9rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .insp-3dtip { font-size: 0.68rem; color: var(--accent); }
 
-    .badge-rarity {
-      font-size: 0.65rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 3px;
+    .control-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    .r-white { background: #333d4e; color: var(--r-white); }
+    .block-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .chips-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chip {
+      background: #0d111a;
+      border: 1px solid var(--border);
+      color: #9ab;
+      font-size: 0.72rem;
+      padding: 5px 9px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .chip:hover { border-color: #4a5670; color: #fff; }
+    .chip.active { border-color: var(--accent); color: #fff; background: rgba(0, 240, 255, 0.15); font-weight: bold; }
+
+    /* Редкости */
+    .badge-r { font-size: 0.65rem; font-weight: bold; padding: 2px 6px; border-radius: 2px; }
+    .r-white { background: #262e3d; color: var(--r-white); }
     .r-blue { background: rgba(59, 130, 246, 0.2); color: var(--r-blue); border: 1px solid var(--r-blue); }
     .r-green { background: rgba(16, 185, 129, 0.2); color: var(--r-green); border: 1px solid var(--r-green); }
     .r-gold { background: rgba(245, 158, 11, 0.2); color: var(--r-gold); border: 1px solid var(--r-gold); }
     .r-orange { background: rgba(249, 115, 22, 0.2); color: var(--r-orange); border: 1px solid var(--r-orange); }
 
-    /* Форма настройки активной детали (инлайн) */
-    .part-editor {
-      background: #11151f;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 10px;
-      margin-top: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .edit-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
-    .btn-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
-    .chip-btn {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
-      color: #b0bac9;
-      font-size: 0.75rem;
-      padding: 4px 8px;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-    .chip-btn:hover { border-color: #4f5d75; color: #fff; }
-    .chip-btn.active { border-color: var(--accent); color: #fff; background: rgba(0, 240, 255, 0.15); font-weight: bold; }
-
-    .module-select {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
+    select.std-select {
+      background: #0d111a;
+      border: 1px solid var(--border);
       color: #fff;
       font-size: 0.75rem;
-      padding: 5px;
+      padding: 6px 8px;
       border-radius: 3px;
       width: 100%;
       outline: none;
     }
+    select.std-select:focus { border-color: var(--accent); }
 
-    /* ПРАВАЯ КОЛОНКА: 3D ВАНЗЕР + СТРУКТУРА ГОТОВОГО МЕХА */
-    .right-col {
+    /* ==========================================================
+       ПРАВАЯ ПОЛОВИНА (50%): 3D ВАНЗЕР + СТРУКТУРА И ТТХ МЕХА
+       ========================================================== */
+    .right-half {
       display: grid;
-      grid-template-rows: 380px 1fr;
+      grid-template-rows: 58% 42%;
       height: 100%;
-      background: #0b0e14;
+      background: #090c12;
       overflow: hidden;
     }
 
-    @media (max-width: 960px) {
-      .right-col { grid-template-rows: 320px auto; overflow: visible; height: auto; }
+    @media (max-width: 900px) {
+      .right-half { grid-template-rows: 320px auto; overflow: visible; height: auto; }
     }
 
-    /* 3D Сцена */
-    .viewer-wrap {
+    /* 3D Окно ангара */
+    .viewport-3d-wrap {
       position: relative;
-      background: radial-gradient(circle at center, #171d2b 0%, #080a0f 85%);
-      border-bottom: 1px solid var(--border-color);
+      background: radial-gradient(circle at center, #151c2a 0%, #07090e 90%);
+      border-bottom: 1px solid var(--border);
       overflow: hidden;
     }
-    #mech3d-canvas { width: 100%; height: 100%; display: block; outline: none; }
+    #wanzer-canvas { width: 100%; height: 100%; display: block; outline: none; cursor: grab; }
+    #wanzer-canvas:active { cursor: grabbing; }
 
-    .viewer-overlay {
+    .hud-3d {
       position: absolute;
-      top: 10px;
-      left: 12px;
+      top: 8px;
+      left: 10px;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-    .model-code { font-size: 0.7rem; color: var(--accent); letter-spacing: 1px; font-weight: 800; text-transform: uppercase; }
-    .model-subtitle { font-size: 0.65rem; color: var(--text-muted); }
+    .hud-title { font-size: 0.75rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+    .hud-desc { font-size: 0.65rem; color: var(--text-dim); }
 
-    .viewer-controls-tip {
+    .hud-selected-part {
       position: absolute;
       bottom: 8px;
-      right: 12px;
-      font-size: 0.65rem;
-      color: #526078;
-      pointer-events: none;
-      background: rgba(0,0,0,0.6);
-      padding: 2px 6px;
+      left: 10px;
+      font-size: 0.7rem;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--accent);
+      padding: 4px 10px;
       border-radius: 3px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-controls-tip {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      font-size: 0.62rem;
+      color: #55637d;
+      background: rgba(0,0,0,0.6);
+      padding: 3px 6px;
+      border-radius: 3px;
+      pointer-events: none;
     }
 
     /* Нижняя секция: структура готового меха */
-    .summary-wrap {
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      overflow-y: auto;
-      height: 100%;
-    }
-
-    @media (max-width: 1200px) {
-      .summary-wrap { grid-template-columns: 1fr; }
-    }
-
-    /* Сводные показатели ТТХ */
-    .specs-col {
-      border-right: 1px solid var(--border-color);
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .summary-dock {
+      padding: 10px 14px;
       background: var(--bg-panel);
-    }
-    .meter-card {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-    }
-    .meter-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
-    .meter-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
-    .bar-track { height: 4px; background: #262c3d; border-radius: 2px; overflow: hidden; margin-top: 2px; }
-    .bar-fill { height: 100%; background: var(--accent); transition: width 0.25s ease; }
-    .bar-fill.danger { background: var(--accent-danger); }
-    .bar-fill.warn { background: var(--accent-warn); }
-
-    /* Структурное дерево и боевой арсенал */
-    .structure-col {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       overflow-y: auto;
     }
 
-    .tree-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 8px;
-    }
-
-    .tree-node {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 8px 10px;
-      font-size: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .node-head { display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-    .node-desc { font-size: 0.7rem; color: #8c9ba5; }
-    .node-modules { font-size: 0.65rem; color: var(--accent); border-top: 1px dashed #262c3d; padding-top: 4px; margin-top: 2px; }
-
-    /* Оружейные слоты */
-    .weapons-bar {
+    /* Шкалы ТТХ */
+    .gauges-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
-    @media (max-width: 700px) { .weapons-bar { grid-template-columns: 1fr 1fr; } }
-
-    .wep-card {
-      background: var(--bg-slot);
-      border: 1px solid var(--border-color);
+    .gauge-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 4px;
       padding: 6px 8px;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-    .wep-pos { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
-    .wep-name { font-size: 0.8rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .wep-ammo { font-size: 0.7rem; color: var(--accent-warn); }
+    .gauge-label { font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; display: flex; justify-content: space-between; }
+    .gauge-val { font-size: 0.95rem; font-weight: 800; color: #fff; }
+    .gauge-track { height: 3px; background: #202636; border-radius: 2px; overflow: hidden; margin-top: 2px; }
+    .gauge-fill { height: 100%; background: var(--accent); transition: width 0.2s; }
+    .gauge-fill.danger { background: var(--accent-danger); }
+    .gauge-fill.warn { background: var(--accent-warn); }
+
+    /* Оружейные слоты с патронами */
+    .weapons-dock-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .weapon-dock-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+    }
+    .weapon-dock-card:hover { border-color: var(--accent); }
+    .wep-slot-tag { font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; }
+    .wep-title { font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wep-ammo-limit { font-size: 0.68rem; color: var(--accent-warn); }
+
+    /* Мини-структура узлов */
+    .nodes-scroll-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .node-chip {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .node-chip:hover { border-color: var(--accent); }
   </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    ⚙️ WANZER // FRONT MISSION OS <span>[COMPACT DOCK v2.4]</span>
+    ⚡ WANZER // FRONT MISSION <span>[TACTICAL DOCK 50/50]</span>
   </div>
   <div style="display: flex; gap: 8px; align-items: center;">
-    <button class="chip-btn" onclick="randomizeBuild()">🎲 Случайный ванзер</button>
-    <div class="status-pill" id="global-status">ГОТОВ К БОЮ</div>
+    <button class="chip" onclick="randomizeBuild()">🎲 Случайная сборка</button>
+    <div class="status-badge" id="global-status">ГОТОВ К БОЮ</div>
   </div>
 </header>
 
-<div class="hangar-grid">
+<div class="split-container">
 
-  <!-- ЛЕВАЯ КОЛОНКА: ЧАСТИ И НАСТРОЙКИ УЗЛОВ -->
-  <div class="left-col">
-    <div class="section-title">
-      <span>Узлы и детали каркаса</span>
-      <span style="font-size: 0.65rem; color: var(--accent);">8 ОСНОВНЫХ ЧАСТЕЙ</span>
+  <!-- ==========================================================
+       ЛЕВАЯ ПОЛОВИНА (50%): СПИСОК ЧАСТЕЙ И ИНСПЕКТОР ДЕТАЛИ
+       ========================================================== -->
+  <div class="left-half">
+    
+    <!-- Док быстрого выбора (8 основных узлов) -->
+    <div class="parts-dock-bar">
+      <div class="parts-dock-title">
+        <span>Узлы каркаса (выберите здесь или кликните на 3D модели)</span>
+        <span style="color:var(--accent);">8 ЧАСТЕЙ</span>
+      </div>
+      <div class="parts-pills-grid" id="parts-pills-container">
+        <!-- Генерируется через JS -->
+      </div>
     </div>
 
-    <div class="parts-accordion" id="parts-container">
+    <!-- Инспектор активного узла -->
+    <div class="part-inspector" id="part-inspector-container">
       <!-- Генерируется через JS -->
     </div>
+
   </div>
 
-  <!-- ПРАВАЯ КОЛОНКА: 3D БОЛВАНЧИК + СТРУКТУРА ГОТОВОГО МЕХА -->
-  <div class="right-col">
+  <!-- ==========================================================
+       ПРАВАЯ ПОЛОВИНА (50%): 3D ВАНЗЕР + СТРУКТУРА ГОТОВОГО МЕХА
+       ========================================================== -->
+  <div class="right-half">
 
-    <!-- 3D Сцена Ванзера (Front Mission Style) -->
-    <div class="viewer-wrap">
-      <div class="viewer-overlay">
-        <span class="model-code" id="hud-mech-code">WZ-77A "TITAN"</span>
-        <span class="model-subtitle">3D ТАКТИЧЕСКИЙ ВАНЗЕР // ТАКТ ВРАЩЕНИЯ: 1.0x</span>
+    <!-- 3D Сцена с интерактивным выбором по клику -->
+    <div class="viewport-3d-wrap">
+      <div class="hud-3d">
+        <span class="hud-title">3D ИНТЕРАКТИВНЫЙ ВАНЗЕР</span>
+        <span class="hud-desc">Кликните по любой части робота для мгновенного выбора</span>
       </div>
-      <canvas id="mech3d-canvas"></canvas>
-      <div class="viewer-controls-tip">Зажмите ЛКМ/палец для ручного вращения</div>
+      <canvas id="wanzer-canvas"></canvas>
+      <div class="hud-selected-part" id="hud-active-part-tag">
+        <span>📍 Выбран узел:</span> <b id="hud-part-name" style="color:var(--accent);">Тело (Корпус)</b>
+      </div>
+      <div class="hud-controls-tip">ЛКМ: вращение / Клик: выбор узла</div>
     </div>
 
-    <!-- Сводка и структура готового меха -->
-    <div class="summary-wrap">
+    <!-- Структура готового меха и боевые ТТХ -->
+    <div class="summary-dock">
 
-      <!-- Колонка ТТХ -->
-      <div class="specs-col">
-        <div class="meter-card">
-          <div class="meter-label"><span>Прочность каркаса</span><span id="txt-hp">0 HP</span></div>
-          <div class="meter-val" id="val-hp">0</div>
-          <div class="bar-track"><div class="bar-fill" id="bar-hp" style="width: 50%;"></div></div>
+      <!-- Шкалы 4 основных ТТХ -->
+      <div class="gauges-row">
+        <div class="gauge-box">
+          <div class="gauge-label"><span>Прочность</span><span id="txt-hp">0</span></div>
+          <div class="gauge-val" id="val-hp">0 HP</div>
+          <div class="gauge-track"><div class="gauge-fill" id="bar-hp" style="width:50%;"></div></div>
         </div>
 
-        <div class="meter-card">
-          <div class="meter-label"><span>Точность СУО</span><span id="txt-acc">0%</span></div>
-          <div class="meter-val" id="val-acc">0%</div>
-          <div class="bar-track"><div class="bar-fill" id="bar-acc" style="width: 50%;"></div></div>
+        <div class="gauge-box">
+          <div class="gauge-label"><span>Точность</span><span id="txt-acc">0%</span></div>
+          <div class="gauge-val" id="val-acc">0%</div>
+          <div class="gauge-track"><div class="gauge-fill" id="bar-acc" style="width:50%;"></div></div>
         </div>
 
-        <div class="meter-card">
-          <div class="meter-label"><span>Энергосеть (Расход / Ген)</span><span id="txt-energy">0/0</span></div>
-          <div class="meter-val" id="val-energy">0 Вт</div>
-          <div class="bar-track"><div class="bar-fill" id="bar-energy" style="width: 50%;"></div></div>
+        <div class="gauge-box">
+          <div class="gauge-label"><span>Энергосеть</span><span id="txt-energy">0/0</span></div>
+          <div class="gauge-val" id="val-energy">0 Вт</div>
+          <div class="gauge-track"><div class="gauge-fill" id="bar-energy" style="width:50%;"></div></div>
         </div>
 
-        <div class="meter-card">
-          <div class="meter-label"><span>Масса / Грузоподъемность</span><span id="txt-weight">0/0</span></div>
-          <div class="meter-val" id="val-weight">0 кг</div>
-          <div class="bar-track"><div class="bar-fill" id="bar-weight" style="width: 50%;"></div></div>
+        <div class="gauge-box">
+          <div class="gauge-label"><span>Масса</span><span id="txt-weight">0/0</span></div>
+          <div class="gauge-val" id="val-weight">0 кг</div>
+          <div class="gauge-track"><div class="gauge-fill" id="bar-weight" style="width:50%;"></div></div>
         </div>
       </div>
 
-      <!-- Колонка структуры готового меха -->
-      <div class="structure-col">
-        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">
-          Вооружение (Плечи и Руки)
-        </div>
-        <div class="weapons-bar" id="weapons-summary-bar">
-          <!-- 4 оружейных блока -->
-        </div>
+      <!-- Боезапас 4 орудий (Плечи и Руки) -->
+      <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px;">
+        Оружейные слоты и боезапас
+      </div>
+      <div class="weapons-dock-grid" id="weapons-dock-grid">
+        <!-- 4 оружейных слота -->
+      </div>
 
-        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-top: 4px;">
-          Спецификация смонтированных узлов
-        </div>
-        <div class="tree-grid" id="tree-nodes-container">
-          <!-- Карточки готовых узлов -->
-        </div>
+      <!-- Сводная линейка готовых смонтированных узлов -->
+      <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px; margin-top:2px;">
+        Смонтированные узлы каркаса
+      </div>
+      <div class="nodes-scroll-row" id="nodes-scroll-row">
+        <!-- Карточки узлов -->
       </div>
 
     </div>
@@ -392,14 +446,14 @@
 
 <script>
 // ==========================================
-// 1. БАЗА ДАННЫХ И КОНФИГУРАЦИЯ
+// 1. БАЗА ДАННЫХ И ХАРАКТЕРИСТИКИ
 // ==========================================
 const MANUFACTURERS = {
-  russia: { id: 'russia', name: 'Россия', flag: '🇷🇺', bonus: 'Тяжелый ВПК: +25% HP, +15% Груз., +10% Вес', hpMod: 1.25, loadMod: 1.15, weightMod: 1.10, energyMod: 1.0, color: 0x475569 },
-  japan: { id: 'japan', name: 'Япония', flag: '🇯🇵', bonus: 'Высокие технологии: +20% Точность, -15% Энергия, -10% Вес', accMod: 20, energyMod: 0.85, weightMod: 0.90, color: 0x3b82f6 },
-  china: { id: 'china', name: 'Китай', flag: '🇨🇳', bonus: 'Массовая стандартизация: +20% к боезапасу всех орудий', ammoMod: 1.20, weightMod: 1.0, color: 0xef4444 },
-  usa: { id: 'usa', name: 'США', flag: '🇺🇸', bonus: 'Авионика СУО: +25% Скорость крыльев, +15% Точность', accMod: 15, energyMod: 1.15, weightMod: 1.0, color: 0xf59e0b },
-  germany: { id: 'germany', name: 'Германия', flag: '🇩🇪', bonus: 'Прецизионная гидравлика: +20% Выработка генератора, +15% Прочность', hpMod: 1.15, genMod: 1.20, weightMod: 1.05, color: 0x10b981 }
+  russia: { id: 'russia', name: 'Россия', flag: '🇷🇺', bonus: '+25% HP, +15% Грузоподъемность, +10% Масса', hpMod: 1.25, loadMod: 1.15, weightMod: 1.10, energyMod: 1.0, color: 0x475569 },
+  japan: { id: 'japan', name: 'Япония', flag: '🇯🇵', bonus: '+20% Точность СУО, -15% Энергопотребление, -10% Масса', accMod: 20, energyMod: 0.85, weightMod: 0.90, color: 0x3b82f6 },
+  china: { id: 'china', name: 'Китай', flag: '🇨🇳', bonus: '+20% Боезапас всех орудий (Ammo Cap)', ammoMod: 1.20, weightMod: 1.0, color: 0xef4444 },
+  usa: { id: 'usa', name: 'США', flag: '🇺🇸', bonus: '+25% Скорость крыльев/ранца, +15% Точность', accMod: 15, energyMod: 1.15, weightMod: 1.0, color: 0xf59e0b },
+  germany: { id: 'germany', name: 'Германия', flag: '🇩🇪', bonus: '+20% Выработка генератора, +15% Прочность приводов', hpMod: 1.15, genMod: 1.20, weightMod: 1.05, color: 0x10b981 }
 };
 
 const RARITIES = {
@@ -425,21 +479,21 @@ const WEAPONS = {
 const EXPANSION_MODULES = {
   arms: [
     { id: 'gyro', name: 'Гиростабилизатор отдачи', acc: 15, hp: 0, energy: 15, weight: 25 },
-    { id: 'servo', name: 'Сервоусилитель хвата', acc: 0, hp: 50, energy: 25, weight: 40 },
-    { id: 'fast_mag', name: 'Быстросъем магазина', acc: 5, hp: 0, energy: 10, weight: 15 },
-    { id: 'cooler', name: 'Тепловой радиатор', acc: 0, hp: 20, energy: -20, weight: 30 },
-    { id: 'plates', name: 'Композитные наручи', acc: -3, hp: 150, energy: 0, weight: 65 }
+    { id: 'servo', name: 'Сервоусилитель хвата (+25% урон клинка)', acc: 0, hp: 50, energy: 25, weight: 40 },
+    { id: 'fast_mag', name: 'Быстросъем обоймы (+20% перезарядка)', acc: 5, hp: 0, energy: 10, weight: 15 },
+    { id: 'cooler', name: 'Тепловой радиатор (охлаждение лазера)', acc: 0, hp: 20, energy: -20, weight: 30 },
+    { id: 'plates', name: 'Композитные наручи брони', acc: -3, hp: 150, energy: 0, weight: 65 }
   ],
   legs: [
-    { id: 'hydra', name: 'Гидравлика высокой нагрузки', loadBoost: 450, hp: 90, energy: 25, weight: 80 },
-    { id: 'jump_jets', name: 'Прыжковые импульсные дюзы', loadBoost: 0, hp: 30, energy: 50, weight: 100 },
-    { id: 'anchors', name: 'Магнитные грунтозацепы', acc: 10, hp: 70, energy: 15, weight: 45 },
+    { id: 'hydra', name: 'Гидравлика шасси (+450кг грузоподъемность)', loadBoost: 450, hp: 90, energy: 25, weight: 80 },
+    { id: 'jump_jets', name: 'Импульсные прыжковые дюзы (рывок)', loadBoost: 0, hp: 30, energy: 50, weight: 100 },
+    { id: 'anchors', name: 'Магнитные грунтозацепы (гашение отдачи)', acc: 10, hp: 70, energy: 15, weight: 45 },
     { id: 'armor_knees', name: 'Титановые наколенники', loadBoost: 0, hp: 210, energy: 0, weight: 75 },
-    { id: 'recuperator', name: 'Кинетический рекуператор', loadBoost: 0, hp: 20, energy: -35, weight: 35 }
+    { id: 'recuperator', name: 'Кинетический рекуператор шага', loadBoost: 0, hp: 20, energy: -35, weight: 35 }
   ]
 };
 
-// 8 Ключевых частей каркаса
+// 8 основных частей
 const PARTS = {
   head: { name: 'Голова', icon: '🧠', hp: 300, acc: 25, energy: 40, weight: 60 },
   torso: { name: 'Тело (Корпус)', icon: '🛡️', hp: 1200, acc: 0, energy: 60, weight: 600 },
@@ -453,7 +507,6 @@ const PARTS = {
   os: { name: 'OS Ядро', icon: '💾', hp: 100, acc: 20, energy: 20, weight: 5 }
 };
 
-// Текущее состояние
 let build = {
   parts: {
     head: { mfg: 'russia', rarity: 'blue' },
@@ -472,32 +525,22 @@ let build = {
 let activePartKey = 'torso';
 
 // ==========================================
-// 2. МАТЕМАТИКА И РАСЧЕТ ТТХ
+// 2. РАСЧЕТ ТТХ
 // ==========================================
 function calculateBuild() {
-  let hp = 0;
-  let acc = 0;
-  let energyConsumed = 0;
-  let energyGenerated = 0;
-  let weight = 0;
-  let maxLoad = 1800;
+  let hp = 0, acc = 0, energyConsumed = 0, energyGenerated = 0, weight = 0, maxLoad = 1800;
 
   for (const [key, p] of Object.entries(build.parts)) {
     const base = PARTS[key];
     const r = RARITIES[p.rarity];
     const m = MANUFACTURERS[p.mfg];
 
-    const partHp = Math.round(base.hp * r.mult * (m.hpMod || 1.0));
-    const partAcc = Math.round((base.acc + (m.accMod || 0)) * (r.mult >= 1.4 ? 1.1 : 1.0));
-    const partWeight = Math.round(base.weight * (m.weightMod || 1.0));
-
-    hp += partHp;
-    acc += partAcc;
-    weight += partWeight;
+    hp += Math.round(base.hp * r.mult * (m.hpMod || 1.0));
+    acc += Math.round((base.acc + (m.accMod || 0)) * (r.mult >= 1.4 ? 1.1 : 1.0));
+    weight += Math.round(base.weight * (m.weightMod || 1.0));
 
     if (key === 'generator') {
-      let g = base.gen * r.mult * (m.genMod || 1.0);
-      energyGenerated += Math.round(g);
+      energyGenerated += Math.round(base.gen * r.mult * (m.genMod || 1.0));
     } else {
       energyConsumed += Math.round(base.energy * (m.energyMod || 1.0));
     }
@@ -506,7 +549,6 @@ function calculateBuild() {
       maxLoad += Math.round(base.load * r.mult * (m.loadMod || 1.0));
     }
 
-    // Модули расширения (руки и ноги)
     if (p.modules && p.modules.length > 0) {
       const pool = EXPANSION_MODULES[base.type] || [];
       p.modules.forEach(mId => {
@@ -521,7 +563,6 @@ function calculateBuild() {
       });
     }
 
-    // Оружие
     if (p.weapon && p.weapon !== 'none') {
       const w = WEAPONS[p.weapon];
       if (w) {
@@ -545,226 +586,235 @@ function calculateBuild() {
 }
 
 // ==========================================
-// 3. ОТРИСОВКА UI
+// 3. ОТРИСОВКА ИНТЕРФЕЙСА
 // ==========================================
 function renderUI() {
   const stats = calculateBuild();
 
-  // Обновление сводки
-  document.getElementById('val-hp').innerText = stats.hp.toLocaleString();
-  document.getElementById('txt-hp').innerText = `${stats.hp} HP`;
+  // Обновление шкал ТТХ
+  document.getElementById('val-hp').innerText = `${stats.hp.toLocaleString()} HP`;
+  document.getElementById('txt-hp').innerText = stats.hp;
   document.getElementById('bar-hp').style.width = Math.min(100, (stats.hp / 6500) * 100) + '%';
 
-  document.getElementById('val-acc').innerText = stats.acc + '%';
+  document.getElementById('val-acc').innerText = `${stats.acc}%`;
   document.getElementById('txt-acc').innerText = `${stats.acc}%`;
   document.getElementById('bar-acc').style.width = stats.acc + '%';
 
   document.getElementById('val-energy').innerText = `${stats.energyBalance >= 0 ? '+' : ''}${stats.energyBalance} Вт`;
-  document.getElementById('txt-energy').innerText = `${stats.energyConsumed} / ${stats.energyGenerated} Вт`;
-  const energyBar = document.getElementById('bar-energy');
-  energyBar.style.width = Math.min(100, (stats.energyConsumed / stats.energyGenerated) * 100) + '%';
-  energyBar.className = stats.isEnergyDeficit ? 'bar-fill danger' : 'bar-fill';
+  document.getElementById('txt-energy').innerText = `${stats.energyConsumed}/${stats.energyGenerated}`;
+  const eBar = document.getElementById('bar-energy');
+  eBar.style.width = Math.min(100, (stats.energyConsumed / stats.energyGenerated) * 100) + '%';
+  eBar.className = stats.isEnergyDeficit ? 'gauge-fill danger' : 'gauge-fill';
 
   document.getElementById('val-weight').innerText = `${stats.weight} кг`;
-  document.getElementById('txt-weight').innerText = `${stats.weight} / ${stats.maxLoad} кг`;
-  const weightBar = document.getElementById('bar-weight');
-  weightBar.style.width = Math.min(100, (stats.weight / stats.maxLoad) * 100) + '%';
-  weightBar.className = stats.isOverload ? 'bar-fill danger' : 'bar-fill';
+  document.getElementById('txt-weight').innerText = `${stats.weight}/${stats.maxLoad}`;
+  const wBar = document.getElementById('bar-weight');
+  wBar.style.width = Math.min(100, (stats.weight / stats.maxLoad) * 100) + '%';
+  wBar.className = stats.isOverload ? 'gauge-fill danger' : 'gauge-fill';
 
-  // Статус
-  const statusEl = document.getElementById('global-status');
-  if (stats.isOverload && stats.isEnergyDeficit) {
-    statusEl.innerText = 'КРИТИЧЕСКИЙ ПЕРЕГРУЗ';
-    statusEl.className = 'status-pill danger';
-  } else if (stats.isOverload) {
-    statusEl.innerText = 'ПЕРЕГРУЗ ШАССИ';
-    statusEl.className = 'status-pill warn';
-  } else if (stats.isEnergyDeficit) {
-    statusEl.innerText = 'ДЕФИЦИТ ПИТАНИЯ';
-    statusEl.className = 'status-pill danger';
+  // Статус готовности
+  const stBadge = document.getElementById('global-status');
+  if (stats.isOverload || stats.isEnergyDeficit) {
+    stBadge.innerText = stats.isOverload ? 'ПЕРЕГРУЗ ШАССИ' : 'ДЕФИЦИТ ЭНЕРГИИ';
+    stBadge.className = 'status-badge danger';
   } else {
-    statusEl.innerText = 'ГОТОВ К БОЮ';
-    statusEl.className = 'status-pill';
+    stBadge.innerText = 'ГОТОВ К БОЮ';
+    stBadge.className = 'status-badge';
   }
 
-  // Рендер левой колонки (аккордеон деталей)
-  const partsContainer = document.getElementById('parts-container');
-  partsContainer.innerHTML = '';
+  // Обновление HUD текущей детали
+  const activeBase = PARTS[activePartKey];
+  document.getElementById('hud-part-name').innerText = `${activeBase.icon} ${activeBase.name}`;
 
+  // 1. Верхний быстрый док узлов (8 узлов)
+  const pillsContainer = document.getElementById('parts-pills-container');
+  pillsContainer.innerHTML = '';
   for (const [key, base] of Object.entries(PARTS)) {
     const p = build.parts[key];
     const r = RARITIES[p.rarity];
     const m = MANUFACTURERS[p.mfg];
-    const isActive = activePartKey === key;
+    const isActive = (activePartKey === key);
 
-    const card = document.createElement('div');
-    card.className = `part-card ${isActive ? 'active' : ''}`;
-
-    let headerHtml = `
-      <div class="part-header-row" onclick="selectPart('${key}')">
-        <div class="part-title-wrap">
-          <span class="part-icon">${base.icon}</span>
-          <div>
-            <div class="part-name">${base.name}</div>
-            <div class="part-mfg">${m.flag} ${m.name}</div>
-          </div>
-        </div>
-        <span class="badge-rarity ${r.class}">${r.name.split(' ')[0]}</span>
+    const pill = document.createElement('div');
+    pill.className = `part-pill ${isActive ? 'active' : ''}`;
+    pill.onclick = () => selectPart(key);
+    pill.innerHTML = `
+      <span class="pill-icon">${base.icon}</span>
+      <div class="pill-text">
+        <div class="pill-name">${base.name}</div>
+        <div class="pill-sub"><span style="color:${r.hex}">●</span> ${m.flag} ${r.name.split(' ')[0]}</div>
       </div>
     `;
+    pillsContainer.appendChild(pill);
+  }
 
-    // Если открыта активная деталь — рендерим инлайн-редактор
-    let editorHtml = '';
-    if (isActive) {
-      // Кнопки редкости
-      let rarityChips = Object.values(RARITIES).map(robj => `
-        <button class="chip-btn ${p.rarity === robj.id ? 'active' : ''}" onclick="setRarity('${key}', '${robj.id}')">
-          <span style="color:${robj.hex};">●</span> ${robj.name.split(' ')[0]}
-        </button>
-      `).join('');
+  // 2. Инспектор выбранного узла (Левая половина)
+  renderInspector();
 
-      // Кнопки стран
-      let mfgChips = Object.values(MANUFACTURERS).map(mobj => `
-        <button class="chip-btn ${p.mfg === mobj.id ? 'active' : ''}" onclick="setMfg('${key}', '${mobj.id}')">
-          ${mobj.flag} ${mobj.name}
-        </button>
-      `).join('');
+  // 3. Структура готового меха (Правая половина, нижний док)
+  renderSummaryDock();
+}
 
-      // Оружейный слот
-      let weaponHtml = '';
-      if (base.hasWeapon) {
-        let wepOptions = Object.entries(WEAPONS).map(([wId, wData]) => `
-          <option value="${wId}" ${p.weapon === wId ? 'selected' : ''}>
-            ${wData.name} ${wData.maxAmmo > 0 ? `[Патроны: ${wData.maxAmmo}]` : ''}
-          </option>
-        `).join('');
+function renderInspector() {
+  const container = document.getElementById('part-inspector-container');
+  const base = PARTS[activePartKey];
+  const p = build.parts[activePartKey];
+  const r = RARITIES[p.rarity];
+  const m = MANUFACTURERS[p.mfg];
 
-        weaponHtml = `
-          <div style="margin-top: 6px;">
-            <div class="edit-label">Оружие слота:</div>
-            <select class="module-select" onchange="setWeapon('${key}', this.value)">
-              ${wepOptions}
-            </select>
-          </div>
-        `;
-      }
+  // Кнопки редкостей
+  const rChips = Object.values(RARITIES).map(robj => `
+    <button class="chip ${p.rarity === robj.id ? 'active' : ''}" onclick="setRarity('${activePartKey}', '${robj.id}')">
+      <span style="color:${robj.hex};">●</span> ${robj.name}
+    </button>
+  `).join('');
 
-      // Слоты расширения (руки и ноги)
-      let moduleHtml = '';
-      if (base.hasExpansion) {
-        const pool = EXPANSION_MODULES[base.type] || [];
-        const maxSlots = r.slots;
-        let slotSelects = '';
+  // Кнопки стран
+  const mChips = Object.values(MANUFACTURERS).map(mobj => `
+    <button class="chip ${p.mfg === mobj.id ? 'active' : ''}" onclick="setMfg('${activePartKey}', '${mobj.id}')">
+      ${mobj.flag} ${mobj.name}
+    </button>
+  `).join('');
 
-        for (let i = 0; i < maxSlots; i++) {
-          const currentModId = (p.modules && p.modules[i]) || '';
-          let opts = `<option value="">-- Пустой слот ${i+1} --</option>` + pool.map(mod => `
-            <option value="${mod.id}" ${currentModId === mod.id ? 'selected' : ''}>
-              ${mod.name} (+${mod.hp||0}HP)
-            </option>
-          `).join('');
-
-          slotSelects += `
-            <select class="module-select" style="margin-top:4px;" onchange="setModule('${key}', ${i}, this.value)">
-              ${opts}
-            </select>
-          `;
-        }
-
-        moduleHtml = `
-          <div style="margin-top: 6px;">
-            <div class="edit-label" style="color:var(--accent);">Модули расширения (${p.modules ? p.modules.length : 0}/${maxSlots}):</div>
-            ${slotSelects}
-          </div>
-        `;
-      }
-
-      editorHtml = `
-        <div class="part-editor">
-          <div>
-            <div class="edit-label">Редкость:</div>
-            <div class="btn-wrap" style="margin-top:4px;">${rarityChips}</div>
-          </div>
-          <div style="margin-top:6px;">
-            <div class="edit-label">Производитель (бонус):</div>
-            <div class="btn-wrap" style="margin-top:4px;">${mfgChips}</div>
-            <div style="font-size:0.65rem; color:#8c9ba5; margin-top:4px; font-style:italic;">${m.bonus}</div>
-          </div>
-          ${weaponHtml}
-          ${moduleHtml}
+  // Оружейный блок
+  let wepHtml = '';
+  if (base.hasWeapon) {
+    let opts = Object.entries(WEAPONS).map(([wId, w]) => `
+      <option value="${wId}" ${p.weapon === wId ? 'selected' : ''}>
+        ${w.name} ${w.maxAmmo > 0 ? `(Лимит патронов: ${w.maxAmmo})` : ''}
+      </option>
+    `).join('');
+    wepHtml = `
+      <div class="control-block">
+        <div class="block-label">
+          <span>Оружейный слот узла</span>
+          <span style="color:var(--accent-warn);">4 слота на плечах и руках</span>
         </div>
+        <select class="std-select" onchange="setWeapon('${activePartKey}', this.value)">
+          ${opts}
+        </select>
+      </div>
+    `;
+  }
+
+  // Модули расширения (Руки и Ноги)
+  let modHtml = '';
+  if (base.hasExpansion) {
+    const pool = EXPANSION_MODULES[base.type] || [];
+    const maxSlots = r.slots;
+    let selects = '';
+
+    for (let i = 0; i < maxSlots; i++) {
+      const currentMod = (p.modules && p.modules[i]) || '';
+      let opts = `<option value="">-- Слот расширения ${i+1}: Пусто --</option>` + pool.map(x => `
+        <option value="${x.id}" ${currentMod === x.id ? 'selected' : ''}>
+          ⚙️ ${x.name} (+${x.hp||0}HP)
+        </option>
+      `).join('');
+
+      selects += `
+        <select class="std-select" style="margin-top:5px;" onchange="setModule('${activePartKey}', ${i}, this.value)">
+          ${opts}
+        </select>
       `;
     }
 
-    card.innerHTML = headerHtml + editorHtml;
-    partsContainer.appendChild(card);
+    modHtml = `
+      <div class="control-block">
+        <div class="block-label">
+          <span>Слоты расширения детали (${p.modules ? p.modules.length : 0}/${maxSlots})</span>
+          <span style="color:var(--accent);">Зависит от редкости</span>
+        </div>
+        ${selects}
+      </div>
+    `;
   }
 
-  // Отрисовка правой части (структура готового меха)
-  renderSummaryStructure();
+  container.innerHTML = `
+    <div class="inspector-header">
+      <div class="insp-title">
+        <span>${base.icon}</span>
+        <span>${base.name}</span>
+        <span class="badge-r ${r.class}">${r.name}</span>
+      </div>
+      <span class="insp-3dtip">Выделено на 3D модели</span>
+    </div>
+
+    <div class="control-block">
+      <div class="block-label">
+        <span>Класс редкости</span>
+        <span style="color:${r.hex};">Множитель: x${r.mult} (${r.slots} сл.)</span>
+      </div>
+      <div class="chips-row">${rChips}</div>
+    </div>
+
+    <div class="control-block">
+      <div class="block-label">
+        <span>Лейбл производителя</span>
+        <span>${m.flag} ${m.name}</span>
+      </div>
+      <div class="chips-row">${mChips}</div>
+      <div style="font-size:0.68rem; color:#889bb0; font-style:italic; margin-top:2px;">
+        💡 Инженерный бонус: ${m.bonus}
+      </div>
+    </div>
+
+    ${wepHtml}
+    ${modHtml}
+  `;
 }
 
-function renderSummaryStructure() {
-  // Оружейный бар
-  const wepBar = document.getElementById('weapons-summary-bar');
-  wepBar.innerHTML = '';
-  const weaponSlots = [
+function renderSummaryDock() {
+  // Оружейные карточки с боезапасом
+  const wepDock = document.getElementById('weapons-dock-grid');
+  wepDock.innerHTML = '';
+  const slots = [
     { key: 'shoulder_l', label: 'Плечо (L)' },
     { key: 'shoulder_r', label: 'Плечо (R)' },
     { key: 'arm_l', label: 'Рука (L)' },
     { key: 'arm_r', label: 'Рука (R)' }
   ];
 
-  weaponSlots.forEach(slot => {
-    const part = build.parts[slot.key];
-    const w = WEAPONS[part.weapon || 'none'];
+  slots.forEach(s => {
+    const p = build.parts[s.key];
+    const w = WEAPONS[p.weapon || 'none'];
     const card = document.createElement('div');
-    card.className = 'wep-card';
+    card.className = 'weapon-dock-card';
+    card.onclick = () => selectPart(s.key);
     card.innerHTML = `
-      <div class="wep-pos">${slot.label}</div>
-      <div class="wep-name">${w.name}</div>
-      <div class="wep-ammo">${w.maxAmmo > 0 ? `Боезапас: ${w.maxAmmo}` : '—'}</div>
+      <div class="wep-slot-tag">${s.label}</div>
+      <div class="wep-title">${w.name}</div>
+      <div class="wep-ammo-limit">${w.maxAmmo > 0 ? `Запас: ${w.maxAmmo} п.` : 'Без патронов'}</div>
     `;
-    wepBar.appendChild(card);
+    wepDock.appendChild(card);
   });
 
-  // Дерево узлов каркаса
-  const treeContainer = document.getElementById('tree-nodes-container');
-  treeContainer.innerHTML = '';
-
+  // Смонтированные узлы
+  const nodesRow = document.getElementById('nodes-scroll-row');
+  nodesRow.innerHTML = '';
   for (const [key, base] of Object.entries(PARTS)) {
     const p = build.parts[key];
     const r = RARITIES[p.rarity];
     const m = MANUFACTURERS[p.mfg];
 
-    let modText = '';
-    if (base.hasExpansion && p.modules && p.modules.length > 0) {
-      const pool = EXPANSION_MODULES[base.type] || [];
-      const names = p.modules.map(mId => {
-        const item = pool.find(x => x.id === mId);
-        return item ? item.name : '';
-      }).filter(Boolean);
-      if (names.length > 0) modText = `<div class="node-modules">⚙️ Модули: ${names.join(', ')}</div>`;
-    }
-
-    const node = document.createElement('div');
-    node.className = 'tree-node';
-    node.innerHTML = `
-      <div class="node-head">
-        <span>${base.icon} ${base.name}</span>
-        <span class="badge-rarity ${r.class}" style="font-size:0.6rem;">${r.name.split(' ')[0]}</span>
-      </div>
-      <div class="node-desc">${m.flag} ${m.name} // ${base.hp}HP, ${base.weight}кг</div>
-      ${modText}
+    const chip = document.createElement('div');
+    chip.className = 'node-chip';
+    chip.onclick = () => selectPart(key);
+    chip.innerHTML = `
+      <span>${base.icon}</span>
+      <b>${base.name}</b>
+      <span style="color:${r.hex}">●</span>
+      <span style="color:var(--text-dim)">${m.flag}</span>
     `;
-    treeContainer.appendChild(node);
+    nodesRow.appendChild(chip);
   }
 }
 
-// Функции изменения состояния
+// Изменение состояния
 function selectPart(key) {
-  activePartKey = (activePartKey === key) ? null : key;
+  activePartKey = key;
   renderUI();
+  highlight3DPart(key);
 }
 
 function setRarity(key, rarity) {
@@ -826,75 +876,339 @@ function randomizeBuild() {
   update3DWeapons();
 }
 
-// ==========================================
-// 4. 3D БОЛВАНЧИК В СТИЛЕ FRONT MISSION (Three.js)
-// ==========================================
+// ==========================================================
+// 4. 3D FRONT MISSION WANZER + ИНТЕРАКТИВНЫЙ ВЫБОР ЧЕРЕЗ RAYCASTER
+// ==========================================================
 let scene, camera, renderer, mechGroup;
-let isDragging = false, prevMouseX = 0, autoRotate = true;
+let clickableParts = []; // Все меши с userData.partKey
+let partMeshMap = {};    // partKey -> [meshes]
+let isDragging = false, startX = 0, startY = 0, mouseMoved = false, autoRotate = true;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+let defaultArmorMat, defaultFrameMat, highlightMat, visorMat, thrusterGlowMat, weaponMat;
 
 function init3D() {
-  const container = document.querySelector('.viewer-wrap');
-  const canvas = document.getElementById('mech3d-canvas');
-  const w = container.clientWidth || 600;
-  const h = container.clientHeight || 380;
+  const container = document.querySelector('.viewport-3d-wrap');
+  const canvas = document.getElementById('wanzer-canvas');
+  const w = container.clientWidth || 450;
+  const h = container.clientHeight || 300;
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0b0e14, 0.04);
+  scene.fog = new THREE.FogExp2(0x090c12, 0.045);
 
   camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
-  camera.position.set(0, 1.2, 5.0);
+  camera.position.set(0, 1.1, 4.8);
   camera.lookAt(0, 0.1, 0);
 
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
   renderer.setSize(w, h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  // Освещение (промышленный ангар)
-  const hemiLight = new THREE.HemisphereLight(0xdce3ed, 0x11141d, 0.8);
-  scene.add(hemiLight);
+  // Освещение
+  const hemi = new THREE.HemisphereLight(0xdce3ed, 0x11141d, 0.7);
+  scene.add(hemi);
 
-  const dirLight1 = new THREE.DirectionalLight(0x00f0ff, 1.2);
-  dirLight1.position.set(3, 5, 4);
-  scene.add(dirLight1);
+  const d1 = new THREE.DirectionalLight(0x00f0ff, 1.2);
+  d1.position.set(3, 5, 4);
+  scene.add(d1);
 
-  const dirLight2 = new THREE.DirectionalLight(0xff6b00, 0.6);
-  dirLight2.position.set(-3, -1, -3);
-  scene.add(dirLight2);
+  const d2 = new THREE.DirectionalLight(0xff7700, 0.6);
+  d2.position.set(-3, -1, -3);
+  scene.add(d2);
 
-  // Сетка ангара / Подиум
-  const gridHelper = new THREE.GridHelper(8, 20, 0x00f0ff, 0x1e2638);
-  gridHelper.position.y = -1.3;
-  scene.add(gridHelper);
+  // Сетка ангара
+  const grid = new THREE.GridHelper(7, 18, 0x00f0ff, 0x1e2638);
+  grid.position.y = -1.3;
+  scene.add(grid);
 
-  // Создание модели ванзера
-  mechGroup = createFrontMissionWanzer();
+  // Материалы
+  defaultArmorMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.35, metalness: 0.7 });
+  defaultFrameMat = new THREE.MeshStandardMaterial({ color: 0x1a212d, roughness: 0.8, metalness: 0.6 });
+  highlightMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00aacc, roughness: 0.2, metalness: 0.8 });
+  visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+  thrusterGlowMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+  weaponMat = new THREE.MeshStandardMaterial({ color: 0x15181e, roughness: 0.3, metalness: 0.9 });
+
+  // Создание модели
+  mechGroup = buildInteractiveWanzer();
   scene.add(mechGroup);
 
-  // Слушатели мыши / тача для вращения
-  canvas.addEventListener('mousedown', e => { isDragging = true; prevMouseX = e.clientX; autoRotate = false; });
-  window.addEventListener('mouseup', () => { isDragging = false; setTimeout(() => { autoRotate = true; }, 3000); });
-  window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - prevMouseX;
-    mechGroup.rotation.y += deltaX * 0.01;
-    prevMouseX = e.clientX;
-  });
+  // Обработка клика и вращения
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mouseup', onPointerUp);
+  window.addEventListener('mousemove', onPointerMove);
 
-  canvas.addEventListener('touchstart', e => { isDragging = true; prevMouseX = e.touches[0].clientX; autoRotate = false; }, { passive: true });
-  window.addEventListener('touchend', () => { isDragging = false; setTimeout(() => { autoRotate = true; }, 3000); });
-  window.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - prevMouseX;
-    mechGroup.rotation.y += deltaX * 0.01;
-    prevMouseX = e.touches[0].clientX;
-  }, { passive: true });
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('touchend', onTouchEnd);
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
 
   window.addEventListener('resize', onResize);
+  highlight3DPart(activePartKey);
   animate();
 }
 
+function registerPartMesh(mesh, partKey) {
+  mesh.userData.partKey = partKey;
+  clickableParts.push(mesh);
+  if (!partMeshMap[partKey]) partMeshMap[partKey] = [];
+  partMeshMap[partKey].push(mesh);
+}
+
+function buildInteractiveWanzer() {
+  const mech = new THREE.Group();
+
+  // 1. ТОРС (Корпус)
+  const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.8, 0.65), defaultArmorMat);
+  torsoMesh.position.y = 0.2;
+  registerPartMesh(torsoMesh, 'torso');
+  mech.add(torsoMesh);
+
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.48, 0.25), defaultFrameMat);
+  chest.position.set(0, 0.25, 0.32);
+  registerPartMesh(chest, 'torso');
+  mech.add(chest);
+
+  // 2. ГОЛОВА
+  const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.24, 0.34), defaultArmorMat);
+  headMesh.position.set(0, 0.72, 0.08);
+  registerPartMesh(headMesh, 'head');
+  mech.add(headMesh);
+
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.08), visorMat);
+  visor.position.set(0, 0.72, 0.25);
+  registerPartMesh(visor, 'head');
+  mech.add(visor);
+
+  // 3. ПЛЕЧИ (Левое и Правое)
+  const shL = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.35, 0.45), defaultArmorMat);
+  shL.position.set(-0.64, 0.45, 0);
+  registerPartMesh(shL, 'shoulder_l');
+  mech.add(shL);
+
+  const shR = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.35, 0.45), defaultArmorMat);
+  shR.position.set(0.64, 0.45, 0);
+  registerPartMesh(shR, 'shoulder_r');
+  mech.add(shR);
+
+  // Оружейные пилоны на плечах
+  const shWepGeo = new THREE.BoxGeometry(0.24, 0.24, 0.55);
+  const shWepL = new THREE.Mesh(shWepGeo, weaponMat);
+  shWepL.position.set(-0.64, 0.75, 0);
+  registerPartMesh(shWepL, 'shoulder_l');
+  mech.add(shWepL);
+
+  const shWepR = new THREE.Mesh(shWepGeo, weaponMat);
+  shWepR.position.set(0.64, 0.75, 0);
+  registerPartMesh(shWepR, 'shoulder_r');
+  mech.add(shWepR);
+
+  // 4. РУКИ (Левая и Правая)
+  const armL = createArmMesh(-1, 'arm_l');
+  armL.position.set(-0.64, 0.25, 0);
+  mech.add(armL);
+
+  const armR = createArmMesh(1, 'arm_r');
+  armR.position.set(0.64, 0.25, 0);
+  mech.add(armR);
+
+  // 5. ТАЗ И НОГИ (Шасси)
+  const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 0.45), defaultFrameMat);
+  pelvis.position.y = -0.3;
+  registerPartMesh(pelvis, 'legs');
+  mech.add(pelvis);
+
+  const legL = createLegMesh(-0.3, 'legs');
+  mech.add(legL);
+
+  const legR = createLegMesh(0.3, 'legs');
+  mech.add(legR);
+
+  // 6. КРЫЛЬЯ / РАНЕЦ (Wings / Thrusters)
+  const pack = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.65, 0.3), defaultFrameMat);
+  pack.position.set(0, 0.35, -0.42);
+  registerPartMesh(pack, 'wings');
+  mech.add(pack);
+
+  // Сопла двигателей
+  const nozGeo = new THREE.CylinderGeometry(0.1, 0.14, 0.2, 8);
+  const nz1 = new THREE.Mesh(nozGeo, thrusterGlowMat);
+  nz1.rotation.x = Math.PI / 2;
+  nz1.position.set(-0.2, 0.2, -0.6);
+  registerPartMesh(nz1, 'wings');
+  mech.add(nz1);
+
+  const nz2 = new THREE.Mesh(nozGeo, thrusterGlowMat);
+  nz2.rotation.x = Math.PI / 2;
+  nz2.position.set(0.2, 0.2, -0.6);
+  registerPartMesh(nz2, 'wings');
+  mech.add(nz2);
+
+  mech.position.y = -0.15;
+  return mech;
+}
+
+function createArmMesh(side, partKey) {
+  const grp = new THREE.Group();
+
+  const bicep = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.38, 0.24), defaultFrameMat);
+  bicep.position.y = -0.18;
+  registerPartMesh(bicep, partKey);
+  grp.add(bicep);
+
+  const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.42, 0.28), defaultArmorMat);
+  forearm.position.set(0, -0.55, 0.08);
+  registerPartMesh(forearm, partKey);
+  grp.add(forearm);
+
+  const handWep = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 0.8), weaponMat);
+  handWep.position.set(0, -0.72, 0.38);
+  registerPartMesh(handWep, partKey);
+  grp.add(handWep);
+
+  return grp;
+}
+
+function createLegMesh(offsetX, partKey) {
+  const grp = new THREE.Group();
+  grp.position.set(offsetX, -0.4, 0);
+
+  const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.45, 0.3), defaultArmorMat);
+  thigh.position.y = -0.15;
+  registerPartMesh(thigh, partKey);
+  grp.add(thigh);
+
+  const shin = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.52, 0.34), defaultFrameMat);
+  shin.position.set(0, -0.55, 0.05);
+  registerPartMesh(shin, partKey);
+  grp.add(shin);
+
+  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.52), defaultArmorMat);
+  foot.position.set(0, -0.85, 0.15);
+  registerPartMesh(foot, partKey);
+  grp.add(foot);
+
+  return grp;
+}
+
+// Подсветка активной детали на 3D модели
+function highlight3DPart(key) {
+  // Сброс всех мешей на их обычные материалы
+  for (const [pKey, meshes] of Object.entries(partMeshMap)) {
+    const isSelected = (pKey === key);
+    meshes.forEach(m => {
+      if (m.material === visorMat || m.material === thrusterGlowMat) return;
+      if (isSelected) {
+        m.material = highlightMat;
+      } else {
+        m.material = (m.geometry.type === 'BoxGeometry' && m.scale.x > 0.5) ? defaultArmorMat : defaultFrameMat;
+      }
+    });
+  }
+}
+
+function update3DColors() {
+  const mfg = build.parts.torso.mfg;
+  const col = MANUFACTURERS[mfg].color || 0x475569;
+  defaultArmorMat.color.setHex(col);
+}
+
+function update3DWeapons() {
+  // Скрытие / показ орудийных стволов
+  for (const [key, meshes] of Object.entries(partMeshMap)) {
+    if (PARTS[key] && PARTS[key].hasWeapon) {
+      const hasWep = (build.parts[key].weapon !== 'none');
+      meshes.forEach(m => {
+        if (m.material === weaponMat) m.visible = hasWep;
+      });
+    }
+  }
+}
+
+// Raycasting: Клик по 3D детали
+function checkRaycastClick(clientX, clientY) {
+  const canvas = document.getElementById('wanzer-canvas');
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(clickableParts, false);
+
+  if (intersects.length > 0) {
+    const hitObj = intersects[0].object;
+    const hitKey = hitObj.userData.partKey;
+    if (hitKey) {
+      selectPart(hitKey);
+      return true;
+    }
+  }
+  return false;
+}
+
+function onPointerDown(e) {
+  isDragging = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  mouseMoved = false;
+  autoRotate = false;
+}
+
+function onPointerMove(e) {
+  if (!isDragging) {
+    // Hover-эффект курсора
+    const canvas = document.getElementById('wanzer-canvas');
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(clickableParts, false);
+    canvas.style.cursor = (intersects.length > 0) ? 'pointer' : 'grab';
+    return;
+  }
+  const dx = e.clientX - startX;
+  if (Math.abs(dx) > 3) mouseMoved = true;
+  if (mechGroup) mechGroup.rotation.y += dx * 0.01;
+  startX = e.clientX;
+}
+
+function onPointerUp(e) {
+  if (isDragging && !mouseMoved) {
+    checkRaycastClick(e.clientX, e.clientY);
+  }
+  isDragging = false;
+  setTimeout(() => { autoRotate = true; }, 3000);
+}
+
+function onTouchStart(e) {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    mouseMoved = false;
+    autoRotate = false;
+  }
+}
+
+function onTouchMove(e) {
+  if (!isDragging || e.touches.length !== 1) return;
+  const dx = e.touches[0].clientX - startX;
+  if (Math.abs(dx) > 3) mouseMoved = true;
+  if (mechGroup) mechGroup.rotation.y += dx * 0.01;
+  startX = e.touches[0].clientX;
+  e.preventDefault();
+}
+
+function onTouchEnd(e) {
+  if (isDragging && !mouseMoved && e.changedTouches.length > 0) {
+    checkRaycastClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }
+  isDragging = false;
+  setTimeout(() => { autoRotate = true; }, 3000);
+}
+
 function onResize() {
-  const container = document.querySelector('.viewer-wrap');
+  const container = document.querySelector('.viewport-3d-wrap');
   if (!container || !renderer || !camera) return;
   const w = container.clientWidth;
   const h = container.clientHeight;
@@ -903,182 +1217,15 @@ function onResize() {
   renderer.setSize(w, h);
 }
 
-// Генерация блочной геометрии Ванзера
-let wanzerMaterials = {};
-let weaponMeshes = {};
-
-function createFrontMissionWanzer() {
-  const mech = new THREE.Group();
-
-  // Материалы: Броня, Каркас, Сенсоры
-  wanzerMaterials.armor = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.7 });
-  wanzerMaterials.frame = new THREE.MeshStandardMaterial({ color: 0x1e2430, roughness: 0.7, metalness: 0.8 });
-  wanzerMaterials.visor = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-  wanzerMaterials.glow = new THREE.MeshBasicMaterial({ color: 0xff6600 });
-  wanzerMaterials.weapon = new THREE.MeshStandardMaterial({ color: 0x111317, roughness: 0.3, metalness: 0.9 });
-
-  // 1. ТОРС (Угловатый военный корпус Front Mission)
-  const torsoGeo = new THREE.BoxGeometry(0.85, 0.8, 0.65);
-  const torso = new THREE.Mesh(torsoGeo, wanzerMaterials.armor);
-  torso.position.y = 0.2;
-  mech.add(torso);
-
-  // Нагрудник / Бронеплита кокпита
-  const chestPlateGeo = new THREE.BoxGeometry(0.7, 0.5, 0.25);
-  const chestPlate = new THREE.Mesh(chestPlateGeo, wanzerMaterials.frame);
-  chestPlate.position.set(0, 0.25, 0.32);
-  mech.add(chestPlate);
-
-  // 2. ГОЛОВА (Утопленная СУО с моноокуляром)
-  const headGeo = new THREE.BoxGeometry(0.36, 0.24, 0.34);
-  const head = new THREE.Mesh(headGeo, wanzerMaterials.armor);
-  head.position.set(0, 0.72, 0.08);
-  mech.add(head);
-
-  const visorGeo = new THREE.BoxGeometry(0.24, 0.06, 0.08);
-  const visor = new THREE.Mesh(visorGeo, wanzerMaterials.visor);
-  visor.position.set(0, 0.72, 0.25);
-  mech.add(visor);
-
-  // 3. ПЛЕЧИ (Тяжелые наплечники)
-  const shoulderGeo = new THREE.BoxGeometry(0.38, 0.35, 0.45);
-  const shoulderL = new THREE.Mesh(shoulderGeo, wanzerMaterials.armor);
-  shoulderL.position.set(-0.64, 0.45, 0);
-  mech.add(shoulderL);
-
-  const shoulderR = new THREE.Mesh(shoulderGeo, wanzerMaterials.armor);
-  shoulderR.position.set(0.64, 0.45, 0);
-  mech.add(shoulderR);
-
-  // Плечевые оружейные пилоны (Ракетницы / Пушки)
-  const wepBoxGeo = new THREE.BoxGeometry(0.26, 0.26, 0.55);
-  weaponMeshes.shoulder_l = new THREE.Mesh(wepBoxGeo, wanzerMaterials.weapon);
-  weaponMeshes.shoulder_l.position.set(-0.64, 0.75, 0);
-  mech.add(weaponMeshes.shoulder_l);
-
-  weaponMeshes.shoulder_r = new THREE.Mesh(wepBoxGeo, wanzerMaterials.weapon);
-  weaponMeshes.shoulder_r.position.set(0.64, 0.75, 0);
-  mech.add(weaponMeshes.shoulder_r);
-
-  // 4. РУКИ (Двухзвенные боевые манипуляторы)
-  const armL = createArmMesh(-1);
-  armL.position.set(-0.64, 0.25, 0);
-  mech.add(armL);
-
-  const armR = createArmMesh(1);
-  armR.position.set(0.64, 0.25, 0);
-  mech.add(armR);
-
-  // 5. ТАЗ И НОГИ (Массивное шасси с поршнями)
-  const pelvisGeo = new THREE.BoxGeometry(0.6, 0.25, 0.45);
-  const pelvis = new THREE.Mesh(pelvisGeo, wanzerMaterials.frame);
-  pelvis.position.y = -0.3;
-  mech.add(pelvis);
-
-  const legL = createLegMesh(-0.3);
-  mech.add(legL);
-
-  const legR = createLegMesh(0.3);
-  mech.add(legR);
-
-  // 6. КРЫЛЬЯ / ДВИГАТЕЛЬНЫЙ РАНЕЦ (Thruster Pack)
-  const packGeo = new THREE.BoxGeometry(0.7, 0.65, 0.3);
-  const thrusterPack = new THREE.Mesh(packGeo, wanzerMaterials.frame);
-  thrusterPack.position.set(0, 0.35, -0.42);
-  mech.add(thrusterPack);
-
-  // Сопла двигателей с оранжевым свечением
-  const nozzleGeo = new THREE.CylinderGeometry(0.1, 0.14, 0.2, 8);
-  const n1 = new THREE.Mesh(nozzleGeo, wanzerMaterials.glow);
-  n1.rotation.x = Math.PI / 2;
-  n1.position.set(-0.2, 0.2, -0.6);
-  mech.add(n1);
-
-  const n2 = new THREE.Mesh(nozzleGeo, wanzerMaterials.glow);
-  n2.rotation.x = Math.PI / 2;
-  n2.position.set(0.2, 0.2, -0.6);
-  mech.add(n2);
-
-  mech.position.y = -0.15;
-  return mech;
-}
-
-function createArmMesh(side) {
-  const arm = new THREE.Group();
-
-  // Плечевой шарнир
-  const bicepGeo = new THREE.BoxGeometry(0.22, 0.4, 0.24);
-  const bicep = new THREE.Mesh(bicepGeo, wanzerMaterials.frame);
-  bicep.position.y = -0.18;
-  arm.add(bicep);
-
-  // Предплечье
-  const forearmGeo = new THREE.BoxGeometry(0.26, 0.45, 0.28);
-  const forearm = new THREE.Mesh(forearmGeo, wanzerMaterials.armor);
-  forearm.position.set(0, -0.55, 0.1);
-  arm.add(forearm);
-
-  // Оружие в руке
-  const handWepGeo = new THREE.BoxGeometry(0.16, 0.2, 0.85);
-  const handWep = new THREE.Mesh(handWepGeo, wanzerMaterials.weapon);
-  handWep.position.set(0, -0.75, 0.4);
-  arm.add(handWep);
-
-  if (side === -1) weaponMeshes.arm_l = handWep;
-  else weaponMeshes.arm_r = handWep;
-
-  return arm;
-}
-
-function createLegMesh(offsetX) {
-  const leg = new THREE.Group();
-  leg.position.set(offsetX, -0.4, 0);
-
-  // Бедро
-  const thighGeo = new THREE.BoxGeometry(0.26, 0.45, 0.3);
-  const thigh = new THREE.Mesh(thighGeo, wanzerMaterials.armor);
-  thigh.position.y = -0.15;
-  leg.add(thigh);
-
-  // Голень с гидроцилиндром
-  const shinGeo = new THREE.BoxGeometry(0.28, 0.55, 0.34);
-  const shin = new THREE.Mesh(shinGeo, wanzerMaterials.frame);
-  shin.position.set(0, -0.55, 0.05);
-  leg.add(shin);
-
-  // Стопа-опора
-  const footGeo = new THREE.BoxGeometry(0.34, 0.16, 0.55);
-  const foot = new THREE.Mesh(footGeo, wanzerMaterials.armor);
-  foot.position.set(0, -0.85, 0.15);
-  leg.add(foot);
-
-  return leg;
-}
-
-function update3DColors() {
-  if (!wanzerMaterials.armor) return;
-  const torsoMfg = build.parts.torso.mfg;
-  const colorHex = MANUFACTURERS[torsoMfg].color || 0x475569;
-  wanzerMaterials.armor.color.setHex(colorHex);
-}
-
-function update3DWeapons() {
-  if (!weaponMeshes.shoulder_l) return;
-  weaponMeshes.shoulder_l.visible = (build.parts.shoulder_l.weapon !== 'none');
-  weaponMeshes.shoulder_r.visible = (build.parts.shoulder_r.weapon !== 'none');
-  weaponMeshes.arm_l.visible = (build.parts.arm_l.weapon !== 'none');
-  weaponMeshes.arm_r.visible = (build.parts.arm_r.weapon !== 'none');
-}
-
 function animate() {
   requestAnimationFrame(animate);
   if (autoRotate && mechGroup) {
-    mechGroup.rotation.y += 0.008;
+    mechGroup.rotation.y += 0.007;
   }
   renderer.render(scene, camera);
 }
 
-// Старт
+// Запуск
 window.addEventListener('DOMContentLoaded', () => {
   renderUI();
   init3D();
