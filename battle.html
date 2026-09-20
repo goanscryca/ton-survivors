@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WANZER // Front Mission: Tactical Hex Battle 15x15</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: #0d1118;
+      --bg-card: #131822;
+      --border: #212838;
+      --border-focus: #00f0ff;
+      --accent: #00f0ff;
+      --accent-warn: #eab308;
+      --accent-danger: #ef4444;
+      --accent-ok: #10b981;
+      --text: #d8e2ed;
+      --text-dim: #64738c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', monospace, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); position: fixed; }
+
+    /* Экраны */
+    .screen { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* Шапка ангара */
+    header.hangar-hdr {
+      height: 40px;
+      background: #0a0d13;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+    .brand { font-size: 0.85rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .brand span { color: #8896ab; font-size: 0.75rem; font-weight: normal; }
+
+    .btn-battle-deploy {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+      transition: all 0.15s;
+    }
+    .btn-battle-deploy:hover { filter: brightness(1.15); transform: scale(1.02); }
+
+    /* Сетка ангара (50% / 50%) */
+    .split-hangar {
+      display: grid;
+      grid-template-columns: 50% 50%;
+      height: calc(100vh - 40px);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .split-hangar { grid-template-columns: 1fr; grid-template-rows: 40% 60%; }
+    }
+
+    .left-half {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .parts-dock-bar {
+      padding: 6px 10px;
+      background: #090d14;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .parts-pills-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    .part-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .part-pill:hover { border-color: #3b4760; background: #181f2e; }
+    .part-pill.active { border-color: var(--accent); background: #1c2333; box-shadow: 0 0 8px rgba(0,240,255,0.2); }
+    .pill-name { font-size: 0.72rem; font-weight: 700; color: #fff; }
+    .pill-sub { font-size: 0.62rem; color: var(--text-dim); }
+
+    .part-inspector {
+      flex: 1;
+      padding: 10px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .control-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chips-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chip {
+      background: #0d111a;
+      border: 1px solid var(--border);
+      color: #9ab;
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .chip.active { border-color: var(--accent); color: #fff; background: rgba(0, 240, 255, 0.15); font-weight: bold; }
+
+    .right-half {
+      display: grid;
+      grid-template-rows: 58% 42%;
+      height: 100%;
+      background: #090c12;
+      overflow: hidden;
+    }
+    .viewport-3d-wrap {
+      position: relative;
+      background: radial-gradient(circle at center, #151c2a 0%, #07090e 90%);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    #wanzer-canvas { width: 100%; height: 100%; display: block; }
+    .summary-dock {
+      padding: 8px 12px;
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .gauges-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .gauge-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .gauge-label { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; display: flex; justify-content: space-between; }
+    .gauge-val { font-size: 0.9rem; font-weight: 800; color: #fff; }
+    .gauge-track { height: 3px; background: #202636; border-radius: 2px; overflow: hidden; }
+    .gauge-fill { height: 100%; background: var(--accent); }
+
+    .weapons-dock-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .weapon-dock-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .wep-slot-tag { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; }
+    .wep-title { font-size: 0.72rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wep-ammo-limit { font-size: 0.65rem; color: var(--accent-warn); }
+
+    /* ==========================================================
+       ЭКРАН 2: ОПТИМИЗИРОВАННОЕ ПОЛЕ БОЯ 15х15 (ПОЛНЫЙ ЭКРАН)
+       ========================================================== */
+    #battle-screen {
+      background: #05070a;
+      position: relative;
+    }
+
+    header.battle-hdr {
+      height: 38px;
+      background: #090c12;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .turn-indicator {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .turn-badge {
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: bold;
+    }
+    .turn-badge.player { background: rgba(0, 240, 255, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+    .turn-badge.enemy { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
+
+    /* Контейнер холста боя (занимает почти весь экран!) */
+    .battle-canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #080b12;
+      touch-action: none;
+    }
+    #hex-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Плавающий тост последнего события (не сжимает холст!) */
+    .battle-toast-banner {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 17, 26, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #fff;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      z-index: 30;
+      max-width: 90%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    /* Плавающие экранные контролы (зум, центрирование, погода) */
+    .canvas-hud-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 25;
+    }
+    .hud-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid var(--border);
+      color: #d8e2ed;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .hud-btn:hover { border-color: var(--accent); color: #fff; }
+
+    /* Всплывающее модальное окно полного лога */
+    .log-modal-backdrop {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .log-modal-backdrop.open { display: flex; }
+    .log-modal-card {
+      width: 100%;
+      max-width: 480px;
+      max-height: 70vh;
+      background: #0f1420;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .log-modal-hdr {
+      padding: 8px 12px;
+      background: #141b2b;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .log-modal-body {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 0.72rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #0a0d14;
+    }
+
+    /* УЛЬТРА-КОМПАКТНАЯ НИЖНЯЯ ПАНЕЛЬ УПРАВЛЕНИЯ БОЕМ (всего 52px!) */
+    .battle-dock-compact {
+      height: 54px;
+      background: #090c14;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      gap: 8px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* Мини-статус игрока */
+    .player-mini-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 90px;
+    }
+    .player-mini-hud .name { font-size: 0.65rem; font-weight: bold; color: var(--accent); white-space: nowrap; }
+    .player-mini-hud .hp-text { font-size: 0.62rem; color: #fff; display: flex; justify-content: space-between; }
+    .hp-mini-track { width: 100%; height: 5px; background: #1c2436; border-radius: 3px; overflow: hidden; }
+    .hp-mini-fill { height: 100%; background: var(--accent-ok); transition: width 0.2s; }
+
+    /* Центральные кнопки фаз */
+    .dock-phase-btns {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      justify-content: center;
+      max-width: 480px;
+    }
+    .dock-btn {
+      flex: 1;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #141926;
+      color: #ccd6e6;
+      font-size: 0.74rem;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .dock-btn:hover { border-color: #3f4c66; color: #fff; }
+    .dock-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0,240,255,0.3);
+    }
+    .dock-btn.endturn {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: var(--accent-warn);
+      color: var(--accent-warn);
+    }
+    .dock-btn.endturn:hover { background: rgba(234, 179, 8, 0.25); }
+
+    /* Меню выбора оружия (раскрывается вверх при фазе атаки) */
+    .weapon-drawer-popup {
+      display: none;
+      position: absolute;
+      bottom: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f1422;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 6px;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      z-index: 40;
+      width: 92%;
+      max-width: 480px;
+    }
+    .weapon-drawer-popup.open { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .drawer-wep-card {
+      background: #161c2b;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .drawer-wep-card.active { border-color: var(--accent-danger); background: rgba(239, 68, 68, 0.2); }
+    .drawer-wep-card.empty { opacity: 0.4; cursor: not-allowed; }
+    .drawer-wep-card .slot { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; }
+    .drawer-wep-card .name { font-size: 0.68rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-wep-card .ammo { font-size: 0.6rem; color: var(--accent-warn); }
+
+    .log-line { line-height: 1.35; }
+    .log-line.p-hit { color: var(--accent); }
+    .log-line.e-hit { color: var(--accent-danger); }
+    .log-line.kill { color: var(--accent-warn); font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<!-- ==========================================================
+     ЭКРАН 1: АНГАР / КОНФИГУРАТОР МЕХА (50% / 50%)
+     ========================================================== -->
+<div id="hangar-screen" class="screen active">
+  <header class="hangar-hdr">
+    <div class="brand">
+      ⚡ WANZER // FRONT MISSION <span>[HANGAR DOCK]</span>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button class="chip" onclick="randomizeBuild()">🎲 Случайный</button>
+      <button class="btn-battle-deploy" onclick="deployToBattle()">
+        ⚔️ В БОЙ НА ГЕКС-КАРТУ
+      </button>
+    </div>
+  </header>
+
+  <div class="split-hangar">
+    <!-- ЛЕВАЯ ПОЛОВИНА: ЧАСТИ И ИНСПЕКТОР -->
+    <div class="left-half">
+      <div class="parts-dock-bar">
+        <div style="font-size:0.65rem; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase;">
+          Узлы каркаса (выберите или кликните по 3D модели)
+        </div>
+        <div class="parts-pills-grid" id="parts-pills-container"></div>
+      </div>
+      <div class="part-inspector" id="part-inspector-container"></div>
+    </div>
+
+    <!-- ПРАВАЯ ПОЛОВИНА: 3D ВАНЗЕР + СТРУКТУРА И ТТХ -->
+    <div class="right-half">
+      <div class="viewport-3d-wrap">
+        <canvas id="wanzer-canvas"></canvas>
+      </div>
+      <div class="summary-dock">
+        <div class="gauges-row">
+          <div class="gauge-box">
+            <div class="gauge-label"><span>Прочность</span><span id="txt-hp">0</span></div>
+            <div class="gauge-val" id="val-hp">0 HP</div>
+            <div class="gauge-track"><div class="gauge-fill" id="bar-hp" style="width:50%;"></div></div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label"><span>Точность</span><span id="txt-acc">0%</span></div>
+            <div class="gauge-val" id="val-acc">0%</div>
+            <div class="gauge-track"><div class="gauge-fill" id="bar-acc" style="width:50%;"></div></div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label"><span>Энергосеть</span><span id="txt-energy">0/0</span></div>
+            <div class="gauge-val" id="val-energy">0 Вт</div>
+            <div class="gauge-track"><div class="gauge-fill" id="bar-energy" style="width:50%;"></div></div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label"><span>Масса</span><span id="txt-weight">0/0</span></div>
+            <div class="gauge-val" id="val-weight">0 кг</div>
+            <div class="gauge-track"><div class="gauge-fill" id="bar-weight" style="width:50%;"></div></div>
+          </div>
+        </div>
+
+        <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-dim); margin-top:2px;">
+          Оружейные слоты и боезапас
+        </div>
+        <div class="weapons-dock-grid" id="weapons-dock-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================
+     ЭКРАН 2: ПОЛНОРАЗМЕРНОЕ ПОЛЕ БОЯ 15х15
+     ========================================================== -->
+<div id="battle-screen" class="screen">
+  <header class="battle-hdr">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="chip" onclick="returnToHangar()">⬅️ В Ангар</button>
+      <div class="turn-indicator">
+        <span>РД <b id="b-round-num">1</b>:</span>
+        <span class="turn-badge player" id="b-turn-badge">ХОД ИГРОКА</span>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:6px;">
+      <button class="chip" onclick="toggleLogModal()">📜 Лог боя</button>
+    </div>
+  </header>
+
+  <!-- Интерактивный холст боя (занимает почти весь экран!) -->
+  <div class="battle-canvas-wrap">
+    <!-- Плавающее уведомление о последнем выстреле/действии -->
+    <div class="battle-toast-banner" id="battle-toast">
+      ⚡ Бой начат: обнаружено 5 вражеских ванзеров
+    </div>
+
+    <!-- Экранные кнопки зума и центрирования -->
+    <div class="canvas-hud-controls">
+      <div class="hud-btn" onclick="zoomIn()" title="Приблизить">+</div>
+      <div class="hud-btn" onclick="zoomOut()" title="Отдалить">−</div>
+      <div class="hud-btn" onclick="centerOnPlayer()" title="Центр на моём мехе">🎯</div>
+      <div class="hud-btn" id="hud-weather-btn" onclick="cycleWeather()" title="Погода">🌧️</div>
+    </div>
+
+    <canvas id="hex-canvas"></canvas>
+  </div>
+
+  <!-- Выдвижное меню оружия (появляется над доком в фазе атаки) -->
+  <div class="weapon-drawer-popup" id="weapon-drawer"></div>
+
+  <!-- Ультра-компактный док управления (54px) -->
+  <div class="battle-dock-compact">
+    <!-- Мини-статус меха игрока -->
+    <div class="player-mini-hud">
+      <div class="name">Titan WZ-77</div>
+      <div class="hp-text"><span>HP:</span><b id="dock-hp-val">3400</b></div>
+      <div class="hp-mini-track"><div class="hp-mini-fill" id="dock-hp-bar" style="width:100%;"></div></div>
+    </div>
+
+    <!-- Кнопки фаз хода -->
+    <div class="dock-phase-btns">
+      <button class="dock-btn active" id="dock-btn-move" onclick="setCombatPhase('move')">
+        <span>🚶 Шаг</span>
+        <span id="dock-move-pts" style="font-size:0.62rem; color:var(--accent);">(4/4 гекса)</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-attack" onclick="setCombatPhase('attack')">
+        <span>🎯 Огонь</span>
+        <span id="dock-wep-name" style="font-size:0.62rem; color:var(--accent-warn);">Выбрать оружие</span>
+      </button>
+      <button class="dock-btn endturn" onclick="playerEndTurn()">
+        <span>⏭️ Конец</span>
+        <span style="font-size:0.62rem;">Передать ход</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно истории лога -->
+<div class="log-modal-backdrop" id="log-modal">
+  <div class="log-modal-card">
+    <div class="log-modal-hdr">
+      <span>ЖУРНАЛ БОЕВЫХ ДЕЙСТВИЙ</span>
+      <button class="chip" onclick="toggleLogModal()">✕ Закрыть</button>
+    </div>
+    <div class="log-modal-body" id="combat-log-full"></div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 1. СИСТЕМА КОНФИГУРАТОРА МЕХОВ
+// ==========================================
+const MANUFACTURERS = {
+  russia: { id: 'russia', name: 'Россия', flag: '🇷🇺', bonus: '+25% HP, +15% Груз., +10% Масса', hpMod: 1.25, loadMod: 1.15, weightMod: 1.10, energyMod: 1.0, color: 0x475569 },
+  japan: { id: 'japan', name: 'Япония', flag: '🇯🇵', bonus: '+20% СУО, -15% Энергия, -10% Масса', accMod: 20, energyMod: 0.85, weightMod: 0.90, color: 0x3b82f6 },
+  china: { id: 'china', name: 'Китай', flag: '🇨🇳', bonus: '+20% Боезапас всех орудий', ammoMod: 1.20, weightMod: 1.0, color: 0xef4444 },
+  usa: { id: 'usa', name: 'США', flag: '🇺🇸', bonus: '+25% Скорость крыльев, +15% СУО', accMod: 15, energyMod: 1.15, weightMod: 1.0, color: 0xf59e0b },
+  germany: { id: 'germany', name: 'Германия', flag: '🇩🇪', bonus: '+20% Выработка энергии, +15% Приводы', hpMod: 1.15, genMod: 1.20, weightMod: 1.05, color: 0x10b981 }
+};
+
+const RARITIES = {
+  white: { id: 'white', name: 'Белый (Простой)', mult: 1.0, slots: 1, class: 'r-white', hex: '#cfd6e0' },
+  blue: { id: 'blue', name: 'Синий (Улучшенный)', mult: 1.2, slots: 1, class: 'r-blue', hex: '#3b82f6' },
+  green: { id: 'green', name: 'Зеленый (Качественный)', mult: 1.45, slots: 2, class: 'r-green', hex: '#10b981' },
+  gold: { id: 'gold', name: 'Золотой (Редкий)', mult: 1.75, slots: 2, class: 'r-gold', hex: '#f59e0b' },
+  orange: { id: 'orange', name: 'Оранжевый (Легендарный)', mult: 2.15, slots: 3, class: 'r-orange', hex: '#f97316' }
+};
+
+const WEAPONS = {
+  none: { name: 'Нет оружия', type: 'none', dmg: 0, range: 0, energy: 0, weight: 0, maxAmmo: 0 },
+  laser: { name: 'Импульсный лазер', type: 'energy', dmg: 160, range: 4, energy: 110, weight: 140, maxAmmo: 50 },
+  auto: { name: 'Скорострельный автомат', type: 'kinetic', dmg: 40, range: 3, energy: 20, weight: 210, maxAmmo: 600 },
+  sword: { name: 'Вибро-меч', type: 'melee', dmg: 320, range: 1, energy: 30, weight: 80, maxAmmo: 100 },
+  spear: { name: 'Кинетическое копье', type: 'melee', dmg: 420, range: 1, energy: 40, weight: 170, maxAmmo: 12 },
+  pistol: { name: 'Тяжелый пистолет', type: 'kinetic', dmg: 85, range: 3, energy: 10, weight: 60, maxAmmo: 120 },
+  shotgun: { name: 'Штурмовой дробовик', type: 'kinetic', dmg: 240, range: 2, energy: 15, weight: 190, maxAmmo: 48 },
+  rifle: { name: 'Боевая винтовка', type: 'kinetic', dmg: 110, range: 5, energy: 25, weight: 160, maxAmmo: 180 },
+  sniper: { name: 'Рельсовая снайперка', type: 'kinetic', dmg: 480, range: 8, energy: 90, weight: 310, maxAmmo: 30 }
+};
+
+const EXPANSION_MODULES = {
+  arms: [
+    { id: 'gyro', name: 'Гиростабилизатор отдачи', acc: 15, hp: 0, energy: 15, weight: 25 },
+    { id: 'servo', name: 'Сервоусилитель хвата (+25% урон)', acc: 0, hp: 50, energy: 25, weight: 40 },
+    { id: 'fast_mag', name: 'Быстросъем обоймы', acc: 5, hp: 0, energy: 10, weight: 15 },
+    { id: 'cooler', name: 'Тепловой радиатор', acc: 0, hp: 20, energy: -20, weight: 30 },
+    { id: 'plates', name: 'Композитные наручи брони', acc: -3, hp: 150, energy: 0, weight: 65 }
+  ],
+  legs: [
+    { id: 'hydra', name: 'Гидравлика шасси (+450кг)', loadBoost: 450, hp: 90, energy: 25, weight: 80 },
+    { id: 'jump_jets', name: 'Импульсные прыжковые дюзы', loadBoost: 0, hp: 30, energy: 50, weight: 100 },
+    { id: 'anchors', name: 'Магнитные грунтозацепы', acc: 10, hp: 70, energy: 15, weight: 45 },
+    { id: 'armor_knees', name: 'Титановые наколенники', loadBoost: 0, hp: 210, energy: 0, weight: 75 },
+    { id: 'recuperator', name: 'Кинетический рекуператор', loadBoost: 0, hp: 20, energy: -35, weight: 35 }
+  ]
+};
+
+const PARTS = {
+  head: { name: 'Голова', icon: '🧠', hp: 300, acc: 25, energy: 40, weight: 60 },
+  torso: { name: 'Тело (Корпус)', icon: '🛡️', hp: 1200, acc: 0, energy: 60, weight: 600 },
+  shoulder_l: { name: 'Левое плечо', icon: '🦾', hp: 450, acc: 5, energy: 30, weight: 130, hasWeapon: true, wepSlot: 'shoulder_l' },
+  shoulder_r: { name: 'Правое плечо', icon: '🦾', hp: 450, acc: 5, energy: 30, weight: 130, hasWeapon: true, wepSlot: 'shoulder_r' },
+  arm_l: { name: 'Левая рука', icon: '🖐️', hp: 400, acc: 15, energy: 35, weight: 120, hasExpansion: true, type: 'arms', hasWeapon: true, wepSlot: 'arm_l' },
+  arm_r: { name: 'Правая рука', icon: '🖐️', hp: 400, acc: 15, energy: 35, weight: 120, hasExpansion: true, type: 'arms', hasWeapon: true, wepSlot: 'arm_r' },
+  legs: { name: 'Ноги (Шасси)', icon: '🦿', hp: 850, acc: 0, energy: 50, weight: 440, hasExpansion: true, type: 'legs', load: 2400 },
+  wings: { name: 'Крылья / Ранец', icon: '🪽', hp: 350, acc: 10, energy: 100, weight: 170 },
+  generator: { name: 'Генератор', icon: '⚡', hp: 500, acc: 0, gen: 850, weight: 340 },
+  os: { name: 'OS Ядро', icon: '💾', hp: 100, acc: 20, energy: 20, weight: 5 }
+};
+
+let build = {
+  parts: {
+    head: { mfg: 'russia', rarity: 'blue' },
+    torso: { mfg: 'russia', rarity: 'green' },
+    shoulder_l: { mfg: 'germany', rarity: 'white', weapon: 'sniper' },
+    shoulder_r: { mfg: 'germany', rarity: 'white', weapon: 'auto' },
+    arm_l: { mfg: 'japan', rarity: 'blue', weapon: 'sword', modules: ['gyro'] },
+    arm_r: { mfg: 'japan', rarity: 'blue', weapon: 'rifle', modules: ['servo'] },
+    legs: { mfg: 'russia', rarity: 'green', modules: ['hydra'] },
+    wings: { mfg: 'usa', rarity: 'white' },
+    generator: { mfg: 'germany', rarity: 'gold' },
+    os: { mfg: 'japan', rarity: 'blue' }
+  }
+};
+
+let activePartKey = 'torso';
+
+function calculateBuild() {
+  let hp = 0, acc = 0, energyConsumed = 0, energyGenerated = 0, weight = 0, maxLoad = 1800;
+  for (const [key, p] of Object.entries(build.parts)) {
+    const base = PARTS[key];
+    const r = RARITIES[p.rarity];
+    const m = MANUFACTURERS[p.mfg];
+
+    hp += Math.round(base.hp * r.mult * (m.hpMod || 1.0));
+    acc += Math.round((base.acc + (m.accMod || 0)) * (r.mult >= 1.4 ? 1.1 : 1.0));
+    weight += Math.round(base.weight * (m.weightMod || 1.0));
+
+    if (key === 'generator') {
+      energyGenerated += Math.round(base.gen * r.mult * (m.genMod || 1.0));
+    } else {
+      energyConsumed += Math.round(base.energy * (m.energyMod || 1.0));
+    }
+
+    if (key === 'legs') {
+      maxLoad += Math.round(base.load * r.mult * (m.loadMod || 1.0));
+    }
+
+    if (p.modules && p.modules.length > 0) {
+      const pool = EXPANSION_MODULES[base.type] || [];
+      p.modules.forEach(mId => {
+        const mod = pool.find(item => item.id === mId);
+        if (mod) {
+          hp += mod.hp || 0;
+          acc += mod.acc || 0;
+          energyConsumed += mod.energy || 0;
+          weight += mod.weight || 0;
+          if (mod.loadBoost) maxLoad += mod.loadBoost;
+        }
+      });
+    }
+
+    if (p.weapon && p.weapon !== 'none') {
+      const w = WEAPONS[p.weapon];
+      if (w) {
+        energyConsumed += w.energy;
+        weight += w.weight;
+      }
+    }
+  }
+
+  return {
+    hp,
+    acc: Math.min(100, Math.max(5, acc)),
+    energyConsumed,
+    energyGenerated,
+    energyBalance: energyGenerated - energyConsumed,
+    weight,
+    maxLoad
+  };
+}
+
+function renderUI() {
+  const stats = calculateBuild();
+
+  document.getElementById('val-hp').innerText = `${stats.hp.toLocaleString()} HP`;
+  document.getElementById('txt-hp').innerText = stats.hp;
+  document.getElementById('bar-hp').style.width = Math.min(100, (stats.hp / 6500) * 100) + '%';
+
+  document.getElementById('val-acc').innerText = `${stats.acc}%`;
+  document.getElementById('txt-acc').innerText = `${stats.acc}%`;
+  document.getElementById('bar-acc').style.width = stats.acc + '%';
+
+  document.getElementById('val-energy').innerText = `${stats.energyBalance >= 0 ? '+' : ''}${stats.energyBalance} Вт`;
+  document.getElementById('txt-energy').innerText = `${stats.energyConsumed}/${stats.energyGenerated}`;
+  document.getElementById('bar-energy').style.width = Math.min(100, (stats.energyConsumed / stats.energyGenerated) * 100) + '%';
+
+  document.getElementById('val-weight').innerText = `${stats.weight} кг`;
+  document.getElementById('txt-weight').innerText = `${stats.weight}/${stats.maxLoad}`;
+  document.getElementById('bar-weight').style.width = Math.min(100, (stats.weight / stats.maxLoad) * 100) + '%';
+
+  const pCont = document.getElementById('parts-pills-container');
+  pCont.innerHTML = '';
+  for (const [k, b] of Object.entries(PARTS)) {
+    const p = build.parts[k];
+    const r = RARITIES[p.rarity];
+    const m = MANUFACTURERS[p.mfg];
+    const el = document.createElement('div');
+    el.className = `part-pill ${activePartKey === k ? 'active' : ''}`;
+    el.onclick = () => selectPart(k);
+    el.innerHTML = `
+      <span style="font-size:0.9rem;">${b.icon}</span>
+      <div>
+        <div class="pill-name">${b.name}</div>
+        <div class="pill-sub"><span style="color:${r.hex}">●</span> ${m.flag} ${r.name.split(' ')[0]}</div>
+      </div>
+    `;
+    pCont.appendChild(el);
+  }
+
+  renderInspector();
+
+  const wGrid = document.getElementById('weapons-dock-grid');
+  wGrid.innerHTML = '';
+  [
+    { k: 'shoulder_l', l: 'Плечо L' },
+    { k: 'shoulder_r', l: 'Плечо R' },
+    { k: 'arm_l', l: 'Рука L' },
+    { k: 'arm_r', l: 'Рука R' }
+  ].forEach(s => {
+    const w = WEAPONS[build.parts[s.k].weapon || 'none'];
+    const card = document.createElement('div');
+    card.className = 'weapon-dock-card';
+    card.onclick = () => selectPart(s.k);
+    card.innerHTML = `
+      <div class="wep-slot-tag">${s.l}</div>
+      <div class="wep-title">${w.name}</div>
+      <div class="wep-ammo-limit">${w.maxAmmo > 0 ? `Запас: ${w.maxAmmo}` : '—'}</div>
+    `;
+    wGrid.appendChild(card);
+  });
+}
+
+function renderInspector() {
+  const cont = document.getElementById('part-inspector-container');
+  const base = PARTS[activePartKey];
+  const p = build.parts[activePartKey];
+  const r = RARITIES[p.rarity];
+  const m = MANUFACTURERS[p.mfg];
+
+  const rChips = Object.values(RARITIES).map(robj => `
+    <button class="chip ${p.rarity === robj.id ? 'active' : ''}" onclick="setRarity('${activePartKey}', '${robj.id}')">
+      <span style="color:${robj.hex};">●</span> ${robj.name.split(' ')[0]}
+    </button>
+  `).join('');
+
+  const mChips = Object.values(MANUFACTURERS).map(mobj => `
+    <button class="chip ${p.mfg === mobj.id ? 'active' : ''}" onclick="setMfg('${activePartKey}', '${mobj.id}')">
+      ${mobj.flag} ${mobj.name}
+    </button>
+  `).join('');
+
+  let wepHtml = '';
+  if (base.hasWeapon) {
+    let opts = Object.entries(WEAPONS).map(([wId, w]) => `
+      <option value="${wId}" ${p.weapon === wId ? 'selected' : ''}>
+        ${w.name} ${w.maxAmmo > 0 ? `[Патроны: ${w.maxAmmo}]` : ''}
+      </option>
+    `).join('');
+    wepHtml = `
+      <div class="control-block">
+        <div style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Оружейный слот узла</div>
+        <select class="chip" style="width:100%; padding:5px; background:#0d111a; color:#fff;" onchange="setWeapon('${activePartKey}', this.value)">
+          ${opts}
+        </select>
+      </div>
+    `;
+  }
+
+  let modHtml = '';
+  if (base.hasExpansion) {
+    const pool = EXPANSION_MODULES[base.type] || [];
+    let selects = '';
+    for (let i = 0; i < r.slots; i++) {
+      const cur = (p.modules && p.modules[i]) || '';
+      let opts = `<option value="">-- Слот ${i+1}: Пусто --</option>` + pool.map(x => `
+        <option value="${x.id}" ${cur === x.id ? 'selected' : ''}>⚙️ ${x.name}</option>
+      `).join('');
+      selects += `<select class="chip" style="width:100%; margin-top:4px; padding:4px; background:#0d111a; color:#fff;" onchange="setModule('${activePartKey}', ${i}, this.value)">${opts}</select>`;
+    }
+    modHtml = `
+      <div class="control-block">
+        <div style="font-size:0.68rem; color:var(--accent); text-transform:uppercase;">Слоты расширения (${p.modules ? p.modules.length : 0}/${r.slots})</div>
+        ${selects}
+      </div>
+    `;
+  }
+
+  cont.innerHTML = `
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-left:3px solid var(--accent); padding:8px 10px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+      <b style="font-size:0.85rem; color:#fff;">${base.icon} ${base.name}</b>
+      <span style="font-size:0.65rem; color:${r.hex}; font-weight:bold;">${r.name}</span>
+    </div>
+    <div class="control-block">
+      <div style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Редкость (множитель x${r.mult})</div>
+      <div class="chips-row">${rChips}</div>
+    </div>
+    <div class="control-block">
+      <div style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Производитель: ${m.flag} ${m.name}</div>
+      <div class="chips-row">${mChips}</div>
+      <div style="font-size:0.65rem; color:#889bb0; margin-top:2px;">${m.bonus}</div>
+    </div>
+    ${wepHtml}
+    ${modHtml}
+  `;
+}
+
+function selectPart(k) { activePartKey = k; renderUI(); highlight3DPart(k); }
+function setRarity(k, r) { build.parts[k].rarity = r; renderUI(); update3DColors(); }
+function setMfg(k, m) { build.parts[k].mfg = m; renderUI(); update3DColors(); }
+function setWeapon(k, w) { build.parts[k].weapon = w; renderUI(); }
+function setModule(k, idx, val) {
+  if (!build.parts[k].modules) build.parts[k].modules = [];
+  if (!val) build.parts[k].modules.splice(idx, 1);
+  else build.parts[k].modules[idx] = val;
+  renderUI();
+}
+function randomizeBuild() {
+  const rK = Object.keys(RARITIES), mK = Object.keys(MANUFACTURERS), wK = Object.keys(WEAPONS).filter(x => x !== 'none');
+  for (const [k, p] of Object.entries(build.parts)) {
+    p.rarity = rK[Math.floor(Math.random() * rK.length)];
+    p.mfg = mK[Math.floor(Math.random() * mK.length)];
+    if (PARTS[k].hasWeapon) p.weapon = wK[Math.floor(Math.random() * wK.length)];
+  }
+  renderUI(); update3DColors();
+}
+
+// 3D Модель Front Mission
+let scene, camera, renderer, mechGroup;
+let clickableParts = [], partMeshMap = {};
+let isDragging = false, startX = 0, mouseMoved = false, autoRotate = true;
+const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+let defaultArmorMat, defaultFrameMat, highlightMat;
+
+function init3D() {
+  const container = document.querySelector('.viewport-3d-wrap');
+  const canvas = document.getElementById('wanzer-canvas');
+  const w = container.clientWidth || 450, h = container.clientHeight || 300;
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x090c12, 0.045);
+  camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+  camera.position.set(0, 1.1, 4.8);
+  camera.lookAt(0, 0.1, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  scene.add(new THREE.HemisphereLight(0xdce3ed, 0x11141d, 0.7));
+  const d1 = new THREE.DirectionalLight(0x00f0ff, 1.2); d1.position.set(3, 5, 4); scene.add(d1);
+  const d2 = new THREE.DirectionalLight(0xff7700, 0.6); d2.position.set(-3, -1, -3); scene.add(d2);
+
+  const grid = new THREE.GridHelper(7, 18, 0x00f0ff, 0x1e2638);
+  grid.position.y = -1.3;
+  scene.add(grid);
+
+  defaultArmorMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.35, metalness: 0.7 });
+  defaultFrameMat = new THREE.MeshStandardMaterial({ color: 0x1a212d, roughness: 0.8, metalness: 0.6 });
+  highlightMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00aacc, roughness: 0.2, metalness: 0.8 });
+
+  mechGroup = buildInteractiveWanzer();
+  scene.add(mechGroup);
+
+  canvas.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX; mouseMoved = false; autoRotate = false; });
+  window.addEventListener('mouseup', e => {
+    if (isDragging && !mouseMoved) checkRaycastClick(e.clientX, e.clientY);
+    isDragging = false;
+    setTimeout(() => { autoRotate = true; }, 3000);
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 3) mouseMoved = true;
+    if (mechGroup) mechGroup.rotation.y += dx * 0.01;
+    startX = e.clientX;
+  });
+
+  highlight3DPart(activePartKey);
+  animate3D();
+}
+
+function registerPartMesh(mesh, partKey) {
+  mesh.userData.partKey = partKey;
+  clickableParts.push(mesh);
+  if (!partMeshMap[partKey]) partMeshMap[partKey] = [];
+  partMeshMap[partKey].push(mesh);
+}
+
+function buildInteractiveWanzer() {
+  const m = new THREE.Group();
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.8, 0.65), defaultArmorMat);
+  torso.position.y = 0.2; registerPartMesh(torso, 'torso'); m.add(torso);
+
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.24, 0.34), defaultArmorMat);
+  head.position.set(0, 0.72, 0.08); registerPartMesh(head, 'head'); m.add(head);
+
+  const shL = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.35, 0.45), defaultArmorMat);
+  shL.position.set(-0.64, 0.45, 0); registerPartMesh(shL, 'shoulder_l'); m.add(shL);
+  const shR = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.35, 0.45), defaultArmorMat);
+  shR.position.set(0.64, 0.45, 0); registerPartMesh(shR, 'shoulder_r'); m.add(shR);
+
+  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.26), defaultFrameMat);
+  armL.position.set(-0.64, -0.1, 0.08); registerPartMesh(armL, 'arm_l'); m.add(armL);
+  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.26), defaultFrameMat);
+  armR.position.set(0.64, -0.1, 0.08); registerPartMesh(armR, 'arm_r'); m.add(armR);
+
+  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.9, 0.34), defaultArmorMat);
+  legL.position.set(-0.3, -0.75, 0.05); registerPartMesh(legL, 'legs'); m.add(legL);
+  const legR = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.9, 0.34), defaultArmorMat);
+  legR.position.set(0.3, -0.75, 0.05); registerPartMesh(legR, 'legs'); m.add(legR);
+
+  const pack = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.65, 0.3), defaultFrameMat);
+  pack.position.set(0, 0.35, -0.42); registerPartMesh(pack, 'wings'); m.add(pack);
+
+  m.position.y = -0.15;
+  return m;
+}
+
+function highlight3DPart(key) {
+  for (const [pKey, meshes] of Object.entries(partMeshMap)) {
+    meshes.forEach(m => {
+      m.material = (pKey === key) ? highlightMat : defaultArmorMat;
+    });
+  }
+}
+function update3DColors() {
+  const col = MANUFACTURERS[build.parts.torso.mfg].color || 0x475569;
+  defaultArmorMat.color.setHex(col);
+}
+
+function checkRaycastClick(cx, cy) {
+  const canvas = document.getElementById('wanzer-canvas');
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(clickableParts, false);
+  if (hits.length > 0 && hits[0].object.userData.partKey) {
+    selectPart(hits[0].object.userData.partKey);
+  }
+}
+
+function animate3D() {
+  requestAnimationFrame(animate3D);
+  if (autoRotate && mechGroup) mechGroup.rotation.y += 0.007;
+  if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+
+// =========================================================================
+// 2. ОПТИМИЗИРОВАННОЕ ПОЛЕ БОЯ 15х15: PAN, ZOOM, ТОЧНЫЙ ТАП, ТОСТЫ
+// =========================================================================
+const GRID_COLS = 15;
+const GRID_ROWS = 15;
+const BASE_HEX_R = 40; // Большие удобные гексы для пальца!
+const HEX_H = BASE_HEX_R * Math.sqrt(3);
+const HEX_W = BASE_HEX_R * 1.5;
+
+let bCanvas, bCtx;
+let combatPhase = 'move';
+let currentTurn = 'player';
+let roundNum = 1;
+let selectedWeaponSlot = 'arm_r';
+let hoveredHex = null;
+let currentPath = [];
+let reachableHexes = [];
+
+// Камера (Pan & Zoom)
+let camX = 0, camY = 0, camZoom = 1.0;
+let isPanning = false, panStartX = 0, panStartY = 0, didPan = false;
+
+// Погода
+const WEATHERS = [
+  { id: 'rain', name: 'Кислотный дождь', icon: '🌧️' },
+  { id: 'snow', name: 'Снежная буря', icon: '❄️' },
+  { id: 'storm', name: 'ЭМИ Шторм', icon: '⚡' },
+  { id: 'clear', name: 'Чистое небо', icon: '☀️' }
+];
+let currentWeatherIdx = 0;
+let weatherParticles = [];
+
+// Карта местности
+let obstacles = {};
+let playerUnit = null;
+let enemyUnits = [];
+
+function deployToBattle() {
+  document.getElementById('hangar-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+
+  const stats = calculateBuild();
+  playerUnit = {
+    id: 'player',
+    name: 'Titan WZ-77',
+    col: 2,
+    row: 7,
+    maxHp: stats.hp,
+    hp: stats.hp,
+    acc: stats.acc,
+    movePts: 4,
+    maxMovePts: 4,
+    weapons: {
+      shoulder_l: { ...WEAPONS[build.parts.shoulder_l.weapon || 'none'], ammo: WEAPONS[build.parts.shoulder_l.weapon || 'none'].maxAmmo },
+      shoulder_r: { ...WEAPONS[build.parts.shoulder_r.weapon || 'none'], ammo: WEAPONS[build.parts.shoulder_r.weapon || 'none'].maxAmmo },
+      arm_l: { ...WEAPONS[build.parts.arm_l.weapon || 'none'], ammo: WEAPONS[build.parts.arm_l.weapon || 'none'].maxAmmo },
+      arm_r: { ...WEAPONS[build.parts.arm_r.weapon || 'none'], ammo: WEAPONS[build.parts.arm_r.weapon || 'none'].maxAmmo }
+    }
+  };
+
+  // 5 вражеских ванзеров Front Mission
+  enemyUnits = [
+    { id: 'e1', name: 'Разведчик (Scout)', col: 12, row: 3, maxHp: 1100, hp: 1100, movePts: 5, range: 3, dmg: 70, color: '#f59e0b', type: 'Легкий' },
+    { id: 'e2', name: 'Штурмовик (Assault)', col: 13, row: 7, maxHp: 2200, hp: 2200, movePts: 3, range: 4, dmg: 140, color: '#ef4444', type: 'Тяжелый' },
+    { id: 'e3', name: 'Снайпер (Sniper)', col: 14, row: 12, maxHp: 1300, hp: 1300, movePts: 2, range: 7, dmg: 260, color: '#ec4899', type: 'Рельса' },
+    { id: 'e4', name: 'Мечник (Striker)', col: 10, row: 5, maxHp: 1600, hp: 1600, movePts: 4, range: 1, dmg: 210, color: '#8b5cf6', type: 'Клинки' },
+    { id: 'e5', name: 'Командир (Commander)', col: 13, row: 10, maxHp: 3000, hp: 3000, movePts: 3, range: 5, dmg: 190, color: '#dc2626', type: 'Босс' }
+  ];
+
+  // Постройки
+  obstacles = {};
+  const buildingCoords = [
+    [5,3], [5,4], [7,6], [7,7], [8,7], [9,10], [9,11],
+    [5,11], [11,4], [8,2], [8,12], [4,8], [12,8]
+  ];
+  buildingCoords.forEach(([c, r]) => {
+    obstacles[`${c},${r}`] = { type: 'building', height: 32 };
+  });
+
+  currentTurn = 'player';
+  roundNum = 1;
+  combatPhase = 'move';
+  playerUnit.movePts = playerUnit.maxMovePts;
+
+  initBattleCanvas();
+  centerOnPlayer();
+  recalcReachableHexes();
+  updateBattleHUD();
+  showToast('⚡ Бой начат: обнаружено 5 вражеских ванзеров!');
+}
+
+function returnToHangar() {
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('hangar-screen').classList.add('active');
+}
+
+function initBattleCanvas() {
+  bCanvas = document.getElementById('hex-canvas');
+  bCtx = bCanvas.getContext('2d');
+  resizeBattleCanvas();
+
+  // Мышь: Drag Pan + Click
+  bCanvas.addEventListener('mousedown', e => {
+    isPanning = true;
+    didPan = false;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStartX;
+    const dy = e.clientY - panStartY;
+    if (Math.hypot(dx, dy) > 5) {
+      didPan = true;
+      camX += dx / camZoom;
+      camY += dy / camZoom;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+    }
+  });
+  window.addEventListener('mouseup', e => {
+    if (isPanning && !didPan) {
+      const rect = bCanvas.getBoundingClientRect();
+      handleHexTap(e.clientX - rect.left, e.clientY - rect.top);
+    }
+    isPanning = false;
+  });
+
+  // Сенсорные тапы и свайпы (Touch) для мобильных и Telegram WebView
+  bCanvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      isPanning = true;
+      didPan = false;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  bCanvas.addEventListener('touchmove', e => {
+    if (!isPanning || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - panStartX;
+    const dy = e.touches[0].clientY - panStartY;
+    if (Math.hypot(dx, dy) > 6) {
+      didPan = true;
+      camX += dx / camZoom;
+      camY += dy / camZoom;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  bCanvas.addEventListener('touchend', e => {
+    if (isPanning && !didPan && e.changedTouches.length > 0) {
+      const rect = bCanvas.getBoundingClientRect();
+      handleHexTap(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    }
+    isPanning = false;
+  });
+
+  // Частицы погоды
+  weatherParticles = [];
+  for (let i = 0; i < 90; i++) {
+    weatherParticles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      spd: 4 + Math.random() * 6,
+      len: 10 + Math.random() * 12
+    });
+  }
+
+  requestAnimationFrame(battleRenderLoop);
+}
+
+function resizeBattleCanvas() {
+  const wrap = document.querySelector('.battle-canvas-wrap');
+  if (!wrap || !bCanvas) return;
+  bCanvas.width = wrap.clientWidth;
+  bCanvas.height = wrap.clientHeight;
+}
+window.addEventListener('resize', resizeBattleCanvas);
+
+function zoomIn() { camZoom = Math.min(2.2, camZoom + 0.25); }
+function zoomOut() { camZoom = Math.max(0.65, camZoom - 0.25); }
+function centerOnPlayer() {
+  if (!playerUnit) return;
+  const p = getHexWorldPos(playerUnit.col, playerUnit.row);
+  camX = -p.x;
+  camY = -p.y;
+}
+
+// Преобразование координат
+function getHexWorldPos(col, row) {
+  const x = col * HEX_W;
+  const y = (row * HEX_H + ((col & 1) ? HEX_H / 2 : 0)) * 0.72; // Изометрия Front Mission
+  return { x, y };
+}
+
+function hexToScreen(col, row) {
+  const world = getHexWorldPos(col, row);
+  return {
+    x: (world.x + camX) * camZoom + bCanvas.width / 2,
+    y: (world.y + camY) * camZoom + bCanvas.height / 2
+  };
+}
+
+// Сверхточный поиск гекса при тапе (с учетом изометрического сжатия Y)
+function screenToHex(screenX, screenY) {
+  let bestHex = null;
+  let minDist = 999999;
+
+  for (let c = 0; c < GRID_COLS; c++) {
+    for (let r = 0; r < GRID_ROWS; r++) {
+      const p = hexToScreen(c, r);
+      const dx = screenX - p.x;
+      const dy = (screenY - p.y) / 0.72; // Нормализация Y
+      const d = Math.hypot(dx, dy);
+      const hitRadius = BASE_HEX_R * camZoom * 1.25;
+
+      if (d < minDist && d < hitRadius) {
+        minDist = d;
+        bestHex = { col: c, row: r };
+      }
+    }
+  }
+  return bestHex;
+}
+
+function getHexDistance(c1, r1, c2, r2) {
+  const q1 = c1, p1 = r1 - Math.floor(c1 / 2);
+  const q2 = c2, p2 = r2 - Math.floor(c2 / 2);
+  return (Math.abs(q1 - q2) + Math.abs(q1 + p1 - q2 - p2) + Math.abs(p1 - p2)) / 2;
+}
+
+function getNeighbors(col, row) {
+  const isOdd = (col & 1) !== 0;
+  const deltas = isOdd ? [
+    [0, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]
+  ] : [
+    [0, -1], [1, -1], [1, 0], [0, 1], [-1, 0], [-1, -1]
+  ];
+
+  const res = [];
+  deltas.forEach(([dc, dr]) => {
+    const nc = col + dc, nr = row + dr;
+    if (nc >= 0 && nc < GRID_COLS && nr >= 0 && nr < GRID_ROWS) {
+      res.push({ col: nc, row: nr });
+    }
+  });
+  return res;
+}
+
+function recalcReachableHexes() {
+  reachableHexes = [];
+  if (currentTurn !== 'player' || playerUnit.movePts <= 0) return;
+
+  const queue = [{ col: playerUnit.col, row: playerUnit.row, dist: 0 }];
+  const visited = {};
+  visited[`${playerUnit.col},${playerUnit.row}`] = 0;
+
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    if (cur.dist < playerUnit.movePts) {
+      const nbs = getNeighbors(cur.col, cur.row);
+      nbs.forEach(n => {
+        const key = `${n.col},${n.row}`;
+        const isBlocked = obstacles[key] || enemyUnits.some(e => e.hp > 0 && e.col === n.col && e.row === n.row);
+        if (!isBlocked && (visited[key] === undefined || cur.dist + 1 < visited[key])) {
+          visited[key] = cur.dist + 1;
+          queue.push({ col: n.col, row: n.row, dist: cur.dist + 1 });
+          reachableHexes.push({ col: n.col, row: n.row, cost: cur.dist + 1 });
+        }
+      });
+    }
+  }
+}
+
+function findPath(start, goal) {
+  const openSet = [start];
+  const cameFrom = {};
+  const gScore = {};
+  const key = (h) => `${h.col},${h.row}`;
+  gScore[key(start)] = 0;
+
+  while (openSet.length > 0) {
+    openSet.sort((a, b) => (gScore[key(a)] + getHexDistance(a.col, a.row, goal.col, goal.row)) - (gScore[key(b)] + getHexDistance(b.col, b.row, goal.row)));
+    const current = openSet.shift();
+
+    if (current.col === goal.col && current.row === goal.row) {
+      const path = [];
+      let temp = current;
+      while (cameFrom[key(temp)]) {
+        path.unshift(temp);
+        temp = cameFrom[key(temp)];
+      }
+      return path;
+    }
+
+    const neighbors = getNeighbors(current.col, current.row);
+    neighbors.forEach(neighbor => {
+      const nKey = key(neighbor);
+      const isBlocked = obstacles[nKey] || (enemyUnits.some(e => e.hp > 0 && e.col === neighbor.col && e.row === neighbor.row) && !(neighbor.col === goal.col && neighbor.row === goal.row));
+
+      if (!isBlocked) {
+        const tentativeG = gScore[key(current)] + 1;
+        if (tentativeG < (gScore[nKey] ?? Infinity)) {
+          cameFrom[nKey] = current;
+          gScore[nKey] = tentativeG;
+          if (!openSet.some(h => h.col === neighbor.col && h.row === neighbor.row)) {
+            openSet.push(neighbor);
+          }
+        }
+      }
+    });
+  }
+  return [];
+}
+
+// Отрисовка поля боя
+function battleRenderLoop() {
+  if (!bCtx || !bCanvas) return;
+  bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+
+  // 1. Отрисовка гексов 15х15
+  for (let c = 0; c < GRID_COLS; c++) {
+    for (let r = 0; r < GRID_ROWS; r++) {
+      drawHexTile(c, r);
+    }
+  }
+
+  // 2. Траектория пути
+  if (combatPhase === 'move' && currentPath.length > 0) {
+    drawPathLine();
+  }
+
+  // 3. Здания
+  for (const [key, obs] of Object.entries(obstacles)) {
+    const [c, r] = key.split(',').map(Number);
+    drawBuilding(c, r, obs);
+  }
+
+  // 4. Юниты
+  if (playerUnit && playerUnit.hp > 0) {
+    drawMechUnit(playerUnit.col, playerUnit.row, '#00f0ff', playerUnit.name, playerUnit.hp, playerUnit.maxHp, true);
+  }
+
+  enemyUnits.forEach(e => {
+    if (e.hp > 0) {
+      drawMechUnit(e.col, e.row, e.color, e.name, e.hp, e.maxHp, false);
+    }
+  });
+
+  // 5. Погода
+  drawWeatherOverlay();
+
+  requestAnimationFrame(battleRenderLoop);
+}
+
+function drawHexTile(col, row) {
+  const p = hexToScreen(col, row);
+  const r = BASE_HEX_R * camZoom;
+
+  const isReachable = reachableHexes.some(h => h.col === col && h.row === row);
+  const isSelected = hoveredHex && hoveredHex.col === col && hoveredHex.row === row;
+
+  bCtx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i;
+    const hx = p.x + r * Math.cos(angle);
+    const hy = p.y + (r * 0.72) * Math.sin(angle);
+    if (i === 0) bCtx.moveTo(hx, hy);
+    else bCtx.lineTo(hx, hy);
+  }
+  bCtx.closePath();
+
+  if (isReachable && combatPhase === 'move') {
+    bCtx.fillStyle = 'rgba(0, 240, 255, 0.22)';
+    bCtx.strokeStyle = '#00f0ff';
+    bCtx.lineWidth = 2;
+  } else if (isSelected) {
+    bCtx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    bCtx.strokeStyle = '#fff';
+    bCtx.lineWidth = 2;
+  } else {
+    bCtx.fillStyle = '#0f1422';
+    bCtx.strokeStyle = '#1a2233';
+    bCtx.lineWidth = 1;
+  }
+  bCtx.fill();
+  bCtx.stroke();
+}
+
+function drawBuilding(col, row, obs) {
+  const p = hexToScreen(col, row);
+  const h = obs.height * camZoom;
+  const r = BASE_HEX_R * camZoom;
+
+  bCtx.fillStyle = '#1e293b';
+  bCtx.strokeStyle = '#475569';
+
+  // Изометрическая призма здания
+  bCtx.beginPath();
+  bCtx.moveTo(p.x - r * 0.5, p.y + 4);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
+  bCtx.lineTo(p.x - r * 0.5, p.y + 4 - h);
+  bCtx.closePath();
+  bCtx.fill();
+  bCtx.stroke();
+
+  bCtx.fillStyle = '#0f172a';
+  bCtx.beginPath();
+  bCtx.moveTo(p.x, p.y + 14 * camZoom);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4 - h);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
+  bCtx.closePath();
+  bCtx.fill();
+  bCtx.stroke();
+
+  // Крыша
+  bCtx.fillStyle = '#334155';
+  bCtx.beginPath();
+  bCtx.moveTo(p.x, p.y - 10 * camZoom - h);
+  bCtx.lineTo(p.x + r * 0.5, p.y + 4 - h);
+  bCtx.lineTo(p.x, p.y + 14 * camZoom - h);
+  bCtx.lineTo(p.x - r * 0.5, p.y + 4 - h);
+  bCtx.closePath();
+  bCtx.fill();
+  bCtx.stroke();
+}
+
+function drawMechUnit(col, row, color, name, hp, maxHp, isPlayer) {
+  const p = hexToScreen(col, row);
+  const s = camZoom;
+
+  // Тень
+  bCtx.fillStyle = 'rgba(0,0,0,0.55)';
+  bCtx.beginPath();
+  bCtx.ellipse(p.x, p.y + 8 * s, 18 * s, 9 * s, 0, 0, Math.PI * 2);
+  bCtx.fill();
+
+  // Ванзер (Front Mission стиль)
+  bCtx.fillStyle = color;
+  bCtx.fillRect(p.x - 12 * s, p.y - 26 * s, 24 * s, 22 * s);
+
+  // Наплечники
+  bCtx.fillStyle = '#1e293b';
+  bCtx.fillRect(p.x - 17 * s, p.y - 24 * s, 6 * s, 10 * s);
+  bCtx.fillRect(p.x + 11 * s, p.y - 24 * s, 6 * s, 10 * s);
+
+  // Голова / сенсор
+  bCtx.fillStyle = '#0f172a';
+  bCtx.fillRect(p.x - 6 * s, p.y - 35 * s, 12 * s, 9 * s);
+  bCtx.fillStyle = isPlayer ? '#00f0ff' : '#ef4444';
+  bCtx.fillRect(p.x - 4 * s, p.y - 32 * s, 8 * s, 3 * s);
+
+  // Орудие в руке
+  bCtx.fillStyle = '#334155';
+  bCtx.fillRect(p.x + 13 * s, p.y - 20 * s, 4 * s, 16 * s);
+
+  // Индикатор HP
+  const bw = 32 * s, bh = 4 * s;
+  bCtx.fillStyle = '#10141d';
+  bCtx.fillRect(p.x - bw / 2, p.y - 44 * s, bw, bh);
+  bCtx.fillStyle = (hp / maxHp > 0.4) ? '#10b981' : '#ef4444';
+  bCtx.fillRect(p.x - bw / 2, p.y - 44 * s, bw * (hp / maxHp), bh);
+}
+
+function drawPathLine() {
+  if (currentPath.length === 0) return;
+  bCtx.strokeStyle = '#00f0ff';
+  bCtx.lineWidth = 3;
+  bCtx.setLineDash([6, 4]);
+
+  bCtx.beginPath();
+  const startP = hexToScreen(playerUnit.col, playerUnit.row);
+  bCtx.moveTo(startP.x, startP.y);
+
+  currentPath.forEach(h => {
+    const p = hexToScreen(h.col, h.row);
+    bCtx.lineTo(p.x, p.y);
+  });
+  bCtx.stroke();
+  bCtx.setLineDash([]);
+
+  const endP = hexToScreen(currentPath[currentPath.length - 1].col, currentPath[currentPath.length - 1].row);
+  bCtx.fillStyle = '#00f0ff';
+  bCtx.beginPath();
+  bCtx.arc(endP.x, endP.y, 6, 0, Math.PI * 2);
+  bCtx.fill();
+}
+
+function drawWeatherOverlay() {
+  const w = WEATHERS[currentWeatherIdx];
+  if (w.id === 'clear') return;
+
+  bCtx.strokeStyle = w.id === 'rain' ? 'rgba(0, 240, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)';
+  bCtx.lineWidth = 1;
+
+  weatherParticles.forEach(p => {
+    bCtx.beginPath();
+    bCtx.moveTo(p.x, p.y);
+    bCtx.lineTo(p.x + (w.id === 'rain' ? -2 : -1), p.y + p.len);
+    bCtx.stroke();
+
+    p.y += p.spd;
+    p.x -= 1;
+    if (p.y > bCanvas.height) { p.y = -10; p.x = Math.random() * bCanvas.width; }
+  });
+}
+
+function cycleWeather() {
+  currentWeatherIdx = (currentWeatherIdx + 1) % WEATHERS.length;
+  const w = WEATHERS[currentWeatherIdx];
+  document.getElementById('hud-weather-btn').innerText = w.icon;
+  showToast(`🌤️ Погода: ${w.name}`);
+  logCombat(`🌤️ Погода: ${w.name}`);
+}
+
+// ОБРАБОТКА ТАПА ПО ГЕКСУ
+function handleHexTap(screenX, screenY) {
+  if (currentTurn !== 'player') return;
+  const h = screenToHex(screenX, screenY);
+  if (!h) return;
+
+  hoveredHex = h;
+
+  if (combatPhase === 'move') {
+    const isReachable = reachableHexes.some(rh => rh.col === h.col && rh.row === h.row);
+    if (isReachable) {
+      // Показать путь
+      currentPath = findPath({ col: playerUnit.col, row: playerUnit.row }, h);
+      const target = reachableHexes.find(rh => rh.col === h.col && rh.row === h.row);
+      if (target && playerUnit.movePts >= target.cost) {
+        playerUnit.col = target.col;
+        playerUnit.row = target.row;
+        playerUnit.movePts -= target.cost;
+        currentPath = [];
+        showToast(`🚶 Шаг в [${target.col},${target.row}] // Очки хода: ${playerUnit.movePts}`);
+        logCombat(`🚶 Мех переместился в гекс [${target.col}, ${target.row}]. Осталось очков хода: ${playerUnit.movePts}`);
+        recalcReachableHexes();
+        updateBattleHUD();
+        if (playerUnit.movePts <= 0) {
+          setCombatPhase('attack');
+        }
+      }
+    } else {
+      currentPath = [];
+    }
+  } else if (combatPhase === 'attack') {
+    const enemy = enemyUnits.find(u => u.hp > 0 && u.col === h.col && u.row === h.row);
+    if (enemy) {
+      playerAttackEnemy(enemy);
+    } else {
+      showToast('⚠️ Тапните по вражескому меху для атаки!');
+    }
+  }
+}
+
+function setCombatPhase(phase) {
+  combatPhase = phase;
+  document.getElementById('dock-btn-move').classList.toggle('active', phase === 'move');
+  document.getElementById('dock-btn-attack').classList.toggle('active', phase === 'attack');
+
+  const drawer = document.getElementById('weapon-drawer');
+  if (phase === 'attack') {
+    renderWeaponDrawer();
+    drawer.classList.add('open');
+  } else {
+    drawer.classList.remove('open');
+    currentPath = [];
+  }
+  recalcReachableHexes();
+}
+
+function renderWeaponDrawer() {
+  const drawer = document.getElementById('weapon-drawer');
+  drawer.innerHTML = '';
+  const slots = [
+    { k: 'shoulder_l', l: 'Плечо L' },
+    { k: 'shoulder_r', l: 'Плечо R' },
+    { k: 'arm_l', l: 'Рука L' },
+    { k: 'arm_r', l: 'Рука R' }
+  ];
+
+  slots.forEach(s => {
+    const w = playerUnit.weapons[s.k];
+    const isAct = (selectedWeaponSlot === s.k);
+    const isEmpty = w.maxAmmo > 0 && w.ammo <= 0;
+    const card = document.createElement('div');
+    card.className = `drawer-wep-card ${isAct ? 'active' : ''} ${isEmpty ? 'empty' : ''}`;
+    card.onclick = (e) => {
+      e.stopPropagation();
+      selectedWeaponSlot = s.k;
+      renderWeaponDrawer();
+      updateBattleHUD();
+      showToast(`🎯 Выбрано: ${w.name} [Дальность: ${w.range}г]`);
+    };
+    card.innerHTML = `
+      <div class="slot">${s.l}</div>
+      <div class="name">${w.name}</div>
+      <div class="ammo">${w.maxAmmo > 0 ? `Патроны: ${w.ammo}` : '∞'} // Дальн: ${w.range}г</div>
+    `;
+    drawer.appendChild(card);
+  });
+}
+
+function playerAttackEnemy(enemy) {
+  const wep = playerUnit.weapons[selectedWeaponSlot];
+  if (!wep || wep.type === 'none') {
+    showToast(`⚠️ В слоте [${selectedWeaponSlot}] нет оружия!`);
+    return;
+  }
+  if (wep.maxAmmo > 0 && wep.ammo <= 0) {
+    showToast(`⚠️ Боезапас ${wep.name} пуст!`);
+    return;
+  }
+
+  const dist = getHexDistance(playerUnit.col, playerUnit.row, enemy.col, enemy.row);
+  if (dist > wep.range) {
+    showToast(`⚠️ Вне зоны поражения! Дистанция: ${dist}г > ${wep.range}г`);
+    return;
+  }
+
+  if (wep.maxAmmo > 0) wep.ammo--;
+  const hitChance = Math.min(95, Math.max(30, playerUnit.acc - dist * 5));
+  const isHit = Math.random() * 100 < hitChance;
+
+  if (isHit) {
+    const dmg = Math.round(wep.dmg * (0.9 + Math.random() * 0.2));
+    enemy.hp -= dmg;
+    showToast(`💥 Попадание из ${wep.name}: -${dmg} HP!`);
+    logCombat(`🎯 Залп из ${wep.name} по ${enemy.name}: ПОПАДАНИЕ! Нанесено ${dmg} урона.`, 'p-hit');
+
+    if (enemy.hp <= 0) {
+      enemy.hp = 0;
+      showToast(`💀 ${enemy.name} уничтожен!`);
+      logCombat(`💥 ${enemy.name} УНИЧТОЖЕН!`, 'kill');
+    }
+  } else {
+    showToast(`💨 Промах по ${enemy.name}! (${hitChance}% шанс)`);
+    logCombat(`💨 Выстрел из ${wep.name} по ${enemy.name}: ПРОМАХ!`, 'p-hit');
+  }
+
+  updateBattleHUD();
+  checkBattleEnd();
+}
+
+function playerEndTurn() {
+  if (currentTurn !== 'player') return;
+  currentTurn = 'enemy';
+  document.getElementById('b-turn-badge').innerText = 'ХОД ВРАГА (ИИ)';
+  document.getElementById('b-turn-badge').className = 'turn-badge enemy';
+  document.getElementById('weapon-drawer').classList.remove('open');
+  showToast('⏭️ Ход игрока завершен. Противник атакует...');
+  logCombat(`⏭️ Завершение хода игрока. Инициатива переходит к противнику!`);
+
+  setTimeout(runAITurn, 800);
+}
+
+function runAITurn() {
+  const aliveEnemies = enemyUnits.filter(e => e.hp > 0);
+  if (aliveEnemies.length === 0) {
+    checkBattleEnd();
+    return;
+  }
+
+  let index = 0;
+  function processNextEnemy() {
+    if (index >= aliveEnemies.length) {
+      startPlayerTurn();
+      return;
+    }
+
+    const enemy = aliveEnemies[index++];
+    const distToPlayer = getHexDistance(enemy.col, enemy.row, playerUnit.col, playerUnit.row);
+
+    if (distToPlayer > enemy.range) {
+      const path = findPath({ col: enemy.col, row: enemy.row }, { col: playerUnit.col, row: playerUnit.row });
+      if (path.length > 0) {
+        const step = path[Math.min(enemy.movePts - 1, path.length - 2)];
+        if (step) {
+          enemy.col = step.col;
+          enemy.row = step.row;
+        }
+      }
+    }
+
+    const newDist = getHexDistance(enemy.col, enemy.row, playerUnit.col, playerUnit.row);
+    if (newDist <= enemy.range && playerUnit.hp > 0) {
+      const hitRoll = Math.random() * 100;
+      if (hitRoll < 75) {
+        const dmg = Math.round(enemy.dmg * (0.85 + Math.random() * 0.3));
+        playerUnit.hp -= dmg;
+        showToast(`🚨 ${enemy.name}: -${dmg} HP вашему меху!`);
+        logCombat(`🚨 ${enemy.name} атакует ваш мех: -${dmg} HP!`, 'e-hit');
+        if (playerUnit.hp <= 0) {
+          playerUnit.hp = 0;
+          showToast(`💀 ВАШ МЕХ УНИЧТОЖЕН!`);
+          logCombat(`💀 ВАШ МЕХ УНИЧТОЖЕН! ПОРАЖЕНИЕ.`, 'kill');
+        }
+      } else {
+        logCombat(`🛡️ Залп от ${enemy.name} прошел по касательной (Промах).`);
+      }
+    }
+
+    updateBattleHUD();
+    setTimeout(processNextEnemy, 600);
+  }
+
+  processNextEnemy();
+}
+
+function startPlayerTurn() {
+  roundNum++;
+  document.getElementById('b-round-num').innerText = roundNum;
+  currentTurn = 'player';
+  document.getElementById('b-turn-badge').innerText = 'ХОД ИГРОКА';
+  document.getElementById('b-turn-badge').className = 'turn-badge player';
+
+  playerUnit.movePts = playerUnit.maxMovePts;
+  setCombatPhase('move');
+  updateBattleHUD();
+  showToast(`🟢 Раунд ${roundNum}: Приводы перезаряжены!`);
+  logCombat(`🟢 Раунд ${roundNum}: Ваши приводы перезаряжены. Очки хода: ${playerUnit.movePts}`);
+}
+
+function checkBattleEnd() {
+  const aliveEnemies = enemyUnits.filter(e => e.hp > 0);
+  if (aliveEnemies.length === 0) {
+    showToast(`🏆 ПОБЕДА! Все 5 вражеских ванзеров ликвидированы!`);
+    logCombat(`🏆 ПОБЕДА! Все вражеские ванзеры ликвидированы!`, 'kill');
+  }
+}
+
+function updateBattleHUD() {
+  if (!playerUnit) return;
+
+  document.getElementById('dock-hp-val').innerText = `${playerUnit.hp}`;
+  document.getElementById('dock-hp-bar').style.width = Math.max(0, (playerUnit.hp / playerUnit.maxHp) * 100) + '%';
+  document.getElementById('dock-move-pts').innerText = `(${playerUnit.movePts}/${playerUnit.maxMovePts} гекса)`;
+
+  const wep = playerUnit.weapons[selectedWeaponSlot];
+  document.getElementById('dock-wep-name').innerText = wep ? `${wep.name.split(' ')[0]} [${wep.ammo !== undefined ? wep.ammo : '∞'}]` : 'Выбрать';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('battle-toast');
+  t.innerText = msg;
+  t.style.opacity = '1';
+  clearTimeout(t.timer);
+  t.timer = setTimeout(() => { t.style.opacity = '0.4'; }, 3500);
+}
+
+function toggleLogModal() {
+  document.getElementById('log-modal').classList.toggle('open');
+}
+
+function logCombat(msg, type = '') {
+  const box = document.getElementById('combat-log-full');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.innerText = msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+// Запуск
+window.addEventListener('DOMContentLoaded', () => {
+  renderUI();
+  init3D();
+  update3DColors();
+});
+</script>
+
+</body>
+</html>
