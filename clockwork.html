@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laderman Chronograph — 23-Shaft Mechanical Matrix Computer</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel-bg: #121721;
+    --panel-border: #232b3b;
+    --brass: #d4af37;
+    --brass-glow: rgba(212, 175, 55, 0.35);
+    --brass-dark: #8c7322;
+    --steel: #7d8b99;
+    --steel-light: #b0c0d0;
+    --active-cyan: #38bdf8;
+    --cancel-amber: #f59e0b;
+    --cancel-glow: rgba(245, 158, 11, 0.4);
+    --success-green: #10b981;
+    --text-main: #e2e8f0;
+    --text-muted: #64748b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 14px 20px;
+  }
+  .title-group h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--brass);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .title-group p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: ui-monospace, monospace;
+    margin-top: 2px;
+  }
+  .header-badges {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .badge {
+    background: #1e2638;
+    border: 1px solid var(--panel-border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--steel-light);
+  }
+  .badge span { color: var(--brass); font-weight: bold; }
+
+  /* Showcase Selector Bar */
+  .showcase-bar {
+    background: #171d2b;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+  }
+  .showcase-label {
+    font-weight: bold;
+    color: var(--brass);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .showcase-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .showcase-btn {
+    background: #0f141f;
+    border: 1px solid var(--panel-border);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: ui-monospace, monospace;
+  }
+  .showcase-btn:hover {
+    border-color: var(--brass-dark);
+    background: #1a2233;
+  }
+  .showcase-btn.active {
+    background: #242416;
+    border-color: var(--brass);
+    color: var(--brass);
+    box-shadow: 0 0 10px var(--brass-glow);
+    font-weight: bold;
+  }
+
+  /* Main Workspace Grid */
+  .workspace {
+    display: grid;
+    grid-template-columns: 320px 1fr 340px;
+    gap: 16px;
+    flex: 1;
+  }
+
+  @media (max-width: 950px) {
+    body { padding: 10px; gap: 12px; }
+    header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; }
+    .header-badges { flex-wrap: wrap; width: 100%; }
+    .showcase-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .panel-drums-order { order: 3; }
+    .panel-output-order { order: 2; }
+    .panel-input-order { order: 1; }
+    .drums-container { max-height: 400px; }
+  }
+
+  /* Panels */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 10px 14px;
+    background: #171d2b;
+    border-bottom: 1px solid var(--panel-border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--steel-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  /* Matrix Dials */
+  .matrix-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .matrix-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+  }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: #0d121c;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+  }
+  .dial-btn {
+    aspect-ratio: 1;
+    background: #161c28;
+    border: 1px solid #2d3748;
+    border-radius: 6px;
+    color: var(--steel);
+    font-family: ui-monospace, monospace;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    user-select: none;
+    position: relative;
+  }
+  .dial-btn .sub {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-weight: normal;
+  }
+  .dial-btn:hover {
+    border-color: var(--brass-dark);
+  }
+  .dial-btn.active {
+    background: #242416;
+    border-color: var(--brass);
+    color: var(--brass);
+    box-shadow: inset 0 0 10px var(--brass-glow), 0 0 8px var(--brass-glow);
+  }
+
+  /* Preset and Action Controls */
+  .button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--panel-border);
+    background: #1a2233;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #243048; border-color: #3b4c6b; }
+  .btn-primary {
+    background: var(--brass);
+    color: #0b0e14;
+    border-color: var(--brass);
+    font-weight: bold;
+  }
+  .btn-primary:hover {
+    background: #e5c158;
+    box-shadow: 0 0 12px var(--brass-glow);
+  }
+  .btn-toggle.active {
+    background: var(--active-cyan);
+    color: #0b0e14;
+    border-color: var(--active-cyan);
+  }
+
+  /* Central Drums Layout */
+  .drums-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    overflow-y: auto;
+    max-height: calc(100vh - 240px);
+  }
+  .drum-card {
+    background: #0f141f;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+  }
+  .drum-card.fired {
+    border-color: var(--brass);
+    background: #1c1d12;
+    box-shadow: 0 0 10px var(--brass-glow);
+  }
+  .drum-title {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    color: var(--steel-light);
+    border-bottom: 1px solid #1a2333;
+    padding-bottom: 2px;
+  }
+  .drum-card.fired .drum-title { color: var(--brass); }
+  .drum-status {
+    font-size: 0.65rem;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-muted);
+  }
+  .drum-status .lifted { color: var(--active-cyan); font-weight: bold; }
+  .drum-cams {
+    font-size: 0.6rem;
+    color: #5a6e85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .drum-card.fired .drum-cams { color: var(--steel-light); }
+
+  /* Output Escapements */
+  .escapement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .escapement-item {
+    background: #0d121c;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+  }
+  .wheel-icon {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--steel);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--steel-light);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .escapement-item.active .wheel-icon {
+    border-color: var(--brass);
+    color: var(--brass);
+    box-shadow: 0 0 8px var(--brass-glow);
+    background: #242416;
+  }
+  .strikes-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .strike-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #1c2436;
+    color: var(--steel-light);
+    width: fit-content;
+  }
+  .strike-badge.canceled {
+    background: #2b1f0d;
+    color: var(--cancel-amber);
+    border: 1px solid var(--cancel-amber);
+    box-shadow: 0 0 6px var(--cancel-glow);
+  }
+
+  /* Result Output Dial */
+  .output-matrix-box {
+    background: #0d121c;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .out-cell {
+    aspect-ratio: 1.2;
+    background: #141a26;
+    border: 1px solid #232d3f;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--steel);
+  }
+  .out-cell.active {
+    background: #18261e;
+    border-color: var(--success-green);
+    color: var(--success-green);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+  }
+  .match-banner {
+    padding: 8px;
+    border-radius: 4px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid var(--success-green);
+    color: var(--success-green);
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-align: center;
+    font-family: ui-monospace, monospace;
+  }
+
+  /* Footer Telemetry */
+  footer {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-family: ui-monospace, monospace;
+    color: var(--steel-light);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <h1>⚙️ LADERMAN CHRONOGRAPH — 23-SHAFT MATRIX ENGINE</h1>
+    <p>Exact Discrete Horological Simulation over GF(2) | Kinematic Cams & Escapements</p>
+  </div>
+  <div class="header-badges">
+    <div class="badge">Cycles: <span id="stat-cycles">0</span></div>
+    <div class="badge">Active Drums: <span id="stat-active">0</span>/23</div>
+    <div class="badge">1+1=0 Cancellations: <span id="stat-canceled">0</span></div>
+  </div>
+</header>
+
+<!-- SHOWCASE SELECTOR -->
+<div class="showcase-bar">
+  <div class="showcase-label">🎯 Готовые сценарии:</div>
+  <div class="showcase-btns">
+    <button class="showcase-btn active" id="sc-btn-0" onclick="loadShowcase(0)">🔥 1. Шторм шестерёнок (17 компенсаций)</button>
+    <button class="showcase-btn" id="sc-btn-1" onclick="loadShowcase(1)">⚡ 2. Плотный тест GF(2)</button>
+    <button class="showcase-btn" id="sc-btn-2" onclick="loadShowcase(2)">🔄 3. Перестановочный поворот</button>
+    <button class="showcase-btn" id="sc-btn-3" onclick="loadShowcase(3)">💠 4. Симметричный кристалл</button>
+    <button class="showcase-btn" id="sc-btn-4" onclick="loadShowcase(4)">⏱ 5. Единичный базис (Identity)</button>
+  </div>
+</div>
+
+<div class="workspace">
+  <!-- LEFT: Input Dials A & B -->
+  <div class="panel panel-input-order">
+    <div class="panel-header">
+      <span>Input Dials (A & B)</span>
+      <span style="font-size: 0.7rem; color: var(--steel);">Click dial to tweak</span>
+    </div>
+    <div class="panel-body">
+      <div class="matrix-section">
+        <div class="matrix-label">
+          <span>MATRIX A (9 Dials)</span>
+          <span id="mask-a" style="font-family: monospace;">0x000</span>
+        </div>
+        <div class="matrix-grid" id="grid-a"></div>
+      </div>
+
+      <div class="matrix-section">
+        <div class="matrix-label">
+          <span>MATRIX B (9 Dials)</span>
+          <span id="mask-b" style="font-family: monospace;">0x000</span>
+        </div>
+        <div class="matrix-grid" id="grid-b"></div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn" onclick="setPreset('random')">🎲 Random Shake</button>
+        <button class="btn" onclick="setPreset('clear')">🧹 Clear All (0)</button>
+      </div>
+
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn btn-primary" onclick="stepCycle()">▶ RUN KINEMATIC CYCLE</button>
+        <button class="btn btn-toggle" id="btn-auto" onclick="toggleAuto()">⚡ AUTO-DRIVE ESCAPEMENT (OFF)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: 23 Cam Drums -->
+  <div class="panel panel-drums-order">
+    <div class="panel-header">
+      <span>23 Distribution Cam Drums (Распределительные валы)</span>
+      <span style="font-size: 0.7rem; color: var(--steel);">Clutch engages when Comb A & Comb B both lift</span>
+    </div>
+    <div class="drums-container" id="drums-grid"></div>
+  </div>
+
+  <!-- RIGHT: 9 Escapements & Output Dial C -->
+  <div class="panel panel-output-order">
+    <div class="panel-header">
+      <span>Output Escapements (Храповики C)</span>
+      <span style="font-size: 0.7rem; color: var(--steel);">2-Tooth Ratchet Wheels</span>
+    </div>
+    <div class="panel-body">
+      <div class="escapement-list" id="escapement-list"></div>
+
+      <div class="output-matrix-box">
+        <div class="matrix-label">
+          <span>RESULT MATRIX C = A × B (mod 2)</span>
+          <span id="mask-c" style="font-family: monospace;">0x000</span>
+        </div>
+        <div class="output-grid" id="grid-c"></div>
+        <div class="match-banner" id="match-status">100% PERFECT MECHANICAL MATCH</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>Mechanics: 23 Intermediate Cam Shafts | 9 Input Pins A | 9 Input Pins B | 9 Output Striking Cams</div>
+  <div>Horological Verification: Ground-truth GF(2) Matrix Multiplier active</div>
+</footer>
+
+<script>
+// 23 Laderman Cam Drums (exact discrete pins)
+const DRUMS = [
+  {"id": 1, "u": 320, "v": 400, "w": 219}, {"id": 2, "u": 24, "v": 248, "w": 73},
+  {"id": 3, "u": 128, "v": 32, "w": 361},  {"id": 4, "u": 64, "v": 406, "w": 256},
+  {"id": 5, "u": 324, "v": 402, "w": 475}, {"id": 6, "u": 384, "v": 16, "w": 128},
+  {"id": 7, "u": 32, "v": 256, "w": 32},   {"id": 8, "u": 344, "v": 208, "w": 89},
+  {"id": 9, "u": 6, "v": 16, "w": 2},      {"id": 10, "u": 332, "v": 210, "w": 25},
+  {"id": 11, "u": 260, "v": 146, "w": 448},{"id": 12, "u": 4, "v": 256, "w": 479},
+  {"id": 13, "u": 216, "v": 211, "w": 64}, {"id": 14, "u": 1, "v": 4, "w": 4},
+  {"id": 15, "u": 325, "v": 2, "w": 2},    {"id": 16, "u": 36, "v": 64, "w": 24},
+  {"id": 17, "u": 144, "v": 219, "w": 41}, {"id": 18, "u": 9, "v": 1, "w": 1},
+  {"id": 19, "u": 2, "v": 32, "w": 4},     {"id": 20, "u": 18, "v": 8, "w": 1},
+  {"id": 21, "u": 8, "v": 255, "w": 32},   {"id": 22, "u": 48, "v": 192, "w": 16},
+  {"id": 23, "u": 152, "v": 251, "w": 105}
+];
+
+// Curated Showcase Scenarios
+const SHOWCASES = [
+  {
+    name: "Шторм шестерёнок (17 компенсаций)",
+    a: [1, 0, 1,  1, 1, 0,  0, 1, 1], // 413
+    b: [1, 1, 1,  1, 1, 1,  1, 1, 1]  // 511
+  },
+  {
+    name: "Плотный тест GF(2)",
+    a: [1, 1, 0,  0, 1, 1,  1, 0, 1],
+    b: [1, 0, 1,  1, 1, 0,  0, 1, 1]
+  },
+  {
+    name: "Перестановочный поворот",
+    a: [0, 1, 0,  0, 0, 1,  1, 0, 0],
+    b: [0, 0, 1,  1, 0, 0,  0, 1, 0]
+  },
+  {
+    name: "Симметричный кристалл",
+    a: [1, 0, 1,  0, 1, 0,  1, 0, 1],
+    b: [0, 1, 0,  1, 1, 1,  0, 1, 0]
+  },
+  {
+    name: "Единичный базис (Identity)",
+    a: [1, 0, 0,  0, 1, 0,  0, 0, 1],
+    b: [1, 0, 0,  0, 1, 0,  0, 0, 1]
+  }
+];
+
+let stateA = [...SHOWCASES[0].a];
+let stateB = [...SHOWCASES[0].b];
+let totalCycles = 0;
+let totalCancellations = 0;
+let autoInterval = null;
+
+// Sound synthesis using Web Audio API
+let audioCtx = null;
+function playTick(freq = 600, duration = 0.02) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function popcount(x) {
+  let count = 0;
+  while (x > 0) { count += (x & 1); x >>= 1; }
+  return count;
+}
+
+function initUI() {
+  const gridA = document.getElementById('grid-a');
+  const gridB = document.getElementById('grid-b');
+  const gridC = document.getElementById('grid-c');
+  const escapementList = document.getElementById('escapement-list');
+  const drumsGrid = document.getElementById('drums-grid');
+
+  gridA.innerHTML = '';
+  gridB.innerHTML = '';
+  gridC.innerHTML = '';
+  escapementList.innerHTML = '';
+  drumsGrid.innerHTML = '';
+
+  for (let i = 0; i < 9; i++) {
+    const row = Math.floor(i / 3);
+    const col = i % 3;
+
+    // A dial
+    const btnA = document.createElement('div');
+    btnA.className = 'dial-btn' + (stateA[i] ? ' active' : '');
+    btnA.id = `btn-a-${i}`;
+    btnA.innerHTML = `<span>${stateA[i]}</span><span class="sub">a${row}${col}</span>`;
+    btnA.onclick = () => toggleDial('A', i);
+    gridA.appendChild(btnA);
+
+    // B dial
+    const btnB = document.createElement('div');
+    btnB.className = 'dial-btn' + (stateB[i] ? ' active' : '');
+    btnB.id = `btn-b-${i}`;
+    btnB.innerHTML = `<span>${stateB[i]}</span><span class="sub">b${row}${col}</span>`;
+    btnB.onclick = () => toggleDial('B', i);
+    gridB.appendChild(btnB);
+
+    // C out cell
+    const cellC = document.createElement('div');
+    cellC.className = 'out-cell';
+    cellC.id = `cell-c-${i}`;
+    cellC.innerHTML = `0`;
+    gridC.appendChild(cellC);
+
+    // Escapement list item
+    const escItem = document.createElement('div');
+    escItem.className = 'escapement-item';
+    escItem.id = `esc-item-${i}`;
+    escItem.innerHTML = `
+      <div class="wheel-icon" id="wheel-icon-${i}">0</div>
+      <div class="strikes-info">
+        <span style="font-weight: bold; color: var(--steel-light);">Escapement C${i} (c${row}${col})</span>
+        <span style="font-size: 0.65rem; color: var(--text-muted);" id="strikes-text-${i}">0 hammer blows</span>
+      </div>
+      <div class="strike-badge" id="badge-${i}">IDLE</div>
+    `;
+    escapementList.appendChild(escItem);
+  }
+
+  // 23 Drums
+  DRUMS.forEach((drum) => {
+    const card = document.createElement('div');
+    card.className = 'drum-card';
+    card.id = `drum-card-${drum.id}`;
+    
+    let camsList = [];
+    for (let c = 0; c < 9; c++) if ((drum.w >> c) & 1) camsList.push(`C${c}`);
+
+    card.innerHTML = `
+      <div class="drum-title">
+        <span>Drum #${drum.id.toString().padStart(2, '0')}</span>
+        <span id="clutch-${drum.id}" style="color: var(--text-muted); font-size: 0.6rem;">IDLE</span>
+      </div>
+      <div class="drum-status">
+        <span>Comb A: <span id="comb-a-${drum.id}">0</span></span>
+        <span>Comb B: <span id="comb-b-${drum.id}">0</span></span>
+      </div>
+      <div class="drum-cams">Strikes: ${camsList.join(' ')}</div>
+    `;
+    drumsGrid.appendChild(card);
+  });
+
+  stepCycle();
+}
+
+function loadShowcase(index) {
+  for (let i = 0; i < SHOWCASES.length; i++) {
+    const btn = document.getElementById(`sc-btn-${i}`);
+    if (btn) btn.className = 'showcase-btn' + (i === index ? ' active' : '');
+  }
+
+  stateA = [...SHOWCASES[index].a];
+  stateB = [...SHOWCASES[index].b];
+
+  for (let i = 0; i < 9; i++) {
+    const btnA = document.getElementById(`btn-a-${i}`);
+    const btnB = document.getElementById(`btn-b-${i}`);
+    btnA.className = 'dial-btn' + (stateA[i] ? ' active' : '');
+    btnA.querySelector('span').innerText = stateA[i];
+    btnB.className = 'dial-btn' + (stateB[i] ? ' active' : '');
+    btnB.querySelector('span').innerText = stateB[i];
+  }
+  playTick(900, 0.04);
+  stepCycle();
+}
+
+function toggleDial(matrix, idx) {
+  if (matrix === 'A') {
+    stateA[idx] ^= 1;
+    document.getElementById(`btn-a-${idx}`).className = 'dial-btn' + (stateA[idx] ? ' active' : '');
+    document.getElementById(`btn-a-${idx}`).querySelector('span').innerText = stateA[idx];
+  } else {
+    stateB[idx] ^= 1;
+    document.getElementById(`btn-b-${idx}`).className = 'dial-btn' + (stateB[idx] ? ' active' : '');
+    document.getElementById(`btn-b-${idx}`).querySelector('span').innerText = stateB[idx];
+  }
+  playTick(800, 0.03);
+  stepCycle();
+}
+
+function setPreset(type) {
+  if (type === 'random') {
+    stateA = Array.from({length: 9}, () => Math.random() > 0.5 ? 1 : 0);
+    stateB = Array.from({length: 9}, () => Math.random() > 0.5 ? 1 : 0);
+  } else if (type === 'clear') {
+    stateA = Array(9).fill(0);
+    stateB = Array(9).fill(0);
+  }
+
+  for (let i = 0; i < 9; i++) {
+    const btnA = document.getElementById(`btn-a-${i}`);
+    const btnB = document.getElementById(`btn-b-${i}`);
+    btnA.className = 'dial-btn' + (stateA[i] ? ' active' : '');
+    btnA.querySelector('span').innerText = stateA[i];
+    btnB.className = 'dial-btn' + (stateB[i] ? ' active' : '');
+    btnB.querySelector('span').innerText = stateB[i];
+  }
+  playTick(950, 0.04);
+  stepCycle();
+}
+
+function stepCycle() {
+  totalCycles++;
+
+  let maskA = 0, maskB = 0;
+  for (let i = 0; i < 9; i++) {
+    if (stateA[i]) maskA |= (1 << i);
+    if (stateB[i]) maskB |= (1 << i);
+  }
+
+  document.getElementById('mask-a').innerText = '0x' + maskA.toString(16).padStart(3, '0');
+  document.getElementById('mask-b').innerText = '0x' + maskB.toString(16).padStart(3, '0');
+
+  let activeDrumsCount = 0;
+  const strikes = Array(9).fill(0);
+
+  // Evaluate 23 Drums
+  DRUMS.forEach((drum) => {
+    const card = document.getElementById(`drum-card-${drum.id}`);
+    const combA = popcount(drum.u & maskA) % 2;
+    const combB = popcount(drum.v & maskB) % 2;
+    const fired = (combA === 1 && combB === 1);
+
+    const combASpan = document.getElementById(`comb-a-${drum.id}`);
+    const combBSpan = document.getElementById(`comb-b-${drum.id}`);
+    const clutchSpan = document.getElementById(`clutch-${drum.id}`);
+
+    combASpan.innerText = combA;
+    combASpan.className = combA ? 'lifted' : '';
+    combBSpan.innerText = combB;
+    combBSpan.className = combB ? 'lifted' : '';
+
+    if (fired) {
+      activeDrumsCount++;
+      card.className = 'drum-card fired';
+      clutchSpan.innerText = 'FIRED!';
+      clutchSpan.style.color = 'var(--brass)';
+
+      for (let c = 0; c < 9; c++) {
+        if ((drum.w >> c) & 1) strikes[c]++;
+      }
+    } else {
+      card.className = 'drum-card';
+      clutchSpan.innerText = 'IDLE';
+      clutchSpan.style.color = 'var(--text-muted)';
+    }
+  });
+
+  // Evaluate 9 Escapement Wheels
+  let maskC = 0;
+  let cycleCancellations = 0;
+
+  for (let c = 0; c < 9; c++) {
+    const s = strikes[c];
+    const toothState = s % 2;
+    if (toothState) maskC |= (1 << c);
+
+    const item = document.getElementById(`esc-item-${c}`);
+    const icon = document.getElementById(`wheel-icon-${c}`);
+    const txt = document.getElementById(`strikes-text-${c}`);
+    const badge = document.getElementById(`badge-${c}`);
+    const cell = document.getElementById(`cell-c-${c}`);
+
+    icon.innerText = toothState;
+    cell.innerText = toothState;
+
+    if (toothState) {
+      item.className = 'escapement-item active';
+      cell.className = 'out-cell active';
+    } else {
+      item.className = 'escapement-item';
+      cell.className = 'out-cell';
+    }
+
+    txt.innerText = `${s} hammer blow${s === 1 ? '' : 's'}`;
+
+    if (s > 1 && toothState === 0) {
+      cycleCancellations += Math.floor(s / 2);
+      badge.className = 'strike-badge canceled';
+      badge.innerText = `CANCELED (${s} strikes)`;
+    } else if (s > 0) {
+      badge.className = 'strike-badge';
+      badge.innerText = `ENGAGED (${s})`;
+    } else {
+      badge.className = 'strike-badge';
+      badge.innerText = 'REST';
+    }
+  }
+
+  totalCancellations += cycleCancellations;
+  document.getElementById('mask-c').innerText = '0x' + maskC.toString(16).padStart(3, '0');
+  document.getElementById('stat-cycles').innerText = totalCycles;
+  document.getElementById('stat-active').innerText = activeDrumsCount;
+  document.getElementById('stat-canceled').innerText = totalCancellations;
+
+  // Ground truth check
+  let expectedC = 0;
+  for (let i = 0; i < 3; i++) {
+    for (let k = 0; k < 3; k++) {
+      let sum = 0;
+      for (let j = 0; j < 3; j++) {
+        sum ^= (stateA[i * 3 + j] & stateB[j * 3 + k]);
+      }
+      if (sum) expectedC |= (1 << (i * 3 + k));
+    }
+  }
+
+  const matchStatus = document.getElementById('match-status');
+  if (maskC === expectedC) {
+    matchStatus.innerText = '100% PERFECT MECHANICAL MATCH';
+    matchStatus.style.borderColor = 'var(--success-green)';
+    matchStatus.style.color = 'var(--success-green)';
+  } else {
+    matchStatus.innerText = 'KINEMATIC MISMATCH!';
+    matchStatus.style.borderColor = '#ef4444';
+    matchStatus.style.color = '#ef4444';
+  }
+}
+
+function toggleAuto() {
+  const btn = document.getElementById('btn-auto');
+  if (autoInterval) {
+    clearInterval(autoInterval);
+    autoInterval = null;
+    btn.className = 'btn btn-toggle';
+    btn.innerText = '⚡ AUTO-DRIVE ESCAPEMENT (OFF)';
+  } else {
+    btn.className = 'btn btn-toggle active';
+    btn.innerText = '⚡ AUTO-DRIVE ESCAPEMENT (RUNNING...)';
+    let showcaseIdx = 0;
+    autoInterval = setInterval(() => {
+      showcaseIdx = (showcaseIdx + 1) % SHOWCASES.length;
+      loadShowcase(showcaseIdx);
+      playTick(500, 0.015);
+    }, 1200);
+  }
+}
+
+window.onload = initUI;
+</script>
+</body>
+</html>
