@@ -2,15 +2,15 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>PROJECT INCARNATION™ // Tactical Sci-Fi TRPG</title>
   <style>
     :root {
       --bg-dark: #07090e;
       --bg-panel: #0d121c;
       --bg-card: #131926;
-      --bg-card-hover: #1c2538;
-      --border: #202b3f;
+      --bg-card-hover: #1c263b;
+      --border: #1e293b;
       --border-accent: #00f0ff;
       --accent-cyan: #00f0ff;
       --accent-amber: #f59e0b;
@@ -18,138 +18,120 @@
       --accent-green: #10b981;
       --accent-purple: #a855f7;
       --text: #e2e8f0;
-      --text-muted: #64748b;
-      --font-mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --text-muted: #94a3b8;
+      --font-mono: 'Consolas', 'JetBrains Mono', monospace;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); font-family: var(--font-sans); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; height: 100dvh;
+      background: var(--bg-dark); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      user-select: text; -webkit-user-select: text;
+    }
 
-    #app { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+    button, .nav-btn, .choice-idx, .badge-btn {
+      user-select: none; -webkit-user-select: none;
+    }
 
-    /* Top Navigation */
+    #app {
+      width: 100%; height: 100%; height: 100dvh;
+      display: flex; flex-direction: column;
+      overflow: hidden; position: relative;
+    }
+
+    /* TOP BAR */
     header.top-bar {
-      height: 48px;
-      background: #0a0e17;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      flex-shrink: 0;
-      z-index: 100;
+      height: 48px; background: #0a0e17; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 12px; flex-shrink: 0; z-index: 100;
     }
-    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; letter-spacing: 1px; color: var(--accent-cyan); font-family: var(--font-mono); }
-    .brand .logo-tag { background: rgba(0,240,255,0.15); border: 1px solid var(--accent-cyan); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-    
+    .brand {
+      display: flex; align-items: center; gap: 6px; font-weight: 700;
+      font-size: 12px; color: var(--accent-cyan); font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .logo-badge {
+      background: rgba(0,240,255,0.15); border: 1px solid var(--accent-cyan);
+      padding: 1px 5px; border-radius: 4px; font-size: 10px;
+    }
+
     .nav-tabs { display: flex; gap: 4px; height: 100%; align-items: center; }
     .nav-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-      font-family: var(--font-mono);
+      background: transparent; border: 1px solid transparent; color: var(--text-muted);
+      padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 5px;
+      font-family: var(--font-mono); transition: all 0.15s ease; white-space: nowrap;
     }
     .nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-    .nav-btn.active { color: var(--accent-cyan); background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.3); }
+    .nav-btn.active { color: var(--accent-cyan); background: rgba(0,240,255,0.1); border-color: rgba(0,240,255,0.3); }
 
-    .header-status { display: flex; gap: 8px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
-    .status-badge { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
-    .status-badge.highlight { color: var(--accent-amber); border-color: rgba(245,158,11,0.3); }
+    .hdr-actions { display: flex; align-items: center; gap: 6px; }
+    .btn-stat-drawer {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #cbd5e1;
+      padding: 5px 9px; border-radius: 6px; font-size: 11px; font-family: var(--font-mono);
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
 
-    /* Views */
-    main.view-container { flex: 1; position: relative; overflow: hidden; }
-    .tab-view { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
+    /* MAIN CONTAINER */
+    main.view-container { flex: 1 1 0; min-height: 0; position: relative; overflow: hidden; display: flex; }
+    .tab-view { display: none; width: 100%; height: 100%; min-height: 0; position: absolute; top:0; left:0; }
     .tab-view.active { display: flex; }
 
     /* ========================================================
-       1. DIALOGUE VIEW (DISCO ELYSIUM STYLE)
+       1. DIALOGUE VIEW
        ======================================================== */
     .dialogue-layout {
-      width: 100%; height: 100%; display: grid;
-      grid-template-columns: 280px 1fr 320px;
-      background: #090d15;
+      width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;
+      background: #090d15; position: relative;
     }
-    @media (max-width: 900px) {
-      .dialogue-layout { grid-template-columns: 1fr; }
-      .dialogue-left, .dialogue-right { display: none !important; }
+    @media (min-width: 1024px) {
+      .dialogue-layout { display: grid; grid-template-columns: 280px 1fr 320px; }
     }
 
-    .dialogue-left, .dialogue-right {
-      background: var(--bg-panel);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow-y: auto;
+    .desk-sidebar {
+      background: var(--bg-panel); padding: 14px; display: flex; flex-direction: column;
+      gap: 12px; overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
-    .dialogue-left { border-right: 1px solid var(--border); }
-    .dialogue-right { border-left: 1px solid var(--border); }
+    .desk-sidebar-left { border-right: 1px solid var(--border); }
+    .desk-sidebar-right { border-left: 1px solid var(--border); }
 
-    .sidebar-title { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
-    
-    .stats-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    @media (max-width: 1023px) {
+      .desk-sidebar { display: none !important; }
     }
-    .stat-row {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; padding: 4px 6px; border-radius: 4px; background: rgba(0,0,0,0.25);
-    }
-    .stat-name { display: flex; align-items: center; gap: 6px; }
-    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .stat-val { font-family: var(--font-mono); font-weight: 700; color: #fff; }
 
-    .dot-logic { background: #06b6d4; }
-    .dot-mind { background: #a855f7; }
-    .dot-charm { background: #f59e0b; }
-    .dot-intellect { background: #3b82f6; }
-    .dot-rhetoric { background: #ec4899; }
-    .dot-strength { background: #ef4444; }
-    .dot-accuracy { background: #10b981; }
-
-    .dialogue-center {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: radial-gradient(circle at center 20%, #101726 0%, #080b12 85%);
-      position: relative;
+    .dialogue-main {
+      flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
+      background: radial-gradient(circle at center top, #101726 0%, #080b12 85%);
+      position: relative; overflow: hidden;
     }
+
+    .sub-nav-bar {
+      height: 38px; background: rgba(13,18,28,0.9); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 14px;
+      flex-shrink: 0; font-family: var(--font-mono); font-size: 11px;
+    }
+    .scene-pill-group { display: flex; gap: 6px; }
+    .scene-pill {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8;
+      padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    }
+    .scene-pill.active { background: rgba(0,240,255,0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
     .dialogue-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 30px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      scroll-behavior: smooth;
+      flex: 1 1 0; min-height: 0; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch; touch-action: pan-y;
+      padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;
     }
 
-    .msg-block { display: flex; flex-direction: column; gap: 4px; max-width: 820px; animation: msgFade 0.2s ease forwards; }
-    @keyframes msgFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
+    .msg-block { display: flex; flex-direction: column; gap: 4px; width: 100%; max-width: 780px; }
     .msg-narrative {
-      font-size: 14px; color: #94a3b8; font-style: italic; line-height: 1.5;
+      font-size: 13.5px; color: #94a3b8; font-style: italic; line-height: 1.5;
       padding-left: 10px; border-left: 2px solid #334155;
     }
     .msg-phrase {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid #1e293b;
-      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; border-radius: 8px;
       padding: 10px 14px;
     }
     .msg-speaker { font-size: 11px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 2px; }
@@ -157,18 +139,13 @@
     .speaker-sol { color: #f97316; }
     .speaker-player { color: #e2e8f0; }
     .speaker-oscar { color: #34d399; }
-    .speaker-clara { color: #f43f5e; }
 
     .msg-thought {
-      display: flex; flex-direction: column; gap: 3px;
-      padding: 8px 12px; border-radius: 6px;
-      background: rgba(0,0,0,0.45);
-      border-left: 3px solid #64748b;
-      margin-left: 14px;
-      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; gap: 3px; padding: 8px 12px; border-radius: 6px;
+      background: rgba(0,0,0,0.5); border-left: 3px solid #64748b; margin-left: 8px;
     }
     .thought-header { display: flex; justify-content: space-between; font-size: 10px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; }
-    .thought-body { font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.4; }
+    .thought-body { font-size: 12.5px; font-style: italic; color: #cbd5e1; line-height: 1.4; }
 
     .thought-logic { border-left-color: #06b6d4; }
     .thought-logic .thought-header { color: #06b6d4; }
@@ -185,936 +162,573 @@
     .thought-accuracy { border-left-color: #10b981; }
     .thought-accuracy .thought-header { color: #10b981; }
 
-    .msg-check-result {
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.35);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: #34d399;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .msg-check-result.fail {
-      background: rgba(239,68,68,0.12);
-      border-color: rgba(239,68,68,0.35);
-      color: #f87171;
-    }
-
     .dialogue-footer {
-      border-top: 1px solid var(--border);
-      background: var(--bg-panel);
-      padding: 14px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex-shrink: 0;
+      flex-shrink: 0; max-height: 42vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      border-top: 1px solid var(--border); background: var(--bg-panel); padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 8px;
     }
+    .choices-title { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: var(--text-muted); }
     .choices-box { display: flex; flex-direction: column; gap: 6px; }
     .choice-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: #f1f5f9;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; color: #f1f5f9; font-size: 13px; cursor: pointer;
+      display: flex; align-items: flex-start; gap: 8px; line-height: 1.35;
       transition: all 0.15s ease;
     }
-    .choice-item:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--accent-cyan);
-      transform: translateX(4px);
-    }
-    .choice-idx { color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700; }
-    .badge-check {
-      font-size: 10px; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono);
-      background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4);
-    }
-
-    .scene-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      color: #cbd5e1;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.15s ease;
-    }
-    .scene-btn:hover { border-color: var(--accent-cyan); background: var(--bg-card-hover); }
-    .scene-btn.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.1); color: var(--accent-cyan); }
+    .choice-item:hover, .choice-item:active { background: var(--bg-card-hover); border-color: var(--accent-cyan); }
+    .choice-idx { color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700; margin-top: 1px; }
 
     /* ========================================================
-       2. HANGAR / MECH CONFIGURATOR
+       2. HANGAR VIEW
        ======================================================== */
     .hangar-layout {
-      width: 100%; height: 100%; display: grid;
-      grid-template-columns: 320px 1fr 340px;
-      background: #080b12;
+      width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;
+      background: #080b12; overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
-    @media (max-width: 960px) {
-      .hangar-layout { grid-template-columns: 1fr; overflow-y: auto; }
+    @media (min-width: 1024px) {
+      .hangar-layout { display: grid; grid-template-columns: 320px 1fr 340px; overflow: hidden; }
+      .hangar-col { overflow-y: auto; height: 100%; min-height: 0; }
     }
-    .hangar-left, .hangar-right {
-      background: var(--bg-panel);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
+
+    .hangar-col { padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-panel); }
+    .hangar-center-col {
+      background: radial-gradient(circle at center, #111a2d 0%, #06080e 80%);
+      align-items: center; justify-content: center;
     }
-    .hangar-left { border-right: 1px solid var(--border); }
-    .hangar-right { border-left: 1px solid var(--border); }
 
     .slot-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      transition: all 0.15s ease;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
     }
-    .slot-item:hover { border-color: rgba(0,240,255,0.4); }
     .slot-item.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.08); }
-    .slot-meta { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--font-mono); }
-    .slot-name-label { color: var(--text-muted); font-weight: 600; }
-    .slot-vendor-label { color: var(--accent-amber); font-size: 10px; }
-    .slot-item-name { font-size: 12px; font-weight: 700; color: #fff; }
-
-    .hangar-center {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: radial-gradient(circle at center, #111a2d 0%, #06080e 80%);
-    }
-    .mech-svg {
-      width: 100%;
-      max-width: 420px;
-      height: 380px;
-      filter: drop-shadow(0 0 16px rgba(0,240,255,0.15));
-    }
-    .mech-stat-pills {
-      margin-top: 14px;
-      display: flex;
-      gap: 14px;
-      background: rgba(13,18,28,0.85);
-      border: 1px solid var(--border);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-family: var(--font-mono);
-    }
-    .stat-pill { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .stat-pill-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
-    .stat-pill-value { font-size: 13px; font-weight: 700; color: var(--accent-cyan); }
-
-    .corp-filter { display: flex; flex-wrap: wrap; gap: 4px; }
-    .corp-tag {
-      font-size: 10px; padding: 4px 8px; border-radius: 4px;
-      background: var(--bg-card); border: 1px solid var(--border);
-      cursor: pointer; font-family: var(--font-mono);
-    }
-    .corp-tag.active { background: rgba(0,240,255,0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); }
-
-    .catalog-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      transition: all 0.15s ease;
-    }
-    .catalog-item:hover { border-color: var(--accent-cyan); }
-    .catalog-item.installed { border-color: var(--accent-green); background: rgba(16,185,129,0.06); }
-    .cat-title { font-size: 12px; font-weight: 700; color: #fff; }
-    .cat-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
-    .cat-stats { font-size: 10px; font-family: var(--font-mono); color: var(--accent-amber); display: flex; gap: 8px; margin-top: 2px; }
 
     .btn-launch {
-      margin-top: auto;
-      background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);
-      color: #000;
-      font-weight: 700;
-      font-size: 13px;
-      padding: 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      transition: all 0.15s ease;
-      box-shadow: 0 4px 15px rgba(0,240,255,0.3);
+      background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%); color: #000;
+      font-weight: 700; font-size: 13px; padding: 12px; border-radius: 6px; border: none;
+      cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+      font-family: var(--font-mono); margin-top: 10px;
     }
-    .btn-launch:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
     /* ========================================================
-       3. TRPG BATTLE SYSTEM (ISOMETRIC, ELEVATION, BALLISTICS)
+       3. TRPG BATTLE VIEW (NO OVERLAPPING, RESPONSIVE)
        ======================================================== */
     .battle-layout {
-      width: 100%; height: 100%; display: grid;
-      grid-template-columns: 1fr 360px;
-      background: #05070c;
+      width: 100%; height: 100%; min-height: 0; display: flex; flex-direction: column;
+      background: #05070c; overflow: hidden;
     }
-    @media (max-width: 960px) {
-      .battle-layout { grid-template-columns: 1fr; }
-      .battle-sidebar { display: none; }
+    @media (min-width: 1024px) {
+      .battle-layout { display: grid; grid-template-columns: 1fr 380px; }
     }
 
-    .battle-stage {
-      position: relative;
-      width: 100%; height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .battle-main-col {
+      flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .battle-top-bar {
+      height: 42px; background: #0a0e17; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
+      font-family: var(--font-mono); font-size: 11px; flex-shrink: 0;
+    }
+
+    .battle-canvas-wrap {
+      flex: 1 1 0; min-height: 240px; position: relative; display: flex;
+      align-items: center; justify-content: center; background: radial-gradient(circle at center, #0e1422 0%, #05070c 85%);
       overflow: hidden;
     }
     canvas#isoCanvas {
-      background: radial-gradient(circle at center, #0f1523 0%, #05070c 80%);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 0 50px rgba(0,0,0,0.9);
-      cursor: crosshair;
+      width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none;
     }
 
-    .battle-hud {
-      position: absolute; top: 12px; left: 16px; right: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      pointer-events: none;
+    .battle-action-bar {
+      height: 48px; background: #0d121c; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
+      gap: 6px; flex-shrink: 0;
     }
-    .hud-chip {
-      background: rgba(10,14,23,0.85);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(6px);
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .b-act-btn {
+      flex: 1; height: 34px; background: var(--bg-card); border: 1px solid var(--border);
+      color: #fff; border-radius: 6px; font-size: 11px; font-family: var(--font-mono);
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .b-act-btn.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.15); color: var(--accent-cyan); font-weight: 700; }
+    .b-act-btn.end-turn { background: rgba(239,68,68,0.15); border-color: var(--accent-red); color: #fca5a5; }
+
+    .battle-bottom-drawer {
+      height: 240px; background: var(--bg-panel); border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 10px 14px; gap: 8px; flex-shrink: 0;
+    }
+    @media (min-width: 1024px) {
+      .battle-bottom-drawer { display: none; }
     }
 
-    .battle-controls {
-      position: absolute; bottom: 16px;
-      display: flex; gap: 8px;
-      background: rgba(10,14,23,0.9);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
-      backdrop-filter: blur(8px);
+    .battle-desk-sidebar {
+      background: var(--bg-panel); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 14px; gap: 10px;
+      overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; min-height: 0;
     }
-    .b-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: var(--font-mono);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-    }
-    .b-btn:hover { border-color: var(--accent-cyan); background: var(--bg-card-hover); }
-    .b-btn.active { background: rgba(0,240,255,0.18); border-color: var(--accent-cyan); color: var(--accent-cyan); }
-    .b-btn.turn-end { background: rgba(239,68,68,0.2); border-color: var(--accent-red); color: #fca5a5; }
-
-    .battle-sidebar {
-      background: var(--bg-panel);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 14px;
-      gap: 10px;
-      overflow-y: auto;
+    @media (max-width: 1023px) {
+      .battle-desk-sidebar { display: none; }
     }
 
-    .ballistics-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    /* Ballistics Breakdown Card */
+    .calc-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
     }
-    .ballistics-header {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 11px; font-family: var(--font-mono);
+    .calc-row {
+      display: flex; justify-content: space-between; font-family: var(--font-mono);
+      font-size: 11px; color: #cbd5e1;
     }
-    .ballistics-breakdown {
-      display: flex; flex-direction: column; gap: 4px;
-      font-family: var(--font-mono); font-size: 11px;
-      background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px;
-    }
-    .breakdown-row { display: flex; justify-content: space-between; }
-    .breakdown-row.total {
+    .calc-row.total {
       margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border);
-      font-weight: 700; font-size: 12px;
+      font-weight: 700; color: #fff; font-size: 12px;
     }
 
-    .part-picker { display: flex; flex-direction: column; gap: 4px; }
-    .part-choice {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 8px; border-radius: 4px; background: rgba(0,0,0,0.25);
-      border: 1px solid transparent; cursor: pointer; font-size: 11px;
+    .part-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+    .part-pill {
+      background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 8px; cursor: pointer; display: flex; justify-content: space-between;
+      align-items: center; font-size: 11px;
     }
-    .part-choice:hover { border-color: rgba(239,68,68,0.4); }
-    .part-choice.active { border-color: var(--accent-red); background: rgba(239,68,68,0.15); }
-    .part-title { font-weight: 700; }
-    .part-chance { font-family: var(--font-mono); color: var(--accent-amber); font-weight: 700; }
+    .part-pill.active { border-color: var(--accent-red); background: rgba(239,68,68,0.18); }
+    .part-pill-name { font-weight: 700; }
+    .part-pill-val { font-family: var(--font-mono); color: var(--accent-amber); font-weight: 700; }
+
+    .btn-fire-big {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff;
+      font-weight: 700; font-size: 12px; font-family: var(--font-mono); border: none;
+      padding: 8px 12px; border-radius: 6px; cursor: pointer; text-align: center; margin-top: 4px;
+    }
 
     .log-box {
-      flex: 1;
-      background: #080b11;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px;
-      overflow-y: auto;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      flex: 1 1 0; min-height: 80px; background: #080b11; border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      font-family: var(--font-mono); font-size: 11px; display: flex; flex-direction: column; gap: 4px;
     }
-    .log-entry { line-height: 1.4; color: #94a3b8; }
-    .log-entry.crit { color: #f59e0b; }
-    .log-entry.hit { color: #38bdf8; }
-    .log-entry.destroyed { color: #ef4444; font-weight: 700; }
-    .log-entry.pilot-voice { color: #c084fc; font-style: italic; }
+    .log-line { line-height: 1.35; color: #94a3b8; }
+    .log-line.hit { color: #38bdf8; }
+    .log-line.crit { color: #f59e0b; }
+    .log-line.dest { color: #ef4444; font-weight: 700; }
+    .log-line.voice { color: #c084fc; font-style: italic; }
 
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
-      z-index: 200; align-items: center; justify-content: center;
+    /* STATS MODAL / BOTTOM SHEET */
+    .drawer-modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center;
+      padding: 16px;
     }
-    .modal-overlay.active { display: flex; }
-    .dice-card {
-      background: var(--bg-card);
-      border: 1px solid var(--accent-amber);
-      border-radius: 10px;
-      padding: 24px;
-      width: 380px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(245,158,11,0.2);
-      text-align: center;
+    .drawer-modal.active { display: flex; }
+    .drawer-card {
+      background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px;
+      width: 100%; max-width: 440px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+      max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
-    .dice-title { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: var(--accent-amber); text-transform: uppercase; }
-    .dice-visual { font-size: 48px; letter-spacing: 12px; margin: 8px 0; }
-    .dice-formula { font-family: var(--font-mono); font-size: 13px; color: #cbd5e1; }
-    .dice-result { font-size: 16px; font-weight: 700; font-family: var(--font-mono); }
-    .dice-btn {
-      background: var(--accent-amber);
-      color: #000;
-      font-weight: 700;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: var(--font-mono);
-    }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13px; }
+    .drawer-close { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
   </style>
 </head>
 <body>
   <div id="app">
+    <!-- Top Bar -->
     <header class="top-bar">
       <div class="brand">
         <span>PROJECT INCARNATION™</span>
-        <span class="logo-tag">TRPG SYSTEM v1.2</span>
+        <span class="logo-badge">TRPG</span>
       </div>
       <nav class="nav-tabs">
-        <button class="nav-btn active" id="tabbtn-dialogue" onclick="switchNav('dialogue')">
-          <span>💬</span> Диалоги & Мысли
-        </button>
-        <button class="nav-btn" id="tabbtn-hangar" onclick="switchNav('hangar')">
-          <span>⚙️</span> Ангар Воплощения (10 слотов)
-        </button>
-        <button class="nav-btn" id="tabbtn-battle" onclick="switchNav('battle')">
-          <span>⚔️</span> Тактический Бой (Высоты & Баллистика)
-        </button>
+        <button class="nav-btn active" id="btn-tab-dlg" onclick="switchNav('dlg')">💬 Диалоги</button>
+        <button class="nav-btn" id="btn-tab-hng" onclick="switchNav('hng')">⚙️ Ангар</button>
+        <button class="nav-btn" id="btn-tab-btl" onclick="switchNav('btl')">⚔️ Бой</button>
       </nav>
-      <div class="header-status">
-        <div class="status-badge highlight" id="hdr-loc">Марс // Гора Олимп</div>
-        <div class="status-badge">Оператор: Иероним</div>
+      <div class="hdr-actions">
+        <button class="btn-stat-drawer" onclick="toggleStatsDrawer()">📊 Статы</button>
       </div>
     </header>
 
     <main class="view-container">
       <!-- 1. DIALOGUE VIEW -->
-      <section id="tab-dialogue" class="tab-view active">
+      <section id="view-dlg" class="tab-view active">
         <div class="dialogue-layout">
-          <aside class="dialogue-left">
-            <div class="sidebar-title">Характеристики пилота</div>
-            <div class="stats-card">
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-logic"></span>Логика (Logic)</span>
-                <span class="stat-val" id="stat-logic">2.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-mind"></span>Психика (Mind)</span>
-                <span class="stat-val" id="stat-mind">2.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-charm"></span>Обаяние (Charm)</span>
-                <span class="stat-val" id="stat-charm">2.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-intellect"></span>Интеллект (Intellect)</span>
-                <span class="stat-val" id="stat-intellect">3.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-rhetoric"></span>Риторика (Rhetoric)</span>
-                <span class="stat-val" id="stat-rhetoric">2.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-strength"></span>Сила (Strength)</span>
-                <span class="stat-val" id="stat-strength">1.0</span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-name"><span class="stat-dot dot-accuracy"></span>Точность (Accuracy)</span>
-                <span class="stat-val" id="stat-accuracy">1.0</span>
+          <!-- Desktop Sidebar Left -->
+          <aside class="desk-sidebar desk-sidebar-left">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;">Характеристики пилота</div>
+            <div id="deskStatsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; margin-top:8px;">Сюжетные эпизоды</div>
+            <button class="b-act-btn active" style="text-align:left; justify-content:flex-start; padding:0 8px;" id="desk-btn-prologue" onclick="loadDialogueScene('prologue')">Марс: Накамура</button>
+            <button class="b-act-btn" style="text-align:left; justify-content:flex-start; padding:0 8px;" id="desk-btn-primarch" onclick="loadDialogueScene('primarch')">Сириус: «Примарх»</button>
+          </aside>
+
+          <!-- Main Dialogue Box -->
+          <div class="dialogue-main">
+            <div class="sub-nav-bar">
+              <span id="subnav-loc">Марс // Станция Накамура</span>
+              <div class="scene-pill-group">
+                <span class="scene-pill active" id="pill-sc-prologue" onclick="loadDialogueScene('prologue')">Пролог</span>
+                <span class="scene-pill" id="pill-sc-primarch" onclick="loadDialogueScene('primarch')">Примарх</span>
               </div>
             </div>
 
-            <div class="sidebar-title">Сюжетные эпизоды</div>
-            <button class="scene-btn active" id="btn-scene-prologue" onclick="loadDialogueScene('prologue')">
-              Марс: Станция Накамура
-            </button>
-            <button class="scene-btn" id="btn-scene-primarch" onclick="loadDialogueScene('primarch')">
-              Сириус: Лайнер «Примарх»
-            </button>
-          </aside>
+            <div class="dialogue-scroll" id="dialogueScroll"></div>
 
-          <div class="dialogue-center">
-            <div class="dialogue-scroll" id="dialogueBox"></div>
             <div class="dialogue-footer">
-              <div class="sidebar-title">Варианты ответа Иеронима:</div>
+              <div class="choices-title">Варианты ответа Иеронима:</div>
               <div class="choices-box" id="choicesBox"></div>
             </div>
           </div>
 
-          <aside class="dialogue-right">
-            <div class="sidebar-title">Бортовой журнал</div>
-            <div class="stats-card">
-              <div style="font-size:11px; font-family:var(--font-mono); color:var(--accent-amber);" id="dlg-date">1 января 2034 года</div>
-              <div style="font-size:14px; font-weight:700; color:#fff;" id="dlg-place">Станция Накамура</div>
-              <div style="font-size:12px; color:var(--text-muted); line-height:1.4;" id="dlg-summary">
-                Первичный инструктаж перед упаковкой нейронной матрицы и отправкой сознания на дальние рубежи.
+          <!-- Desktop Sidebar Right -->
+          <aside class="desk-sidebar desk-sidebar-right">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;">Бортовой журнал</div>
+            <div class="calc-card">
+              <div style="font-size:11px; font-family:var(--font-mono); color:var(--accent-amber);" id="desk-dlg-date">1 января 2034</div>
+              <div style="font-size:13px; font-weight:700; color:#fff;" id="desk-dlg-place">Станция Накамура</div>
+              <div style="font-size:11.5px; color:var(--text-muted); line-height:1.4;" id="desk-dlg-summary">
+                Подготовка к отправке оцифрованного сознания сквозь пространство.
               </div>
             </div>
 
-            <div class="sidebar-title">Активные мысли (Кабинет)</div>
-            <div class="stats-card">
-              <div style="font-size:12px; font-weight:700; color:#06b6d4">● Расчётливость</div>
-              <div style="font-size:11px; color:#94a3b8">Подсвечивает вероятности попадания и баллистику в бою.</div>
-              <div style="font-size:12px; font-weight:700; color:#a855f7; margin-top:4px">● Антидепрессанты</div>
-              <div style="font-size:11px; color:#94a3b8">Защита от шока при получении урона аватаром.</div>
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; margin-top:8px;">Активные мысли (Кабинет)</div>
+            <div class="calc-card">
+              <div style="font-size:11.5px; font-weight:700; color:#06b6d4;">● Расчётливость (Логика)</div>
+              <div style="font-size:11px; color:#94a3b8;">Позволяет просчитывать декомпозицию шансов попадания по узлам.</div>
+              <div style="font-size:11.5px; font-weight:700; color:#a855f7; margin-top:4px;">● Внутренний покой (Психика)</div>
+              <div style="font-size:11px; color:#94a3b8;">Снижает эффект шока при повреждении корпуса Воплощения.</div>
             </div>
           </aside>
         </div>
       </section>
 
       <!-- 2. HANGAR VIEW -->
-      <section id="tab-hangar" class="tab-view">
+      <section id="view-hng" class="tab-view">
         <div class="hangar-layout">
-          <aside class="hangar-left">
-            <div class="sidebar-title">Слоты Воплощения (10)</div>
-            <div id="slotsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+          <aside class="hangar-col">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;">Слоты Воплощения (10)</div>
+            <div id="hangarSlotsList" style="display:flex; flex-direction:column; gap:6px;"></div>
           </aside>
 
-          <div class="hangar-center">
-            <svg class="mech-svg" viewBox="0 0 400 360">
-              <defs>
-                <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,240,255,0.06)" stroke-width="1"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#gridPattern)" />
-              
-              <polygon id="svg-wing-l" points="60,85 140,125 130,170 50,105" fill="rgba(0,240,255,0.12)" stroke="#00f0ff" stroke-width="1.5" />
-              <polygon id="svg-wing-r" points="340,85 260,125 270,170 350,105" fill="rgba(0,240,255,0.12)" stroke="#00f0ff" stroke-width="1.5" />
-
-              <rect id="svg-sh-l" x="120" y="95" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
-              <rect id="svg-sh-r" x="245" y="95" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
-
-              <rect id="svg-arm-l" x="105" y="140" width="30" height="85" rx="4" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="1.5" />
-              <rect id="svg-arm-r" x="265" y="140" width="30" height="85" rx="4" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.5" />
-
-              <polygon id="svg-body" points="160,80 240,80 225,180 175,180" fill="rgba(255,255,255,0.1)" stroke="#e2e8f0" stroke-width="2" />
-              <circle id="svg-core" cx="200" cy="130" r="22" fill="rgba(0,240,255,0.4)" stroke="#00f0ff" stroke-width="2.5" />
-
-              <polygon id="svg-leg-l" points="165,185 195,185 185,305 150,305" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
-              <polygon id="svg-leg-r" points="205,185 235,185 250,305 215,305" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
-
+          <div class="hangar-col hangar-center-col">
+            <svg style="width:100%; max-width:360px; height:280px; filter:drop-shadow(0 0 12px rgba(0,240,255,0.15));" viewBox="0 0 400 360">
+              <polygon points="60,85 140,125 130,170 50,105" fill="rgba(0,240,255,0.15)" stroke="#00f0ff" stroke-width="1.5" />
+              <polygon points="340,85 260,125 270,170 350,105" fill="rgba(0,240,255,0.15)" stroke="#00f0ff" stroke-width="1.5" />
+              <rect x="120" y="95" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
+              <rect x="245" y="95" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
+              <rect x="105" y="140" width="30" height="85" rx="4" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="1.5" />
+              <rect x="265" y="140" width="30" height="85" rx="4" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.5" />
+              <polygon points="160,80 240,80 225,180 175,180" fill="rgba(255,255,255,0.1)" stroke="#e2e8f0" stroke-width="2" />
+              <circle cx="200" cy="130" r="22" fill="rgba(0,240,255,0.4)" stroke="#00f0ff" stroke-width="2.5" />
+              <polygon points="165,185 195,185 185,305 150,305" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
+              <polygon points="205,185 235,185 250,305 215,305" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
               <text x="200" y="134" fill="#fff" font-size="10" font-family="monospace" text-anchor="middle">ЯДРО</text>
-              <text x="200" y="65" fill="#64748b" font-size="11" font-family="monospace" text-anchor="middle">INCARNATION MK-IV // LUMIER</text>
             </svg>
-
-            <div class="mech-stat-pills">
-              <div class="stat-pill">
-                <span class="stat-pill-label">Общая броня</span>
-                <span class="stat-pill-value" id="hangar-armor">1680 AP</span>
-              </div>
-              <div class="stat-pill">
-                <span class="stat-pill-label">Энергия ядра</span>
-                <span class="stat-pill-value" id="hangar-energy">450 MW</span>
-              </div>
-              <div class="stat-pill">
-                <span class="stat-pill-label">Тяга крыльев</span>
-                <span class="stat-pill-value" id="hangar-thrust">7.2 G</span>
-              </div>
-              <div class="stat-pill">
-                <span class="stat-pill-label">Оружие правой руки</span>
-                <span class="stat-pill-value" id="hangar-wpn-r">Лазер</span>
-              </div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:#cbd5e1; display:flex; gap:12px; background:rgba(0,0,0,0.4); padding:6px 14px; border-radius:6px; border:1px solid var(--border);">
+              <span>Броня: <strong style="color:var(--accent-cyan);">1680 AP</strong></span>
+              <span>Энергия: <strong style="color:var(--accent-amber);">450 MW</strong></span>
+              <span>Тяга: <strong style="color:#34d399;">7.2 G</strong></span>
             </div>
+            <button class="btn-launch" style="width:100%; max-width:360px;" onclick="launchHangarToBattle()">
+              🚀 Синхронизация и переход в бой (Сириус)
+            </button>
           </div>
 
-          <aside class="hangar-right">
-            <div class="sidebar-title">Производители (7 корпораций)</div>
-            <div class="corp-filter" id="corpFilter">
-              <span class="corp-tag active" onclick="setCorpFilter('ALL')">Все</span>
-              <span class="corp-tag" onclick="setCorpFilter('Lumier')">Lumier</span>
-              <span class="corp-tag" onclick="setCorpFilter('Hermann')">Hermann</span>
-              <span class="corp-tag" onclick="setCorpFilter('Gagarin')">Gagarin</span>
-              <span class="corp-tag" onclick="setCorpFilter('Haruki')">Haruki</span>
-              <span class="corp-tag" onclick="setCorpFilter('Zedong')">Zedong</span>
-              <span class="corp-tag" onclick="setCorpFilter('Vertex')">Vertex</span>
-              <span class="corp-tag" onclick="setCorpFilter('Sapkowski')">Sapkowski</span>
-            </div>
-
-            <div class="sidebar-title" id="catalogTitle">Арсенал для слота: Правая рука</div>
-            <div id="catalogList" style="display:flex; flex-direction:column; gap:6px;"></div>
-
-            <button class="btn-launch" onclick="launchToBattle()">
-              <span>🚀</span> Синхронизировать и начать бой (Сириус)
-            </button>
+          <aside class="hangar-col">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;" id="hngCatalogTitle">Арсенал слота</div>
+            <div id="hangarCatalogList" style="display:flex; flex-direction:column; gap:6px;"></div>
           </aside>
         </div>
       </section>
 
       <!-- 3. TRPG BATTLE VIEW -->
-      <section id="tab-battle" class="tab-view">
+      <section id="view-btl" class="tab-view">
         <div class="battle-layout">
-          <div class="battle-stage">
-            <div class="battle-hud">
-              <div class="hud-chip">
-                <span>СИРИУС // ЛАЙНЕР «ПРИМАРХ»</span>
-                <span style="color:var(--accent-amber)">РАУНД: <strong id="hud-round">1</strong></span>
-              </div>
-              <div class="hud-chip">
-                <span>ОЧКИ ДЕЙСТВИЙ (AP): </span>
-                <span id="hud-ap" style="color:var(--accent-cyan); font-weight:700">6 / 6</span>
-                <span style="margin-left:8px; color:#94a3b8">HP МЕХА: <strong id="hud-hp" style="color:#34d399">180 / 180</strong></span>
+          <!-- Main Combat Stage -->
+          <div class="battle-main-col">
+            <div class="battle-top-bar">
+              <div>СИРИУС // «ПРИМАРХ» | РАУНД <strong id="hudRound" style="color:var(--accent-amber)">1</strong></div>
+              <div>
+                <span>AP: <strong id="hudAP" style="color:var(--accent-cyan);">6 / 6</strong></span> | 
+                <span>HP: <strong id="hudHP" style="color:#34d399;">180</strong></span>
               </div>
             </div>
 
-            <canvas id="isoCanvas" width="720" height="520"></canvas>
+            <div class="battle-canvas-wrap" id="canvasWrap">
+              <canvas id="isoCanvas"></canvas>
+            </div>
 
-            <div class="battle-controls">
-              <button class="b-btn active" id="btn-action-move" onclick="setBattleMode('move')">
-                <span>👟</span> Движение (2 AP)
-              </button>
-              <button class="b-btn" id="btn-action-attack" onclick="setBattleMode('attack')">
-                <span>🎯</span> Прицельный выстрел (3 AP)
-              </button>
-              <button class="b-btn turn-end" onclick="endTurn()">
-                <span>⏳</span> Завершить ход
-              </button>
+            <div class="battle-action-bar">
+              <button class="b-act-btn active" id="btn-act-move" onclick="setCombatMode('move')">👟 Ход (2 AP)</button>
+              <button class="b-act-btn" id="btn-act-shoot" onclick="setCombatMode('shoot')">🎯 Прицел (3 AP)</button>
+              <button class="b-act-btn end-turn" onclick="combatEndTurn()">⏳ Сдать ход</button>
+            </div>
+
+            <!-- Mobile Bottom Drawer for Ballistics and Part Picking -->
+            <div class="battle-bottom-drawer" id="mobileBattleDrawer">
+              <div id="mobileBallisticsBox"></div>
+              <button class="btn-fire-big" onclick="combatFireTarget()">💥 ПРОИЗВЕСТИ ВЫСТРЕЛ (3 AP)</button>
+              <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; margin-top:4px;">Бортовой журнал боя</div>
+              <div class="log-box" id="mobileCombatLog"></div>
             </div>
           </div>
 
-          <aside class="battle-sidebar">
-            <div class="sidebar-title">Баллистика и расчет вероятности</div>
-            <div class="ballistics-card">
-              <div class="ballistics-header">
-                <span style="color:#fff; font-weight:700;" id="calc-weapon-name">Лазерная винтовка Lumier L-9</span>
-                <span style="color:var(--accent-cyan);" id="calc-traj-type">Прямая баллистика</span>
-              </div>
-
-              <div class="ballistics-breakdown">
-                <div class="breakdown-row">
-                  <span>Базовая точность оружия:</span>
-                  <span id="calc-base-acc">+85%</span>
-                </div>
-                <div class="breakdown-row">
-                  <span>Точность пилота (Accuracy):</span>
-                  <span id="calc-pilot-bonus" style="color:#34d399">+4%</span>
-                </div>
-                <div class="breakdown-row">
-                  <span>Фактор высоты (ΔZ = <span id="calc-dz">0</span>):</span>
-                  <span id="calc-height-mod">+0%</span>
-                </div>
-                <div class="breakdown-row">
-                  <span>Штраф дистанции (D = <span id="calc-dist">4</span>):</span>
-                  <span id="calc-dist-mod" style="color:#f87171">-0%</span>
-                </div>
-                <div class="breakdown-row">
-                  <span>Укрытие цели:</span>
-                  <span id="calc-cover-mod">0% (Открыто)</span>
-                </div>
-                <div class="breakdown-row total">
-                  <span>Итоговый шанс попадания:</span>
-                  <span id="calc-total-chance" style="color:var(--accent-amber); font-size:14px">89%</span>
-                </div>
-              </div>
-
-              <div class="sidebar-title" style="margin-top:4px">Узлы поражения цели (Body Parts)</div>
-              <div class="part-picker">
-                <div class="part-choice active" id="part-btn-core" onclick="selectTargetNode('core')">
-                  <div>
-                    <div class="part-title">Ядро (Core)</div>
-                    <div style="font-size:9px; color:#64748b">Урон ×2.0 (Крит) | Шанс ×0.50</div>
-                  </div>
-                  <div class="part-chance" id="chance-core">44%</div>
-                </div>
-
-                <div class="part-choice" id="part-btn-arms" onclick="selectTargetNode('arms')">
-                  <div>
-                    <div class="part-title">Оружейная турель (Arms)</div>
-                    <div style="font-size:9px; color:#64748b">Блокирует стрельбу | Шанс ×0.75</div>
-                  </div>
-                  <div class="part-chance" id="chance-arms">66%</div>
-                </div>
-
-                <div class="part-choice" id="part-btn-wings" onclick="selectTargetNode('wings')">
-                  <div>
-                    <div class="part-title">Маневровые крылья (Wings)</div>
-                    <div style="font-size:9px; color:#64748b">Лишает прыжков по высотам | Шанс ×0.85</div>
-                  </div>
-                  <div class="part-chance" id="chance-wings">75%</div>
-                </div>
-
-                <div class="part-choice" id="part-btn-body" onclick="selectTargetNode('body')">
-                  <div>
-                    <div class="part-title">Корпус (Body)</div>
-                    <div style="font-size:9px; color:#64748b">Надежное попадание | Шанс ×1.00</div>
-                  </div>
-                  <div class="part-chance" id="chance-body">89%</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="sidebar-title">Бортовой лог боя & Мысли пилота</div>
-            <div class="log-box" id="battleLog">
-              <div class="log-entry">--- Изометрический тактический интерфейс запущен ---</div>
-              <div class="log-entry">[Логика 2.0]: Оценил перепад высот палубы. Займи возвышенность на мостике (+15% к точности).</div>
-            </div>
+          <!-- Desktop Battle Sidebar -->
+          <aside class="battle-desk-sidebar">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase;">Баллистика и узлы поражения</div>
+            <div id="deskBallisticsBox"></div>
+            <button class="btn-fire-big" onclick="combatFireTarget()">💥 ПРОИЗВЕСТИ ВЫСТРЕЛ (3 AP)</button>
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; margin-top:8px;">Бортовой журнал боя</div>
+            <div class="log-box" id="deskCombatLog"></div>
           </aside>
         </div>
       </section>
     </main>
 
-    <!-- Modal for Active Dice Checks in Dialogue -->
-    <div class="modal-overlay" id="diceModal">
-      <div class="dice-card">
-        <div class="dice-title" id="diceTitle">Проверка навыка</div>
-        <div class="dice-visual" id="diceVisual">🎲 🎲</div>
-        <div class="dice-formula" id="diceFormula">2d6 (4 + 5) + Обаяние (2.0) = 11</div>
-        <div class="dice-result" id="diceResult">УСПЕХ! Порог: 8</div>
-        <button class="dice-btn" onclick="closeDiceModal()">Продолжить разговор</button>
+    <!-- Stats Drawer Modal -->
+    <div class="drawer-modal" id="statsDrawerModal">
+      <div class="drawer-card">
+        <div class="drawer-header">
+          <span>ХАРАКТЕРИСТИКИ ПИЛОТА (7 СТАТОВ)</span>
+          <button class="drawer-close" onclick="toggleStatsDrawer()">✕</button>
+        </div>
+        <div id="modalStatsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <button class="b-act-btn" style="height:36px; margin-top:8px;" onclick="toggleStatsDrawer()">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Active Skill Check Dice Modal -->
+    <div class="drawer-modal" id="diceModal">
+      <div class="drawer-card" style="text-align:center;">
+        <div style="font-size:13px; font-weight:700; color:var(--accent-amber); font-family:var(--font-mono);" id="diceTitle">ПРОВЕРКА НАВЫКА</div>
+        <div style="font-size:44px; margin:6px 0;" id="diceVisual">🎲 🎲</div>
+        <div style="font-size:13px; font-family:var(--font-mono); color:#cbd5e1;" id="diceFormula">2d6 (4 + 5) + Обаяние (2.0) = 11</div>
+        <div style="font-size:16px; font-weight:700; font-family:var(--font-mono); margin:4px 0;" id="diceResult">УСПЕХ!</div>
+        <button class="btn-launch" style="width:100%; margin-top:4px;" onclick="closeDiceModal()">Продолжить</button>
       </div>
     </div>
   </div>
 
   <script>
-    let audioCtx = null;
-    function initAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    function playSfx(type = 'click') {
-      try {
-        initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const t = audioCtx.currentTime;
+    const PILOT_STATS = {
+      logic: { name: 'Логика (Logic)', val: 2.0, color: '#06b6d4', desc: 'Анализ укрытий, высот и баллистики' },
+      mind: { name: 'Психика (Mind)', val: 2.0, color: '#a855f7', desc: 'Устойчивость к шоку и рассинхронизации' },
+      charm: { name: 'Обаяние (Charm)', val: 2.0, color: '#f59e0b', desc: 'Эмпатия, неформальные реплики' },
+      intellect: { name: 'Интеллект (Intellect)', val: 3.0, color: '#3b82f6', desc: 'Знание технологий и корпораций' },
+      rhetoric: { name: 'Риторика (Rhetoric)', val: 2.0, color: '#ec4899', desc: 'Убеждение и переговоры' },
+      strength: { name: 'Сила (Strength)', val: 1.0, color: '#ef4444', desc: 'Ближний бой, агрессивный напор' },
+      accuracy: { name: 'Точность (Accuracy)', val: 1.0, color: '#10b981', desc: 'Меткость прицеливания (+4% за очко)' }
+    };
 
-        if (type === 'click') {
-          osc.frequency.setValueAtTime(600, t);
-          gain.gain.setValueAtTime(0.04, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-          osc.start(t); osc.stop(t + 0.05);
-        } else if (type === 'laser') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(880, t);
-          osc.frequency.exponentialRampToValueAtTime(120, t + 0.25);
-          gain.gain.setValueAtTime(0.12, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-          osc.start(t); osc.stop(t + 0.25);
-        } else if (type === 'rocket') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(150, t);
-          osc.frequency.linearRampToValueAtTime(350, t + 0.2);
-          osc.frequency.exponentialRampToValueAtTime(60, t + 0.45);
-          gain.gain.setValueAtTime(0.15, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-          osc.start(t); osc.stop(t + 0.45);
-        } else if (type === 'hit') {
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(220, t);
-          osc.frequency.exponentialRampToValueAtTime(50, t + 0.2);
-          gain.gain.setValueAtTime(0.18, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-          osc.start(t); osc.stop(t + 0.2);
-        } else if (type === 'dice') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(500, t);
-          osc.frequency.setValueAtTime(750, t + 0.08);
-          osc.frequency.setValueAtTime(620, t + 0.16);
-          gain.gain.setValueAtTime(0.08, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-          osc.start(t); osc.stop(t + 0.25);
+    function renderStatsUI() {
+      const deskBox = document.getElementById('deskStatsContainer');
+      const modalBox = document.getElementById('modalStatsList');
+      if (deskBox) deskBox.innerHTML = '';
+      if (modalBox) modalBox.innerHTML = '';
+
+      for (const [key, s] of Object.entries(PILOT_STATS)) {
+        const rowHtml = `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:4px; font-size:11.5px;">
+            <span style="display:flex; align-items:center; gap:6px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:${s.color};"></span>
+              ${s.name}
+            </span>
+            <strong style="font-family:var(--font-mono); color:#fff;">${s.val.toFixed(1)}</strong>
+          </div>
+        `;
+        if (deskBox) deskBox.insertAdjacentHTML('beforeend', rowHtml);
+        if (modalBox) {
+          modalBox.insertAdjacentHTML('beforeend', `
+            <div style="background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:6px; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between;">
+                <span style="font-weight:700; color:${s.color}; font-size:12px;">${s.name}</span>
+                <span style="font-family:var(--font-mono); font-weight:700;">${s.val.toFixed(1)}</span>
+              </div>
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${s.desc}</div>
+            </div>
+          `);
         }
-      } catch (e) {}
+      }
     }
 
-    function switchNav(tabId) {
-      playSfx('click');
+    function toggleStatsDrawer() {
+      const modal = document.getElementById('statsDrawerModal');
+      modal.classList.toggle('active');
+    }
+
+    function switchNav(tabKey) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
 
-      const targetView = document.getElementById('tab-' + tabId);
-      const targetBtn = document.getElementById('tabbtn-' + tabId);
+      const targetView = document.getElementById('view-' + tabKey);
+      const targetBtn = document.getElementById('btn-tab-' + tabKey);
       if (targetView) targetView.classList.add('active');
       if (targetBtn) targetBtn.classList.add('active');
 
-      if (tabId === 'battle') {
-        initIsoBattle();
+      if (tabKey === 'btl') {
+        initCombatCanvas();
       }
     }
 
-    const PILOT_STATS = {
-      logic: 2.0,
-      mind: 2.0,
-      charm: 2.0,
-      intellect: 3.0,
-      rhetoric: 2.0,
-      strength: 1.0,
-      accuracy: 1.0
-    };
-
+    /* DIALOGUE DATA & ENGINE */
     const SCENES = {
       prologue: {
-        date: "1 января 2034 года",
-        place: "Марс, станция Накамура",
+        loc: "Марс // Станция Накамура",
+        date: "1 января 2034",
+        place: "Станция Накамура, Гора Олимп",
         summary: "Высадка на посадочной площадке провинции Фарсид, встреча с ученым Ларой Фликер.",
-        startNode: "prologue_entry"
+        startNode: "p_entry"
       },
       primarch: {
-        date: "3 января 2034 года",
-        place: "Сириус, лайнер «Примарх»",
-        summary: "Материализация на верхней палубе лайнера незадолго до катастрофы. Встреча с Капитаном Солом Купером.",
-        startNode: "primarch_entry"
+        loc: "Сириус // Лайнер «Примарх»",
+        date: "3 января 2034",
+        place: "Круизный лайнер «Примарх»",
+        summary: "Материализация на верхних палубах около Сириуса. Конфликт с Капитаном Солом Купером.",
+        startNode: "pr_entry"
       }
     };
 
-    const DIALOGUE_DB = {
-      prologue_entry: {
+    const DIALOGUES = {
+      p_entry: {
         entries: [
-          { type: 'narrative', text: 'Марс встречает вас своим естественным шумом. Ветер и бескрайняя пустыня. Долгий перелет позади.' },
-          { type: 'narrative', text: 'На посадочной площадке вы видите невысокую девушку в скафандре с надписью Lumier. Она подходит к вам первой.' },
-          { type: 'thought', skill: 'Обаяние', typeClass: 'thought-charm', text: '«А она довольно миловидная, хотя скафандр слегка скрадывает черты лица».' },
-          { type: 'thought', skill: 'Риторика', typeClass: 'thought-rhetoric', text: '«Пожалуй, стоит сделать ей комплимент. Девушки это любят».' },
-          { type: 'thought', skill: 'Логика', typeClass: 'thought-logic', text: '«Lumier? Французский аэрокосмический консорциум. Наверняка они главные спонсоры марсианского коллайдера».' },
-          { type: 'thought', skill: 'Психика', typeClass: 'thought-mind', text: '«Интересно, что меня здесь ждёт. Главное — сохранять хладнокровие».' },
-          { type: 'phrase', speaker: 'Лара Фликер', speakerClass: 'speaker-lara', text: 'Добро пожаловать на станцию Накамура, Иероним. Мы с нетерпением ждали вас. Я провожу вас внутрь и отвечу на любые вопросы.' }
+          { type: 'narrative', text: 'Марс встречает вас своим естественным шумом. Ветер и бескрайняя песчаная пустыня Фарсиды. Долгий перелет с Земли наконец позади.' },
+          { type: 'narrative', text: 'На посадочной площадке вас встречает невысокая девушка в скафандре с логотипом французского консорциума Lumier.' },
+          { type: 'thought', skill: 'Обаяние', class: 'thought-charm', text: '«А она довольно миловидная, хотя гермошлем слегка скрадывает черты лица».' },
+          { type: 'thought', skill: 'Логика', class: 'thought-logic', text: '«Lumier спонсируют этот проект уже четыре года. Их технологии упаковки нейронной матрицы — лучшие в секторе».' },
+          { type: 'phrase', speaker: 'Лара Фликер', class: 'speaker-lara', text: 'Добро пожаловать на станцию Накамура, Иероним. Мы очень долго ждали пилота с вашим уровнем синхронизации. Я готова ввести вас в курс дела.' }
         ],
         choices: [
-          { text: '1. Расскажите подробнее о станции Накамура.', next: 'prologue_nakamura' },
-          { text: '2. Чем именно вы здесь занимаетесь? Зачем понадобился проект «Воплощение»?', next: 'prologue_work' },
-          { text: '3. [Проверка: Обаяние] Вы в этом скафандре похожи на маленького дельфина, Лара.', check: { skill: 'charm', dc: 8, succ: 'prologue_dolphin_succ', fail: 'prologue_dolphin_fail' } },
-          { text: '4. Не будем тратить время на светские беседы. Ведите в ангар сборки Воплощения.', next: 'prologue_to_hangar' }
+          { text: '1. Расскажите подробнее о станции Накамура на вершине Олимпа.', next: 'p_nakamura' },
+          { text: '2. В чём конкретно состоит моя роль как пилота Воплощения?', next: 'p_role' },
+          { text: '3. [Проверка: Обаяние DC 8] Вы в этом скафандре очень похожи на маленького дельфина, Лара.', check: { skill: 'charm', dc: 8, succ: 'p_dolphin_succ', fail: 'p_dolphin_fail' } },
+          { text: '4. Не будем тратить время на разговоры. Проводите меня в ангар сборки меха.', action: 'open_hangar' }
         ]
       },
-      prologue_nakamura: {
+      p_nakamura: {
         entries: [
-          { type: 'phrase', speaker: 'Иероним', speakerClass: 'speaker-player', text: 'Расскажите о станции Накамура. Почему ее построили именно на вершине Олимпа?' },
-          { type: 'phrase', speaker: 'Лара Фликер', speakerClass: 'speaker-lara', text: 'Станцию развернули в 2033 году. Здесь живёт свыше двухсот ученых и инженеров. Гора Олимп — высочайшая точка Солнечной системы, 26 километров. Атмосфера разрежена настолько, что квантовая пушка коллайдера пробивает пространство без тепловых искажений.' },
-          { type: 'thought', skill: 'Интеллект', typeClass: 'thought-intellect', text: '«Здесь даже адронный коллайдер успели построить! Энергопотребление станции должно быть колоссальным».' },
-          { type: 'thought', skill: 'Логика', typeClass: 'thought-logic', text: '«Это объясняет присутствие семи крупнейших корпораций: от Lumier до Gagarin и Zedong».' }
+          { type: 'phrase', speaker: 'Иероним', class: 'speaker-player', text: 'Почему станцию развернули именно здесь, на вершине Олимпа?' },
+          { type: 'phrase', speaker: 'Лара Фликер', class: 'speaker-lara', text: 'Гора Олимп — 26 километров над поверхностью. Здесь практически открытый космос. Атмосфера не глушит квантовый луч коллайдера, пробивающий ткань пространства к другим звездным системам.' },
+          { type: 'thought', skill: 'Интеллект', class: 'thought-intellect', text: '«Адронный коллайдер на Марсе... Чтобы запитать такой импульс, нужны термоядерные реакторы Gagarin или сингулярные ядра Lumier».' }
         ],
         choices: [
-          { text: '1. А в чем конкретно заключается моя роль пилота?', next: 'prologue_work' },
-          { text: '2. Идем в инженерный отсек к Оскару и Николаю.', next: 'prologue_to_hangar' }
+          { text: '1. Расскажите о механике переноса сознания в Воплощение.', next: 'p_role' },
+          { text: '2. Идём в ангар. Пора лично проверить конфигурацию слотов.', action: 'open_hangar' }
         ]
       },
-      prologue_dolphin_succ: {
+      p_role: {
         entries: [
-          { type: 'phrase', speaker: 'Иероним', speakerClass: 'speaker-player', text: 'Вы в этом скафандре очень похожи на маленького дельфина, Лара.' },
-          { type: 'thought', skill: 'Психика', typeClass: 'thought-mind', text: '«Она замерла, но в динамике связи раздается сдавленный смешок».' },
-          { type: 'phrase', speaker: 'Лара Фликер', speakerClass: 'speaker-lara', text: '...На дельфина? За два года службы на Марсе среди скал и радиации меня ещё никто так не называл. Вы неисправимы, Иероним. Но спасибо, это немного разряжает обстановку перед запуском.' },
-          { type: 'thought', skill: 'Обаяние', typeClass: 'thought-charm', text: '«Идеальное попадание. Контакт налажен, её доверие к вам возросло».' }
+          { type: 'phrase', speaker: 'Лара Фликер', class: 'speaker-lara', text: 'Ваше биологическое тело погружается в криогенный сон здесь, на Марсе. Но ваше сознание оцифровывается и транслируется в титановый каркас боевого меха на расстоянии световых лет.' },
+          { type: 'thought', skill: 'Психика', class: 'thought-mind', text: '«Если погибнет Воплощение — матрица сознания рискует раствориться в квантовом шуме. Ставки максимальные».' }
         ],
         choices: [
-          { text: '1. Расскажите о технологии упаковки сознания.', next: 'prologue_work' },
-          { text: '2. Проводите меня в ангар. Пора готовить машину к высадке.', next: 'prologue_to_hangar' }
+          { text: '1. Понятно. Переходим к сборке Воплощения в ангаре.', action: 'open_hangar' }
         ]
       },
-      prologue_dolphin_fail: {
+      p_dolphin_succ: {
         entries: [
-          { type: 'phrase', speaker: 'Иероним', speakerClass: 'speaker-player', text: 'Вы в этом скафандре очень похожи на маленького дельфина, Лара.' },
-          { type: 'phrase', speaker: 'Лара Фликер', speakerClass: 'speaker-lara', text: 'Иероним, мы здесь занимаемся фундаментальной физикой перемещения сознания сквозь световые годы, а не шутим над формой систем жизнеобеспечения. Давайте будем профессионалами.' },
-          { type: 'thought', skill: 'Риторика', typeClass: 'thought-rhetoric', text: '«Шутка не зашла. Атмосфера стала прохладнее жидкого азота».' }
+          { type: 'phrase', speaker: 'Иероним', class: 'speaker-player', text: 'Вы в этом скафандре очень похожи на маленького дельфина, Лара.' },
+          { type: 'phrase', speaker: 'Лара Фликер', class: 'speaker-lara', text: '...На дельфина? За два года службы среди марсианской пыли меня ещё никто так не называл. Спасибо, Иероним. Это снимает напряжение перед прыжком.' },
+          { type: 'thought', skill: 'Обаяние', class: 'thought-charm', text: '«Идеальное попадание. Контакт налажен, её доверие к вам возросло».' }
         ],
         choices: [
-          { text: '1. Извините. Давайте к делу — в чём суть проекта?', next: 'prologue_work' },
-          { text: '2. Идём в ангар.', next: 'prologue_to_hangar' }
+          { text: '1. Проводите меня в ангар. Пора готовить машину к высадке.', action: 'open_hangar' }
         ]
       },
-      prologue_work: {
+      p_dolphin_fail: {
         entries: [
-          { type: 'phrase', speaker: 'Лара Фликер', speakerClass: 'speaker-lara', text: 'Вначале мы обслуживали роверы и искали органику. Но после открытия резонанса пространства мы поняли: человеческое тело хрупко. Зато оцифрованное сознание можно транслировать мгновенно и материализовать в Воплощениях — тяжелых боевых мехах.' },
-          { type: 'thought', skill: 'Интеллект', typeClass: 'thought-intellect', text: '«Пока моё тело спит в криокапсуле на Марсе, боевой аватар будет ходить по поверхности чужих звезд».' }
+          { type: 'phrase', speaker: 'Иероним', class: 'speaker-player', text: 'Вы в этом скафандре очень похожи на маленького дельфина, Лара.' },
+          { type: 'phrase', speaker: 'Лара Фликер', class: 'speaker-lara', text: 'Иероним, мы здесь занимаемся фундаментальной физикой перемещения сознания, а не шутим над формой систем жизнеобеспечения. Будем профессионалами.' }
         ],
         choices: [
-          { text: '1. Идем в ангар. Мне нужно лично настроить компоненты Воплощения.', next: 'prologue_to_hangar' }
+          { text: '1. Прошу прощения. Перейдём в ангар Воплощения.', action: 'open_hangar' }
         ]
       },
-      prologue_to_hangar: {
+      pr_entry: {
         entries: [
-          { type: 'narrative', text: 'Вы входите в гигантский сборочный док станции. В лучах сервисных прожекторов возвышается ваше Воплощение — десятиметровый титан из композитных сплавов.' },
-          { type: 'phrase', speaker: 'Николай (Инженер)', speakerClass: 'speaker-oscar', text: 'Иероним! Николай на связи. Помни: перед высадкой ты лично комплектуешь все 10 слотов меха. Что поставишь — тем и будешь воевать.' }
+          { type: 'narrative', text: 'Ослепительная квантовая вспышка. Из-за гравитационного сбоя вы материализуетесь не на исследовательской базе Венеры, а на верхней прогулочной палубе гигантского лайнера «Примарх» у Сириуса!' },
+          { type: 'narrative', text: 'Связь с Марсом прервана. Впереди разворачиваются автоматические боевые дроны службы безопасности.' },
+          { type: 'thought', skill: 'Психика', class: 'thought-mind', text: '«Стабилизируй пульс матрицы. Мы на борту гражданского круизного лайнера».' },
+          { type: 'phrase', speaker: 'Капитан Сол Купер', class: 'speaker-sol', text: 'Кто вы такой?! И какого черта многотонный вооруженный боевой робот материализовался посреди моего лайнера?!' }
         ],
         choices: [
-          { text: '► ПЕРЕЙТИ В АНГАР ВОПЛОЩЕНИЯ (НАСТРОЙКА СЛОТОВ)', action: 'open_hangar' }
+          { text: '1. Меня зовут Иероним. Я прибыл по ошибке квантового проектора.', next: 'pr_explain' },
+          { text: '2. [Проверка: Риторика DC 8] Успокойтесь, капитан. Ваши охранные дроны сошли с ума — дайте мне расчистить мостик!', check: { skill: 'rhetoric', dc: 8, succ: 'pr_diplomacy_succ', fail: 'pr_diplomacy_fail' } },
+          { text: '3. Оружие на изготовку! Если ваши дроны приблизятся — открою огонь на поражение.', action: 'open_battle' }
         ]
       },
-      primarch_entry: {
+      pr_explain: {
         entries: [
-          { type: 'narrative', text: 'Вспышка квантовой дезинтеграции. Вследствие ошибки навигации вы оказываетесь не на Венере, а на верхних палубах колоссального круизного лайнера «Примарх» около Сириуса.' },
-          { type: 'narrative', text: 'Связь с марсианской станцией обрывается. Вокруг бегают встревоженные пассажиры и офицеры охраны.' },
-          { type: 'thought', skill: 'Психика', typeClass: 'thought-mind', text: '«Главное — держи себя в руках. Перегрузка сознания колоссальная, но аватар функционирует штатно».' },
-          { type: 'thought', skill: 'Логика', typeClass: 'thought-logic', text: '«Очевидно, что мы не на Венере. Этот корабль — гражданский лайнер системы Сириус».' },
-          { type: 'phrase', speaker: 'Капитан Сол Купер', speakerClass: 'speaker-sol', text: 'Кто вы черт побери такой?! И что многотонный вооруженный меха делает на закрытой палубе моего лайнера?!' }
-        ],
-        choices: [
-          { text: '1. Меня зовут Иероним. Я прибыл по ошибке квантового проектора.', next: 'primarch_explain' },
-          { text: '2. Сначала представьтесь сами, капитан.', next: 'primarch_rude' },
-          { text: '3. [Проверка: Риторика] Успокойтесь. Ваш корабль на курсе столкновения с астероидом, и только моё Воплощение может вас спасти.', check: { skill: 'rhetoric', dc: 8, succ: 'primarch_diplomacy_succ', fail: 'primarch_diplomacy_fail' } },
-          { text: '4. [Сила] Оружие на изготовку! Если ваши дроны сделают шаг — открою огонь на поражение.', next: 'primarch_combat_start' }
-        ]
-      },
-      primarch_explain: {
-        entries: [
-          { type: 'phrase', speaker: 'Капитан Сол Купер', speakerClass: 'speaker-sol', text: 'Квантовый проектор? Вы принимаете меня за идиота?! Охранные системы лайнера взломаны, навигация сбоит, и тут прямо из воздуха материализуется боевой робот с лазерной турелью!' },
-          { type: 'thought', skill: 'Логика', typeClass: 'thought-logic', text: '«Навигационный сбой Примарха и аномалия нашего прыжка взаимосвязаны. Корабль притянуло гравитационной волной».' },
-          { type: 'thought', skill: 'Точность', typeClass: 'thought-accuracy', text: '«Дроны-центурионы на мостике берут нас в перекрестье прицелов. Перепад высот играет против нас».' }
-        ],
-        choices: [
-          { text: '1. Дайте мне доступ к сенсорам — я уничтожу свихнувшиеся дроны охраны.', next: 'primarch_combat_start' },
-          { text: '2. Не делайте глупостей, капитан. Прикажите им опустить пушки.', next: 'primarch_diplomacy_fail' }
-        ]
-      },
-      primarch_rude: {
-        entries: [
-          { type: 'phrase', speaker: 'Иероним', speakerClass: 'speaker-player', text: 'Сначала представься сам, пока я не проверил прочность твоей командной рубки.' },
-          { type: 'thought', skill: 'Сила', typeClass: 'thought-strength', text: '«Так его! Пусть знает, что перед ним не легкий погрузчик, а боевая машина Gagarin/Lumier!»' },
-          { type: 'phrase', speaker: 'Капитан Сол Купер', speakerClass: 'speaker-sol', text: 'Я Сол Купер, капитан «Примарха»! А вы — диверсант. Охрана, активировать Центурионов! Огонь по сочленениям крыльев и ядру!' }
+          { type: 'phrase', speaker: 'Капитан Сол Купер', class: 'speaker-sol', text: 'Квантовый проектор?! Охранные системы лайнера взломаны, навигация не отвечает, а тут прямо из воздуха материализуется боевой мех! Дроны охраны «Центурион», уничтожить шпиона!' },
+          { type: 'thought', skill: 'Логика', class: 'thought-logic', text: '«Дроны заняли платформы на высоте Z=2. Стрельба снизу вверх даст штраф -15%. Используй навесные ракеты или поднимись на помост!»' }
         ],
         choices: [
           { text: '► ПРИНЯТЬ ТАКТИЧЕСКИЙ БОЙ (TRPG РЕЖИМ)', action: 'open_battle' }
         ]
       },
-      primarch_diplomacy_succ: {
+      pr_diplomacy_succ: {
         entries: [
-          { type: 'phrase', speaker: 'Иероним', speakerClass: 'speaker-player', text: 'Капитан Купер, послушайте. Через 12 минут лайнер столкнется с осколком астероида. Автопилот заблокирован вирусом, а ваши дроны расстреливают собственный экипаж. Мне не нужна кровь пассажиров — позвольте мне расчистить мостик!' },
-          { type: 'thought', skill: 'Психика', typeClass: 'thought-mind', text: '«Капитан колебался долю секунды, но треск тревожной сирены убедил его быстрее слов».' },
-          { type: 'phrase', speaker: 'Капитан Сол Купер', speakerClass: 'speaker-sol', text: 'Проклятье... Ладно! Я перевожу управление орудиями верхней палубы на твой тактический интерфейс. Уничтожь боевых дронов, пока они не пробили защитный купол!' }
+          { type: 'phrase', speaker: 'Капитан Сол Купер', class: 'speaker-sol', text: 'Проклятье... Ладно! Я вижу по телеметрии, что автопилот взломан. Ликвидируй спятивших центурионов, пока они не пробили защитный купол палубы!' }
         ],
         choices: [
-          { text: '► ЗАНЯТЬ БОЕВУЮ ПОЗИЦИЮ (ПЕРЕХОД В ТАКТИЧЕСКИЙ БОЙ)', action: 'open_battle' }
+          { text: '► ЗАНЯТЬ БОЕВУЮ ПОЗИЦИЮ (ПЕРЕХОД В БОЙ)', action: 'open_battle' }
         ]
       },
-      primarch_diplomacy_fail: {
+      pr_diplomacy_fail: {
         entries: [
-          { type: 'phrase', speaker: 'Капитан Сол Купер', speakerClass: 'speaker-sol', text: 'Хватит зубы заговаривать! Вы военный шпион синдиката Оркестры! Дроны, ликвидировать цель!' }
+          { type: 'phrase', speaker: 'Капитан Сол Купер', class: 'speaker-sol', text: 'Хватит зубы заговаривать! Вы диверсант синдиката! Огонь по сочленениям крыльев и ядру меха!' }
         ],
         choices: [
           { text: '► К БОЮ! ЗАЩИТИТЬ КОРПУС ВОПЛОЩЕНИЯ', action: 'open_battle' }
         ]
-      },
-      primarch_combat_start: {
-        entries: [
-          { type: 'narrative', text: 'Шлюзовые переборки лайнера блокируются. На мостике и сервисных мостках разворачиваются автоматические охранные дроны «Центурион» корпорации Hermann.' },
-          { type: 'thought', skill: 'Логика', typeClass: 'thought-logic', text: '«Они заняли верхние платформы (высота Z=2). Стрельба снизу вверх даст штраф -15%. Нужно подняться на мостик или стрелять баллистическими ракетами».' }
-        ],
-        choices: [
-          { text: '► ПЕРЕЙТИ В ИЗОМЕТРИЧЕСКИЙ БОЙ (TRPG)', action: 'open_battle' }
-        ]
       }
     };
 
-    let currentSceneKey = 'prologue';
+    let activeScene = 'prologue';
     let pendingCheck = null;
 
-    function loadDialogueScene(sceneKey) {
-      playSfx('click');
-      currentSceneKey = sceneKey;
-      document.getElementById('btn-scene-prologue').classList.toggle('active', sceneKey === 'prologue');
-      document.getElementById('btn-scene-primarch').classList.toggle('active', sceneKey === 'primarch');
+    function loadDialogueScene(scKey) {
+      activeScene = scKey;
+      const sc = SCENES[scKey];
+      document.getElementById('subnav-loc').innerText = sc.loc;
+      document.getElementById('pill-sc-prologue').classList.toggle('active', scKey === 'prologue');
+      document.getElementById('pill-sc-primarch').classList.toggle('active', scKey === 'primarch');
 
-      const sc = SCENES[sceneKey];
-      document.getElementById('dlg-date').innerText = sc.date;
-      document.getElementById('dlg-place').innerText = sc.place;
-      document.getElementById('dlg-summary').innerText = sc.summary;
-      document.getElementById('hdr-loc').innerText = sc.place;
+      const dBtnP = document.getElementById('desk-btn-prologue');
+      const dBtnPr = document.getElementById('desk-btn-primarch');
+      if (dBtnP) dBtnP.classList.toggle('active', scKey === 'prologue');
+      if (dBtnPr) dBtnPr.classList.toggle('active', scKey === 'primarch');
 
-      document.getElementById('dialogueBox').innerHTML = '';
+      document.getElementById('desk-dlg-date').innerText = sc.date;
+      document.getElementById('desk-dlg-place').innerText = sc.place;
+      document.getElementById('desk-dlg-summary').innerText = sc.summary;
+
+      const scrollBox = document.getElementById('dialogueScroll');
+      scrollBox.innerHTML = '';
       renderDialogueNode(sc.startNode);
     }
 
     function renderDialogueNode(nodeKey) {
-      const node = DIALOGUE_DB[nodeKey];
+      const node = DIALOGUES[nodeKey];
       if (!node) return;
+      const box = document.getElementById('dialogueScroll');
 
-      const box = document.getElementById('dialogueBox');
-
-      node.entries.forEach(item => {
+      node.entries.forEach(e => {
         const div = document.createElement('div');
         div.className = 'msg-block';
 
-        if (item.type === 'narrative') {
-          div.innerHTML = `<div class="msg-narrative">${item.text}</div>`;
-        } else if (item.type === 'phrase') {
+        if (e.type === 'narrative') {
+          div.innerHTML = `<div class="msg-narrative">${e.text}</div>`;
+        } else if (e.type === 'phrase') {
           div.innerHTML = `
             <div class="msg-phrase">
-              <div class="msg-speaker ${item.speakerClass}">${item.speaker}</div>
-              <div style="font-size:14px; line-height:1.45;">${item.text}</div>
+              <div class="msg-speaker ${e.class}">${e.speaker}</div>
+              <div style="font-size:13.5px; line-height:1.45;">${e.text}</div>
             </div>`;
-        } else if (item.type === 'thought') {
+        } else if (e.type === 'thought') {
           div.innerHTML = `
-            <div class="msg-thought ${item.typeClass}">
+            <div class="msg-thought ${e.class}">
               <div class="thought-header">
-                <span>ВНУТРЕННИЙ ГОЛОС // ${item.skill}</span>
+                <span>ВНУТРЕННИЙ ГОЛОС // ${e.skill}</span>
                 <span>ПОРОГ: OK</span>
               </div>
-              <div class="thought-body">${item.text}</div>
+              <div class="thought-body">${e.text}</div>
             </div>`;
         }
         box.appendChild(div);
@@ -1125,60 +739,57 @@
     }
 
     function renderChoices(choices) {
-      const container = document.getElementById('choicesBox');
-      container.innerHTML = '';
+      const box = document.getElementById('choicesBox');
+      box.innerHTML = '';
 
-      choices.forEach((ch, idx) => {
+      choices.forEach(ch => {
         const btn = document.createElement('div');
         btn.className = 'choice-item';
-        btn.onclick = () => onChoiceClick(ch);
+        btn.onclick = () => onChoiceSelected(ch);
 
         let badge = '';
         if (ch.check) {
-          const skillName = ch.check.skill === 'charm' ? 'Обаяние' : (ch.check.skill === 'rhetoric' ? 'Риторика' : 'Логика');
-          badge = `<span class="badge-check">Бросок: ${skillName} (Сложность ${ch.check.dc})</span>`;
+          const sName = PILOT_STATS[ch.check.skill]?.name.split(' ')[0] || ch.check.skill;
+          badge = `<span style="font-size:10px; background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.4); color:#fbbf24; padding:1px 5px; border-radius:3px; font-family:var(--font-mono); margin-right:4px;">[${sName} DC ${ch.check.dc}]</span>`;
         }
 
         btn.innerHTML = `
           <span class="choice-idx">►</span>
-          <div style="flex:1;">${badge ? badge + ' ' : ''}${ch.text}</div>
+          <div style="flex:1;">${badge}${ch.text}</div>
         `;
-        container.appendChild(btn);
+        box.appendChild(btn);
       });
     }
 
-    function onChoiceClick(ch) {
-      playSfx('click');
-
+    function onChoiceSelected(ch) {
       if (ch.action === 'open_hangar') {
-        switchNav('hangar');
+        switchNav('hng');
         return;
       }
       if (ch.action === 'open_battle') {
-        launchToBattle();
+        launchHangarToBattle();
         return;
       }
 
       if (ch.check) {
-        playSfx('dice');
         const d1 = Math.floor(Math.random() * 6) + 1;
         const d2 = Math.floor(Math.random() * 6) + 1;
-        const statVal = PILOT_STATS[ch.check.skill] || 0;
-        const total = d1 + d2 + Math.floor(statVal);
+        const sVal = PILOT_STATS[ch.check.skill]?.val || 1.0;
+        const total = d1 + d2 + Math.floor(sVal);
         const success = total >= ch.check.dc;
 
-        document.getElementById('diceTitle').innerText = `Проверка: ${ch.check.skill.toUpperCase()}`;
+        document.getElementById('diceTitle').innerText = `ПРОВЕРКА: ${ch.check.skill.toUpperCase()}`;
         document.getElementById('diceVisual').innerText = `🎲 ${d1} + 🎲 ${d2}`;
-        document.getElementById('diceFormula').innerText = `Кубики (${d1} + ${d2}) + Навык (${statVal.toFixed(1)}) = ${total}`;
-        
+        document.getElementById('diceFormula').innerText = `Бросок (${d1} + ${d2}) + Навык (${sVal.toFixed(1)}) = ${total}`;
+
         const resEl = document.getElementById('diceResult');
         resEl.innerText = success ? `УСПЕХ! (Сложность: ${ch.check.dc})` : `ПРОВАЛ! (Сложность: ${ch.check.dc})`;
         resEl.style.color = success ? '#34d399' : '#f87171';
 
         pendingCheck = {
-          nextNode: success ? ch.check.succ : ch.check.fail,
-          msgText: success ? `[Бросок 2d6 + ${statVal}]: ${total} >= ${ch.check.dc} (УСПЕХ)` : `[Бросок 2d6 + ${statVal}]: ${total} < ${ch.check.dc} (ПРОВАЛ)`,
-          isSuccess: success
+          next: success ? ch.check.succ : ch.check.fail,
+          msg: success ? `[Бросок 2d6 + ${sVal}]: ${total} >= ${ch.check.dc} (УСПЕХ)` : `[Бросок 2d6 + ${sVal}]: ${total} < ${ch.check.dc} (ПРОВАЛ)`,
+          isSucc: success
         };
 
         document.getElementById('diceModal').classList.add('active');
@@ -1193,138 +804,145 @@
     function closeDiceModal() {
       document.getElementById('diceModal').classList.remove('active');
       if (pendingCheck) {
-        const box = document.getElementById('dialogueBox');
-        const checkDiv = document.createElement('div');
-        checkDiv.className = `msg-check-result ${pendingCheck.isSuccess ? '' : 'fail'}`;
-        checkDiv.innerHTML = `<span>🎲</span> ${pendingCheck.msgText}`;
-        box.appendChild(checkDiv);
+        const box = document.getElementById('dialogueScroll');
+        const resDiv = document.createElement('div');
+        resDiv.style.background = pendingCheck.isSucc ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+        resDiv.style.border = `1px solid ${pendingCheck.isSucc ? '#10b981' : '#ef4444'}`;
+        resDiv.style.color = pendingCheck.isSucc ? '#34d399' : '#f87171';
+        resDiv.style.padding = '6px 10px';
+        resDiv.style.borderRadius = '6px';
+        resDiv.style.fontSize = '11px';
+        resDiv.style.fontFamily = 'var(--font-mono)';
+        resDiv.innerText = `🎲 ${pendingCheck.msg}`;
+        box.appendChild(resDiv);
 
-        renderDialogueNode(pendingCheck.nextNode);
+        renderDialogueNode(pendingCheck.next);
         pendingCheck = null;
       }
     }
 
-    const MECH_CONFIG = {
+    /* HANGAR CONFIGURATOR */
+    const HANGAR_CONFIG = {
       slots: {
-        shL: { name: "Левое плечо", item: "Ракетная установка Zedong Hail", vendor: "Zedong", type: "Ракетное", icon: "🚀", dmg: 95, range: 6, traj: "Навесная (Arc)" },
-        shR: { name: "Правое плечо", item: "ЭМИ-излучатель Haruki Pulse", vendor: "Haruki", type: "ЭМИ", icon: "⚡", dmg: 40, range: 4, traj: "Прямая (Direct)" },
-        armL: { name: "Левая рука", item: "Тяжелый молот Gagarin Titan", vendor: "Gagarin", type: "Ближний бой", icon: "🔨", dmg: 130, range: 1, traj: "Контактная (Melee)" },
-        armR: { name: "Правая рука", item: "Лазерная винтовка Lumier L-9", vendor: "Lumier", type: "Лазерное", icon: "🔫", dmg: 75, range: 5, traj: "Прямая (Direct)" },
-        body: { name: "Тело (Корпус)", item: "Композитный каркас Hermann", vendor: "Hermann", type: "Броня", icon: "🛡️", hp: 600 },
-        core: { name: "Ядро", item: "Сингулярный генератор Lumier-Q", vendor: "Lumier", type: "Ядро", icon: "⚛️", energy: 450 },
-        legL: { name: "Левая нога", item: "Гидравлический привод Gagarin", vendor: "Gagarin", type: "Привод", icon: "🦾", move: 3 },
-        legR: { name: "Правая нога", item: "Гидравлический привод Gagarin", vendor: "Gagarin", type: "Привод", icon: "🦾", move: 3 },
-        wingL: { name: "Левое крыло", item: "Векторные дюзы Haruki V-1", vendor: "Haruki", type: "Крыло", icon: "🪽", thrust: 3.6 },
-        wingR: { name: "Правое крыло", item: "Векторные дюзы Haruki V-1", vendor: "Haruki", type: "Крыло", icon: "🪽", thrust: 3.6 }
+        shL: { name: "Левое плечо", item: "Ракетница Zedong Hail", vendor: "Zedong", type: "Ракетное", dmg: 95, range: 6, traj: "Навесная (Arc)" },
+        shR: { name: "Правое плечо", item: "ЭМИ-излучатель Haruki", vendor: "Haruki", type: "ЭМИ", dmg: 40, range: 4, traj: "Прямая (Direct)" },
+        armL: { name: "Левая рука", item: "Молот Gagarin Titan", vendor: "Gagarin", type: "Ближний бой", dmg: 130, range: 1, traj: "Контакт (Melee)" },
+        armR: { name: "Правая рука", item: "Лазер Lumier L-9", vendor: "Lumier", type: "Лазерное", dmg: 75, range: 5, acc: 85, traj: "Прямая (Direct)" },
+        body: { name: "Тело (Корпус)", item: "Каркас Hermann Armor", vendor: "Hermann", type: "Броня", hp: 600 },
+        core: { name: "Ядро", item: "Сингулярность Lumier-Q", vendor: "Lumier", type: "Ядро", energy: 450 },
+        legL: { name: "Левая нога", item: "Привод Gagarin Heavy", vendor: "Gagarin", type: "Привод", move: 3 },
+        legR: { name: "Правая нога", item: "Привод Gagarin Heavy", vendor: "Gagarin", type: "Привод", move: 3 },
+        wingL: { name: "Левое крыло", item: "Дюзы Haruki V-1", vendor: "Haruki", type: "Крыло", thrust: 3.6 },
+        wingR: { name: "Правое крыло", item: "Дюзы Haruki V-1", vendor: "Haruki", type: "Крыло", thrust: 3.6 }
       },
-      currentSlot: "armR",
-      corpFilter: "ALL"
+      currentSlot: "armR"
     };
 
-    const ARSENAL_DB = [
-      { slotType: "armR", name: "Лазерная винтовка Lumier L-9", vendor: "Lumier", type: "Лазерное", dmg: 75, range: 5, acc: 85, traj: "Прямая (Direct)", desc: "Когерентный луч. Игнорирует кинетическую броню, прямолинейная траектория." },
-      { slotType: "armR", name: "Штурмовой автомат Hermann H-44", vendor: "Hermann", type: "Кинетика", dmg: 65, range: 4, acc: 80, traj: "Прямая (Direct)", desc: "Высокая плотность огня кинетическими бронебойными пулями." },
-      { slotType: "armR", name: "Плазменный карабин Vertex VX", vendor: "Vertex", type: "Энергия", dmg: 85, range: 3, acc: 75, traj: "Прямая (Direct)", desc: "Ионизированный сгусток с мощным термическим всплеском." },
-      { slotType: "armR", name: "Энерго-клинок Haruki Muramasa", vendor: "Haruki", type: "Ближний бой", dmg: 140, range: 1, acc: 95, traj: "Контактная (Melee)", desc: "Раскаленное мономолекулярное лезвие для мгновенного срезания узлов." },
-      { slotType: "shL", name: "Ракетная установка Zedong Hail", vendor: "Zedong", type: "Ракетное", dmg: 95, range: 6, acc: 70, traj: "Навесная (Arc)", desc: "Параболический навесной залп. Перелетает через укрытия и стены любой высоты." },
-      { slotType: "shL", name: "Тяжелая мортира Sapkowski Krab", vendor: "Sapkowski", type: "Артиллерия", dmg: 120, range: 5, acc: 65, traj: "Навесная (Arc)", desc: "Тяжелый фугасный снаряд с навесной траекторией." }
+    const ARSENAL = [
+      { slot: "armR", name: "Лазер Lumier L-9", vendor: "Lumier", dmg: 75, range: 5, acc: 85, traj: "Прямая (Direct)", desc: "Когерентный луч. Высокая базовая точность, прямолинейная траектория." },
+      { slot: "armR", name: "Автомат Hermann H-44", vendor: "Hermann", dmg: 65, range: 4, acc: 80, traj: "Прямая (Direct)", desc: "Плотный кинетический огонь бронебойной очередью." },
+      { slot: "armR", name: "Энерго-клинок Haruki", vendor: "Haruki", dmg: 140, range: 1, acc: 95, traj: "Контакт (Melee)", desc: "Мономолекулярное лезвие для мгновенного срезания узлов." },
+      { slot: "shL", name: "Ракетница Zedong Hail", vendor: "Zedong", dmg: 95, range: 6, acc: 70, traj: "Навесная (Arc)", desc: "Навесной залп по параболической 3D-траектории, огибает укрытия." }
     ];
 
-    function renderHangarSlots() {
-      const cont = document.getElementById('slotsContainer');
-      cont.innerHTML = '';
+    function renderHangarUI() {
+      const list = document.getElementById('hangarSlotsList');
+      if (!list) return;
+      list.innerHTML = '';
 
-      for (const [key, sl] of Object.entries(MECH_CONFIG.slots)) {
+      for (const [key, sl] of Object.entries(HANGAR_CONFIG.slots)) {
         const div = document.createElement('div');
-        div.className = `slot-item ${MECH_CONFIG.currentSlot === key ? 'active' : ''}`;
+        div.className = `slot-item ${HANGAR_CONFIG.currentSlot === key ? 'active' : ''}`;
         div.onclick = () => {
-          playSfx('click');
-          MECH_CONFIG.currentSlot = key;
-          renderHangarSlots();
-          renderCatalog();
+          HANGAR_CONFIG.currentSlot = key;
+          renderHangarUI();
         };
 
         div.innerHTML = `
-          <div class="slot-meta">
-            <span class="slot-name-label">${sl.icon} ${sl.name}</span>
-            <span class="slot-vendor-label">${sl.vendor}</span>
+          <div style="display:flex; justify-content:space-between; font-size:10px; font-family:var(--font-mono);">
+            <span style="color:var(--text-muted);">${sl.name}</span>
+            <span style="color:var(--accent-amber);">${sl.vendor}</span>
           </div>
-          <div class="slot-item-name">${sl.item}</div>
+          <div style="font-size:12px; font-weight:700; color:#fff;">${sl.item}</div>
         `;
-        cont.appendChild(div);
+        list.appendChild(div);
       }
+
+      renderHangarCatalog();
     }
 
-    function renderCatalog() {
-      const cont = document.getElementById('catalogList');
-      cont.innerHTML = '';
-      const slotKey = MECH_CONFIG.currentSlot;
-      const currentSlotData = MECH_CONFIG.slots[slotKey];
-      document.getElementById('catalogTitle').innerText = `Арсенал для слота: ${currentSlotData.name}`;
+    function renderHangarCatalog() {
+      const catList = document.getElementById('hangarCatalogList');
+      const curSlotKey = HANGAR_CONFIG.currentSlot;
+      const curSlot = HANGAR_CONFIG.slots[curSlotKey];
+      document.getElementById('hngCatalogTitle').innerText = `Арсенал слота: ${curSlot.name}`;
 
-      const items = ARSENAL_DB.filter(it => it.slotType === slotKey || (slotKey.startsWith('arm') && it.slotType.startsWith('arm')));
+      catList.innerHTML = '';
+      const items = ARSENAL.filter(it => it.slot === curSlotKey || (curSlotKey.startsWith('arm') && it.slot.startsWith('arm')));
 
       if (items.length === 0) {
-        cont.innerHTML = `<div style="font-size:11px; color:#64748b; padding:12px;">Установлен штатный сервомодуль корпорации ${currentSlotData.vendor}. Данный узел оптимизирован по массе.</div>`;
+        catList.innerHTML = `<div style="font-size:11px; color:#64748b; padding:10px;">Для данного слота установлен сервомодуль корпорации ${curSlot.vendor}.</div>`;
         return;
       }
 
       items.forEach(it => {
-        if (MECH_CONFIG.corpFilter !== 'ALL' && it.vendor !== MECH_CONFIG.corpFilter) return;
-
-        const isInstalled = currentSlotData.item === it.name;
+        const isCurrent = curSlot.item === it.name;
         const div = document.createElement('div');
-        div.className = `catalog-item ${isInstalled ? 'installed' : ''}`;
+        div.className = `slot-item ${isCurrent ? 'active' : ''}`;
         div.onclick = () => {
-          playSfx('click');
-          currentSlotData.item = it.name;
-          currentSlotData.vendor = it.vendor;
-          currentSlotData.type = it.type;
-          currentSlotData.dmg = it.dmg;
-          currentSlotData.range = it.range;
-          currentSlotData.traj = it.traj;
-          document.getElementById('hangar-wpn-r').innerText = it.name.split(' ')[0];
-          renderHangarSlots();
-          renderCatalog();
+          curSlot.item = it.name;
+          curSlot.vendor = it.vendor;
+          curSlot.dmg = it.dmg;
+          curSlot.range = it.range;
+          curSlot.acc = it.acc;
+          curSlot.traj = it.traj;
+          renderHangarUI();
+          updateCombatBallistics();
         };
 
         div.innerHTML = `
-          <div class="cat-title">${it.name} ${isInstalled ? '✓ [УСТАНОВЛЕНО]' : ''}</div>
-          <div class="cat-desc">${it.desc}</div>
-          <div class="cat-stats">
-            <span>УРОН: ${it.dmg}</span>
-            <span>ДИСТАНЦИЯ: ${it.range}</span>
-            <span>ТРАЕКТОРИЯ: ${it.traj}</span>
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700;">
+            <span style="color:#fff;">${it.name}</span>
+            <span style="color:var(--accent-amber); font-family:var(--font-mono);">${it.vendor}</span>
+          </div>
+          <div style="font-size:10.5px; color:#94a3b8; margin:2px 0;">${it.desc}</div>
+          <div style="font-size:10px; font-family:var(--font-mono); color:var(--accent-cyan); display:flex; gap:8px;">
+            <span>Урон: ${it.dmg}</span>
+            <span>Дист: ${it.range}</span>
+            <span>Траектория: ${it.traj}</span>
           </div>
         `;
-        cont.appendChild(div);
+        catList.appendChild(div);
       });
     }
 
-    function setCorpFilter(corp) {
-      playSfx('click');
-      MECH_CONFIG.corpFilter = corp;
-      document.querySelectorAll('.corp-tag').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      renderCatalog();
+    function launchHangarToBattle() {
+      switchNav('btl');
+      addCombatLog('🚀 ВОПЛОЩЕНИЕ РАЗВЕРНУТО НА ПАЛУБЕ ЛАЙНЕРА «ПРИМАРХ»!', 'hit');
+      addCombatLog(`Оружие правой руки: [${HANGAR_CONFIG.slots.armR.item}], Траектория: ${HANGAR_CONFIG.slots.armR.traj}.`, 'crit');
     }
 
-    function launchToBattle() {
-      playSfx('laser');
-      switchNav('battle');
-      addBattleLog('🚀 КВАНТОВЫЙ СКАЧОК ЗАВЕРШЁН! Воплощение развернуто на верхней палубе лайнера «Примарх».', 'hit');
-      addBattleLog(`[Оскар]: Телеметрия устойчивая! Оружие правой руки: [${MECH_CONFIG.slots.armR.item}]. Траектория: ${MECH_CONFIG.slots.armR.traj}.`, 'crit');
-    }
-
-    const canvas = document.getElementById('isoCanvas');
-    const ctx = canvas.getContext('2d');
+    /* TRPG ISOMETRIC BATTLE SYSTEM */
+    const combatState = {
+      round: 1,
+      ap: 6,
+      playerHP: 180,
+      playerPos: { x: 1, y: 1 },
+      enemyPos: { x: 5, y: 4 },
+      enemyParts: {
+        core: { name: "Ядро", hp: 60, max: 60, status: "OK" },
+        arms: { name: "Турель", hp: 45, max: 45, status: "OK" },
+        wings: { name: "Крылья", hp: 40, max: 40, status: "OK" },
+        body: { name: "Корпус", hp: 110, max: 110, status: "OK" }
+      },
+      mode: 'shoot',
+      targetNode: 'core',
+      hoverTile: null,
+      projectiles: []
+    };
 
     const GRID_SIZE = 8;
-    const TILE_W = 60;
-    const TILE_H = 30;
-    const HEIGHT_STEP = 18;
-
-    const HEIGHT_MAP = [
+    const HEIGHTS = [
       [0, 0, 1, 1, 1, 0, 0, 0],
       [0, 0, 1, 2, 2, 1, 0, 0],
       [0, 1, 2, 2, 2, 1, 1, 0],
@@ -1334,8 +952,7 @@
       [0, 0, 0, 0, 1, 2, 1, 0],
       [0, 0, 0, 0, 0, 1, 0, 0]
     ];
-
-    const COVER_MAP = [
+    const COVERS = [
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 1, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 1, 0],
@@ -1346,40 +963,70 @@
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
 
-    const battleState = {
-      round: 1,
-      playerAP: 6,
-      playerPos: { x: 1, y: 1 },
-      playerHP: 180,
-      enemyPos: { x: 5, y: 4 },
-      enemyParts: {
-        body: { name: "Корпус", hp: 120, maxHp: 120, status: "OK" },
-        core: { name: "Ядро", hp: 70, maxHp: 70, status: "OK" },
-        arms: { name: "Турель", hp: 50, maxHp: 50, status: "OK" },
-        wings: { name: "Крылья", hp: 45, maxHp: 45, status: "OK" }
-      },
-      mode: 'move',
-      targetNode: 'core',
-      hoverTile: null,
-      projectiles: []
-    };
+    let isoCanvas = null;
+    let isoCtx = null;
+    let isCombatRunning = false;
+
+    function initCombatCanvas() {
+      isoCanvas = document.getElementById('isoCanvas');
+      isoCtx = isoCanvas.getContext('2d');
+      resizeCombatCanvas();
+
+      window.addEventListener('resize', resizeCombatCanvas);
+
+      isoCanvas.addEventListener('mousemove', onCanvasMove);
+      isoCanvas.addEventListener('click', onCanvasClick);
+      isoCanvas.addEventListener('touchstart', onCanvasTouch, { passive: false });
+
+      if (!isCombatRunning) {
+        isCombatRunning = true;
+        renderCombatLoop();
+      }
+      updateCombatBallistics();
+    }
+
+    function resizeCombatCanvas() {
+      const wrap = document.getElementById('canvasWrap');
+      if (!wrap || !isoCanvas) return;
+      const rect = wrap.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      isoCanvas.width = rect.width * dpr;
+      isoCanvas.height = rect.height * dpr;
+      isoCtx.setTransform(1, 0, 0, 1, 0, 0);
+      isoCtx.scale(dpr, dpr);
+    }
+
+    function getIsoParams() {
+      const wrap = document.getElementById('canvasWrap');
+      const w = wrap ? wrap.clientWidth : 400;
+      const h = wrap ? wrap.clientHeight : 300;
+
+      const tileW = Math.min(52, Math.max(34, Math.floor(w / 10)));
+      const tileH = Math.floor(tileW * 0.5);
+      const hStep = Math.floor(tileH * 0.55);
+
+      const originX = w / 2;
+      const originY = Math.max(30, Math.floor(h * 0.22));
+
+      return { tileW, tileH, hStep, originX, originY };
+    }
 
     function toIso(x, y, z = 0) {
-      const originX = canvas.width / 2;
-      const originY = 90;
-      const isoX = (x - y) * (TILE_W / 2) + originX;
-      const isoY = (x + y) * (TILE_H / 2) - (z * HEIGHT_STEP) + originY;
-      return { x: isoX, y: isoY };
+      const p = getIsoParams();
+      const isoX = (x - y) * (p.tileW / 2) + p.originX;
+      const isoY = (x + y) * (p.tileH / 2) - (z * p.hStep) + p.originY;
+      return { x: isoX, y: isoY, p };
     }
 
     function fromIso(screenX, screenY) {
+      const p = getIsoParams();
       for (let y = GRID_SIZE - 1; y >= 0; y--) {
         for (let x = GRID_SIZE - 1; x >= 0; x--) {
-          const z = HEIGHT_MAP[y][x];
+          const z = HEIGHTS[y][x];
           const pt = toIso(x, y, z);
           const dx = Math.abs(screenX - pt.x);
-          const dy = Math.abs(screenY - (pt.y + TILE_H / 2));
-          if ((dx / (TILE_W / 2) + dy / (TILE_H / 2)) <= 1.0) {
+          const dy = Math.abs(screenY - (pt.y + p.tileH / 2));
+          if ((dx / (p.tileW / 2) + dy / (p.tileH / 2)) <= 1.0) {
             return { x, y };
           }
         }
@@ -1387,465 +1034,465 @@
       return null;
     }
 
-    let isoLoopRunning = false;
-    function initIsoBattle() {
-      if (!isoLoopRunning) {
-        isoLoopRunning = true;
-        renderIsoFrame();
-      }
-      updateBallisticsUI();
+    function onCanvasMove(e) {
+      const rect = isoCanvas.getBoundingClientRect();
+      combatState.hoverTile = fromIso(e.clientX - rect.left, e.clientY - rect.top);
     }
 
-    function renderIsoFrame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function onCanvasTouch(e) {
+      e.preventDefault();
+      const t = e.touches[0];
+      const rect = isoCanvas.getBoundingClientRect();
+      const tile = fromIso(t.clientX - rect.left, t.clientY - rect.top);
+      if (tile) {
+        combatState.hoverTile = tile;
+        handleTileAction(tile);
+      }
+    }
+
+    function onCanvasClick(e) {
+      const rect = isoCanvas.getBoundingClientRect();
+      const tile = fromIso(e.clientX - rect.left, e.clientY - rect.top);
+      if (tile) handleTileAction(tile);
+    }
+
+    function handleTileAction(tile) {
+      if (combatState.mode === 'move') {
+        const dist = Math.abs(combatState.playerPos.x - tile.x) + Math.abs(combatState.playerPos.y - tile.y);
+        if (dist > 0 && dist <= 3) {
+          if (combatState.ap >= 2) {
+            combatState.playerPos = { x: tile.x, y: tile.y };
+            combatState.ap -= 2;
+            updateCombatHud();
+            const z = HEIGHTS[tile.y][tile.x];
+            addCombatLog(`Мех переместился на сектор [${tile.x}, ${tile.y}], Высота Z=${z}. (-2 AP)`);
+            updateCombatBallistics();
+          } else {
+            addCombatLog('Недостаточно AP для движения (требуется 2 AP)!', 'dest');
+          }
+        }
+      } else if (combatState.mode === 'shoot') {
+        if (tile.x === combatState.enemyPos.x && tile.y === combatState.enemyPos.y) {
+          combatFireTarget();
+        }
+      }
+    }
+
+    function renderCombatLoop() {
+      const wrap = document.getElementById('canvasWrap');
+      if (!wrap || !isoCtx) return;
+
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      isoCtx.clearRect(0, 0, w, h);
 
       for (let y = 0; y < GRID_SIZE; y++) {
         for (let x = 0; x < GRID_SIZE; x++) {
-          drawIsoTile(x, y);
+          drawTile(x, y);
         }
       }
 
-      drawBallisticTrajectory();
-      drawPlayerMech();
-      drawEnemyDrone();
-      updateAndDrawProjectiles();
+      drawTrajectory();
+      drawPlayer();
+      drawEnemy();
+      drawProjectiles();
 
-      requestAnimationFrame(renderIsoFrame);
+      requestAnimationFrame(renderCombatLoop);
     }
 
-    function drawIsoTile(x, y) {
-      const z = HEIGHT_MAP[y][x];
+    function drawTile(x, y) {
+      const z = HEIGHTS[y][x];
       const pt = toIso(x, y, z);
+      const p = pt.p;
 
-      const isPlayer = battleState.playerPos.x === x && battleState.playerPos.y === y;
-      const isEnemy = battleState.enemyPos.x === x && battleState.enemyPos.y === y;
-      const isHover = battleState.hoverTile && battleState.hoverTile.x === x && battleState.hoverTile.y === y;
+      const isPlayer = combatState.playerPos.x === x && combatState.playerPos.y === y;
+      const isEnemy = combatState.enemyPos.x === x && combatState.enemyPos.y === y;
+      const isHover = combatState.hoverTile && combatState.hoverTile.x === x && combatState.hoverTile.y === y;
 
-      const dist = Math.abs(battleState.playerPos.x - x) + Math.abs(battleState.playerPos.y - y);
-      const inMoveRange = battleState.mode === 'move' && dist <= 3 && !isPlayer;
+      const dist = Math.abs(combatState.playerPos.x - x) + Math.abs(combatState.playerPos.y - y);
+      const inMoveRange = combatState.mode === 'move' && dist <= 3 && !isPlayer;
 
       if (z > 0) {
         const basePt = toIso(x, y, 0);
-        ctx.fillStyle = '#101622';
-        ctx.beginPath();
-        ctx.moveTo(pt.x - TILE_W/2, pt.y + TILE_H/2);
-        ctx.lineTo(pt.x, pt.y + TILE_H);
-        ctx.lineTo(basePt.x, basePt.y + TILE_H);
-        ctx.lineTo(basePt.x - TILE_W/2, basePt.y + TILE_H/2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = '#1e293b';
-        ctx.stroke();
+        isoCtx.fillStyle = '#101622';
+        isoCtx.beginPath();
+        isoCtx.moveTo(pt.x - p.tileW/2, pt.y + p.tileH/2);
+        isoCtx.lineTo(pt.x, pt.y + p.tileH);
+        isoCtx.lineTo(basePt.x, basePt.y + p.tileH);
+        isoCtx.lineTo(basePt.x - p.tileW/2, basePt.y + p.tileH/2);
+        isoCtx.closePath();
+        isoCtx.fill();
+        isoCtx.strokeStyle = '#1e293b';
+        isoCtx.stroke();
 
-        ctx.fillStyle = '#141d2e';
-        ctx.beginPath();
-        ctx.moveTo(pt.x, pt.y + TILE_H);
-        ctx.lineTo(pt.x + TILE_W/2, pt.y + TILE_H/2);
-        ctx.lineTo(basePt.x + TILE_W/2, basePt.y + TILE_H/2);
-        ctx.lineTo(basePt.x, basePt.y + TILE_H);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = '#1e293b';
-        ctx.stroke();
+        isoCtx.fillStyle = '#141d2e';
+        isoCtx.beginPath();
+        isoCtx.moveTo(pt.x, pt.y + p.tileH);
+        isoCtx.lineTo(pt.x + p.tileW/2, pt.y + p.tileH/2);
+        isoCtx.lineTo(basePt.x + p.tileW/2, basePt.y + p.tileH/2);
+        isoCtx.lineTo(basePt.x, basePt.y + p.tileH);
+        isoCtx.closePath();
+        isoCtx.fill();
+        isoCtx.strokeStyle = '#1e293b';
+        isoCtx.stroke();
       }
 
-      ctx.beginPath();
-      ctx.moveTo(pt.x, pt.y);
-      ctx.lineTo(pt.x + TILE_W/2, pt.y + TILE_H/2);
-      ctx.lineTo(pt.x, pt.y + TILE_H);
-      ctx.lineTo(pt.x - TILE_W/2, pt.y + TILE_H/2);
-      ctx.closePath();
+      isoCtx.beginPath();
+      isoCtx.moveTo(pt.x, pt.y);
+      isoCtx.lineTo(pt.x + p.tileW/2, pt.y + p.tileH/2);
+      isoCtx.lineTo(pt.x, pt.y + p.tileH);
+      isoCtx.lineTo(pt.x - p.tileW/2, pt.y + p.tileH/2);
+      isoCtx.closePath();
 
       if (inMoveRange) {
-        ctx.fillStyle = isHover ? 'rgba(0,240,255,0.35)' : 'rgba(0,240,255,0.12)';
-        ctx.strokeStyle = '#00f0ff';
-      } else if (isEnemy && battleState.mode === 'attack') {
-        ctx.fillStyle = isHover ? 'rgba(239,68,68,0.45)' : 'rgba(239,68,68,0.2)';
-        ctx.strokeStyle = '#ef4444';
+        isoCtx.fillStyle = isHover ? 'rgba(0,240,255,0.35)' : 'rgba(0,240,255,0.12)';
+        isoCtx.strokeStyle = '#00f0ff';
+      } else if (isEnemy && combatState.mode === 'shoot') {
+        isoCtx.fillStyle = isHover ? 'rgba(239,68,68,0.45)' : 'rgba(239,68,68,0.2)';
+        isoCtx.strokeStyle = '#ef4444';
       } else {
-        if (z === 2) ctx.fillStyle = '#1a2438';
-        else if (z === 1) ctx.fillStyle = '#131b2a';
-        else ctx.fillStyle = '#0d131f';
-        ctx.strokeStyle = '#223049';
+        if (z === 2) isoCtx.fillStyle = '#1a2438';
+        else if (z === 1) isoCtx.fillStyle = '#131b2a';
+        else isoCtx.fillStyle = '#0d131f';
+        isoCtx.strokeStyle = '#223049';
       }
 
-      ctx.fill();
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      isoCtx.fill();
+      isoCtx.lineWidth = 1;
+      isoCtx.stroke();
 
       if (z > 0) {
-        ctx.fillStyle = '#64748b';
-        ctx.font = '9px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Z=${z}`, pt.x, pt.y + TILE_H/2 + 3);
+        isoCtx.fillStyle = '#64748b';
+        isoCtx.font = '9px monospace';
+        isoCtx.textAlign = 'center';
+        isoCtx.fillText(`Z=${z}`, pt.x, pt.y + p.tileH/2 + 3);
       }
 
-      const cover = COVER_MAP[y][x];
-      if (cover > 0) {
-        ctx.fillStyle = cover === 2 ? '#475569' : '#334155';
-        ctx.fillRect(pt.x - 6, pt.y + TILE_H/2 - 14, 12, 14);
-        ctx.strokeStyle = '#64748b';
-        ctx.strokeRect(pt.x - 6, pt.y + TILE_H/2 - 14, 12, 14);
+      const cov = COVERS[y][x];
+      if (cov > 0) {
+        isoCtx.fillStyle = cov === 2 ? '#475569' : '#334155';
+        isoCtx.fillRect(pt.x - 5, pt.y + p.tileH/2 - 12, 10, 12);
+        isoCtx.strokeStyle = '#64748b';
+        isoCtx.strokeRect(pt.x - 5, pt.y + p.tileH/2 - 12, 10, 12);
       }
     }
 
-    function drawPlayerMech() {
-      const z = HEIGHT_MAP[battleState.playerPos.y][battleState.playerPos.x];
-      const pt = toIso(battleState.playerPos.x, battleState.playerPos.y, z);
+    function drawPlayer() {
+      const z = HEIGHTS[combatState.playerPos.y][combatState.playerPos.x];
+      const pt = toIso(combatState.playerPos.x, combatState.playerPos.y, z);
+      const p = pt.p;
 
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath();
-      ctx.ellipse(pt.x, pt.y + TILE_H/2, 16, 8, 0, 0, Math.PI*2);
-      ctx.fill();
+      isoCtx.fillStyle = '#00f0ff';
+      isoCtx.beginPath();
+      isoCtx.arc(pt.x, pt.y + p.tileH/2 - 16, 12, 0, Math.PI*2);
+      isoCtx.fill();
+      isoCtx.strokeStyle = '#fff';
+      isoCtx.lineWidth = 2;
+      isoCtx.stroke();
 
-      ctx.fillStyle = '#00f0ff';
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y + TILE_H/2 - 18, 14, 0, Math.PI*2);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y + TILE_H/2 - 18, 5, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.fillStyle = '#00f0ff';
-      ctx.font = 'bold 10px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('INCARNATION', pt.x, pt.y + TILE_H/2 - 36);
+      isoCtx.fillStyle = '#00f0ff';
+      isoCtx.font = 'bold 9px monospace';
+      isoCtx.textAlign = 'center';
+      isoCtx.fillText('МЕХ', pt.x, pt.y + p.tileH/2 - 32);
     }
 
-    function drawEnemyDrone() {
-      if (battleState.enemyParts.body.hp <= 0 && battleState.enemyParts.core.hp <= 0) return;
+    function drawEnemy() {
+      if (combatState.enemyParts.body.hp <= 0 && combatState.enemyParts.core.hp <= 0) return;
+      const z = HEIGHTS[combatState.enemyPos.y][combatState.enemyPos.x];
+      const pt = toIso(combatState.enemyPos.x, combatState.enemyPos.y, z);
+      const p = pt.p;
 
-      const z = HEIGHT_MAP[battleState.enemyPos.y][battleState.enemyPos.x];
-      const pt = toIso(battleState.enemyPos.x, battleState.enemyPos.y, z);
+      isoCtx.fillStyle = '#ef4444';
+      isoCtx.beginPath();
+      isoCtx.moveTo(pt.x, pt.y + p.tileH/2 - 28);
+      isoCtx.lineTo(pt.x + 12, pt.y + p.tileH/2 - 14);
+      isoCtx.lineTo(pt.x, pt.y + p.tileH/2 - 6);
+      isoCtx.lineTo(pt.x - 12, pt.y + p.tileH/2 - 14);
+      isoCtx.closePath();
+      isoCtx.fill();
+      isoCtx.strokeStyle = '#fca5a5';
+      isoCtx.lineWidth = 1.5;
+      isoCtx.stroke();
 
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath();
-      ctx.ellipse(pt.x, pt.y + TILE_H/2, 14, 7, 0, 0, Math.PI*2);
-      ctx.fill();
-
-      ctx.fillStyle = '#ef4444';
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pt.x, pt.y + TILE_H/2 - 32);
-      ctx.lineTo(pt.x + 14, pt.y + TILE_H/2 - 16);
-      ctx.lineTo(pt.x, pt.y + TILE_H/2 - 8);
-      ctx.lineTo(pt.x - 14, pt.y + TILE_H/2 - 16);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#f87171';
-      ctx.font = 'bold 10px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('CENTURION', pt.x, pt.y + TILE_H/2 - 38);
+      isoCtx.fillStyle = '#f87171';
+      isoCtx.font = 'bold 9px monospace';
+      isoCtx.textAlign = 'center';
+      isoCtx.fillText('ЦЕНТУРИОН', pt.x, pt.y + p.tileH/2 - 33);
     }
 
-    function drawBallisticTrajectory() {
-      if (battleState.mode !== 'attack') return;
+    function drawTrajectory() {
+      if (combatState.mode !== 'shoot') return;
+      const pZ = HEIGHTS[combatState.playerPos.y][combatState.playerPos.x];
+      const eZ = HEIGHTS[combatState.enemyPos.y][combatState.enemyPos.x];
+      const pPt = toIso(combatState.playerPos.x, combatState.playerPos.y, pZ);
+      const ePt = toIso(combatState.enemyPos.x, combatState.enemyPos.y, eZ);
 
-      const pZ = HEIGHT_MAP[battleState.playerPos.y][battleState.playerPos.x];
-      const eZ = HEIGHT_MAP[battleState.enemyPos.y][battleState.enemyPos.x];
-      const pPt = toIso(battleState.playerPos.x, battleState.playerPos.y, pZ);
-      const ePt = toIso(battleState.enemyPos.x, battleState.enemyPos.y, eZ);
+      const traj = HANGAR_CONFIG.slots.armR.traj;
 
-      const trajType = MECH_CONFIG.slots.armR.traj;
-
-      ctx.save();
-      if (trajType.includes('Arc')) {
-        ctx.strokeStyle = '#f59e0b';
-        ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(pPt.x, pPt.y + TILE_H/2 - 20);
+      isoCtx.save();
+      if (traj.includes('Arc')) {
+        isoCtx.strokeStyle = '#f59e0b';
+        isoCtx.setLineDash([4, 4]);
+        isoCtx.lineWidth = 2;
+        isoCtx.beginPath();
+        isoCtx.moveTo(pPt.x, pPt.y + pPt.p.tileH/2 - 16);
         const midX = (pPt.x + ePt.x) / 2;
-        const midY = Math.min(pPt.y, ePt.y) - 60;
-        ctx.quadraticCurveTo(midX, midY, ePt.x, ePt.y + TILE_H/2 - 20);
-        ctx.stroke();
+        const midY = Math.min(pPt.y, ePt.y) - 50;
+        isoCtx.quadraticCurveTo(midX, midY, ePt.x, ePt.y + ePt.p.tileH/2 - 16);
+        isoCtx.stroke();
       } else {
-        ctx.strokeStyle = '#00f0ff';
-        ctx.setLineDash([6, 3]);
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(pPt.x, pPt.y + TILE_H/2 - 20);
-        ctx.lineTo(ePt.x, ePt.y + TILE_H/2 - 20);
-        ctx.stroke();
+        isoCtx.strokeStyle = '#00f0ff';
+        isoCtx.setLineDash([5, 3]);
+        isoCtx.lineWidth = 2;
+        isoCtx.beginPath();
+        isoCtx.moveTo(pPt.x, pPt.y + pPt.p.tileH/2 - 16);
+        isoCtx.lineTo(ePt.x, ePt.y + ePt.p.tileH/2 - 16);
+        isoCtx.stroke();
       }
-      ctx.restore();
+      isoCtx.restore();
     }
 
-    function updateAndDrawProjectiles() {
-      for (let i = battleState.projectiles.length - 1; i >= 0; i--) {
-        const p = battleState.projectiles[i];
-        p.progress += 0.045;
+    function drawProjectiles() {
+      for (let i = combatState.projectiles.length - 1; i >= 0; i--) {
+        const pr = combatState.projectiles[i];
+        pr.prog += 0.05;
 
-        let curX, curY;
-        if (p.isArc) {
-          const t = p.progress;
-          const midX = (p.sx + p.tx) / 2;
-          const midY = Math.min(p.sy, p.ty) - 70;
-          curX = (1 - t)*(1 - t)*p.sx + 2*(1 - t)*t*midX + t*t*p.tx;
-          curY = (1 - t)*(1 - t)*p.sy + 2*(1 - t)*t*midY + t*t*p.ty;
+        let cx, cy;
+        if (pr.isArc) {
+          const t = pr.prog;
+          const midX = (pr.sx + pr.tx) / 2;
+          const midY = Math.min(pr.sy, pr.ty) - 60;
+          cx = (1 - t)*(1 - t)*pr.sx + 2*(1 - t)*t*midX + t*t*pr.tx;
+          cy = (1 - t)*(1 - t)*pr.sy + 2*(1 - t)*t*midY + t*t*pr.ty;
         } else {
-          curX = p.sx + (p.tx - p.sx) * p.progress;
-          curY = p.sy + (p.ty - p.sy) * p.progress;
+          cx = pr.sx + (pr.tx - pr.sx) * pr.prog;
+          cy = pr.sy + (pr.ty - pr.sy) * pr.prog;
         }
 
-        ctx.fillStyle = p.color || '#00f0ff';
-        ctx.beginPath();
-        ctx.arc(curX, curY, p.radius || 4, 0, Math.PI*2);
-        ctx.fill();
+        isoCtx.fillStyle = pr.color || '#00f0ff';
+        isoCtx.beginPath();
+        isoCtx.arc(cx, cy, pr.rad || 3.5, 0, Math.PI*2);
+        isoCtx.fill();
 
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.beginPath();
-        ctx.arc(curX - 4, curY, 2, 0, Math.PI*2);
-        ctx.fill();
-
-        if (p.progress >= 1.0) {
-          playSfx('hit');
-          spawnImpactEffect(p.tx, p.ty, p.dmgText);
-          battleState.projectiles.splice(i, 1);
+        if (pr.prog >= 1.0) {
+          combatState.projectiles.splice(i, 1);
         }
       }
     }
 
-    function spawnImpactEffect(x, y, text) {
-      addBattleLog(`💥 ПОПАДАНИЕ! ${text}`, 'hit');
+    function setCombatMode(m) {
+      combatState.mode = m;
+      document.getElementById('btn-act-move').classList.toggle('active', m === 'move');
+      document.getElementById('btn-act-shoot').classList.toggle('active', m === 'shoot');
+      updateCombatBallistics();
     }
 
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      battleState.hoverTile = fromIso(sx, sy);
-    });
-
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      const tile = fromIso(sx, sy);
-      if (!tile) return;
-
-      if (battleState.mode === 'move') {
-        const dist = Math.abs(battleState.playerPos.x - tile.x) + Math.abs(battleState.playerPos.y - tile.y);
-        if (dist > 0 && dist <= 3) {
-          if (battleState.playerAP >= 2) {
-            playSfx('click');
-            battleState.playerPos = { x: tile.x, y: tile.y };
-            battleState.playerAP -= 2;
-            updateHud();
-            const z = HEIGHT_MAP[tile.y][tile.x];
-            addBattleLog(`Воплощение переместилось на сектор [${tile.x}, ${tile.y}], Высота Z=${z}. (-2 AP)`);
-            updateBallisticsUI();
-          } else {
-            addBattleLog('Недостаточно AP для движения! Нужно 2 AP.', 'destroyed');
-          }
-        }
-      } else if (battleState.mode === 'attack') {
-        if (tile.x === battleState.enemyPos.x && tile.y === battleState.enemyPos.y) {
-          fireAtTarget();
-        }
-      }
-    });
-
-    function setBattleMode(mode) {
-      playSfx('click');
-      battleState.mode = mode;
-      document.getElementById('btn-action-move').classList.toggle('active', mode === 'move');
-      document.getElementById('btn-action-attack').classList.toggle('active', mode === 'attack');
-      if (mode === 'attack') {
-        updateBallisticsUI();
-      }
+    function selectCombatTargetNode(nodeKey) {
+      combatState.targetNode = nodeKey;
+      updateCombatBallistics();
     }
 
-    function selectTargetNode(nodeKey) {
-      playSfx('click');
-      battleState.targetNode = nodeKey;
-      document.querySelectorAll('.part-choice').forEach(el => el.classList.remove('active'));
-      document.getElementById(`part-btn-${nodeKey}`).classList.add('active');
-      updateBallisticsUI();
-    }
-
-    function calculateProbability() {
-      const pZ = HEIGHT_MAP[battleState.playerPos.y][battleState.playerPos.x];
-      const eZ = HEIGHT_MAP[battleState.enemyPos.y][battleState.enemyPos.x];
+    function calcCombatOdds() {
+      const pZ = HEIGHTS[combatState.playerPos.y][combatState.playerPos.x];
+      const eZ = HEIGHTS[combatState.enemyPos.y][combatState.enemyPos.x];
       const dZ = pZ - eZ;
+      const dist = Math.abs(combatState.playerPos.x - combatState.enemyPos.x) + Math.abs(combatState.playerPos.y - combatState.enemyPos.y);
 
-      const dist = Math.abs(battleState.playerPos.x - battleState.enemyPos.x) + Math.abs(battleState.playerPos.y - battleState.enemyPos.y);
-      const wpn = MECH_CONFIG.slots.armR;
-
+      const wpn = HANGAR_CONFIG.slots.armR;
       const baseAcc = wpn.acc || 85;
-      const pilotBonus = Math.floor(PILOT_STATS.accuracy * 4);
+      const pilotBonus = Math.floor(PILOT_STATS.accuracy.val * 4);
       const heightMod = dZ * 15;
-      const distMod = Math.max(0, dist - (wpn.range || 4)) * -12;
+      const distMod = Math.max(0, dist - (wpn.range || 4)) * -10;
 
-      const coverVal = COVER_MAP[battleState.enemyPos.y][battleState.enemyPos.x];
-      let coverMod = 0;
-      if (coverVal === 1) coverMod = -20;
-      if (coverVal === 2) coverMod = -40;
+      const covVal = COVERS[combatState.enemyPos.y][combatState.enemyPos.x];
+      let covMod = 0;
+      if (covVal === 1) covMod = -20;
+      if (covVal === 2) covMod = -40;
 
-      if (!wpn.traj.includes('Arc')) {
-        if (dZ < 0 && coverVal > 0) coverMod -= 25;
-      }
+      let total = baseAcc + pilotBonus + heightMod + distMod + covMod;
+      total = Math.max(5, Math.min(95, total));
 
-      let totalChance = baseAcc + pilotBonus + heightMod + distMod + coverMod;
-      totalChance = Math.max(5, Math.min(95, totalChance));
-
-      const partMultipliers = {
-        core: 0.50,
-        arms: 0.75,
-        wings: 0.85,
-        body: 1.00
-      };
-
-      const finalPartChance = Math.round(totalChance * (partMultipliers[battleState.targetNode] || 1.0));
+      const multipliers = { core: 0.50, arms: 0.75, wings: 0.85, body: 1.00 };
+      const finalChance = Math.round(total * (multipliers[combatState.targetNode] || 1.0));
 
       return {
+        wpnName: wpn.item,
+        traj: wpn.traj,
         baseAcc,
         pilotBonus,
         dZ,
         heightMod,
         dist,
         distMod,
-        coverMod,
-        totalChance,
-        finalPartChance,
-        wpnName: wpn.item,
-        traj: wpn.traj
+        covMod,
+        total,
+        finalChance
       };
     }
 
-    function updateBallisticsUI() {
-      const calc = calculateProbability();
+    function updateCombatBallistics() {
+      const c = calcCombatOdds();
 
-      document.getElementById('calc-weapon-name').innerText = calc.wpnName;
-      document.getElementById('calc-traj-type').innerText = calc.traj;
-      document.getElementById('calc-base-acc').innerText = `+${calc.baseAcc}%`;
-      document.getElementById('calc-pilot-bonus').innerText = `+${calc.pilotBonus}%`;
-      document.getElementById('calc-dz').innerText = calc.dZ > 0 ? `+${calc.dZ}` : calc.dZ;
-      document.getElementById('calc-height-mod').innerText = calc.heightMod >= 0 ? `+${calc.heightMod}%` : `${calc.heightMod}%`;
-      document.getElementById('calc-height-mod').style.color = calc.heightMod > 0 ? '#34d399' : (calc.heightMod < 0 ? '#f87171' : '#cbd5e1');
-      document.getElementById('calc-dist').innerText = calc.dist;
-      document.getElementById('calc-dist-mod').innerText = `${calc.distMod}%`;
-      document.getElementById('calc-cover-mod').innerText = `${calc.coverMod}%`;
-      document.getElementById('calc-total-chance').innerText = `${calc.finalPartChance}% (Узел: ${battleState.targetNode.toUpperCase()})`;
+      const html = `
+        <div class="calc-card">
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;">
+            <strong style="color:#fff;">${c.wpnName}</strong>
+            <span style="color:var(--accent-cyan);">${c.traj}</span>
+          </div>
 
-      document.getElementById('chance-core').innerText = `${Math.round(calc.totalChance * 0.50)}%`;
-      document.getElementById('chance-arms').innerText = `${Math.round(calc.totalChance * 0.75)}%`;
-      document.getElementById('chance-wings').innerText = `${Math.round(calc.totalChance * 0.85)}%`;
-      document.getElementById('chance-body').innerText = `${Math.round(calc.totalChance * 1.00)}%`;
+          <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:6px; display:flex; flex-direction:column; gap:3px;">
+            <div class="calc-row">
+              <span>Базовая точность:</span>
+              <span>+${c.baseAcc}%</span>
+            </div>
+            <div class="calc-row">
+              <span>Точность пилота:</span>
+              <span style="color:#34d399;">+${c.pilotBonus}%</span>
+            </div>
+            <div class="calc-row">
+              <span>Высота (ΔZ = ${c.dZ >= 0 ? '+' + c.dZ : c.dZ}):</span>
+              <span style="color:${c.heightMod >= 0 ? '#34d399' : '#f87171'};">${c.heightMod >= 0 ? '+' + c.heightMod : c.heightMod}%</span>
+            </div>
+            <div class="calc-row">
+              <span>Дистанция (${c.dist}):</span>
+              <span style="color:${c.distMod < 0 ? '#f87171' : '#cbd5e1'};">${c.distMod}%</span>
+            </div>
+            <div class="calc-row">
+              <span>Укрытие цели:</span>
+              <span>${c.covMod}%</span>
+            </div>
+            <div class="calc-row total">
+              <span>Итоговый шанс узла:</span>
+              <span style="color:var(--accent-amber); font-size:13px;">${c.finalChance}%</span>
+            </div>
+          </div>
+
+          <div style="font-size:10px; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Выбор узла цели:</div>
+          <div class="part-grid">
+            <div class="part-pill ${combatState.targetNode === 'core' ? 'active' : ''}" onclick="selectCombatTargetNode('core')">
+              <span class="part-pill-name">Ядро (Core)</span>
+              <span class="part-pill-val">${Math.round(c.total * 0.50)}%</span>
+            </div>
+            <div class="part-pill ${combatState.targetNode === 'arms' ? 'active' : ''}" onclick="selectCombatTargetNode('arms')">
+              <span class="part-pill-name">Турель (Arms)</span>
+              <span class="part-pill-val">${Math.round(c.total * 0.75)}%</span>
+            </div>
+            <div class="part-pill ${combatState.targetNode === 'wings' ? 'active' : ''}" onclick="selectCombatTargetNode('wings')">
+              <span class="part-pill-name">Крылья (Wings)</span>
+              <span class="part-pill-val">${Math.round(c.total * 0.85)}%</span>
+            </div>
+            <div class="part-pill ${combatState.targetNode === 'body' ? 'active' : ''}" onclick="selectCombatTargetNode('body')">
+              <span class="part-pill-name">Корпус (Body)</span>
+              <span class="part-pill-val">${Math.round(c.total * 1.00)}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const mBox = document.getElementById('mobileBallisticsBox');
+      const dBox = document.getElementById('deskBallisticsBox');
+      if (mBox) mBox.innerHTML = html;
+      if (dBox) dBox.innerHTML = html;
     }
 
-    function fireAtTarget() {
-      if (battleState.playerAP < 3) {
-        addBattleLog('Недостаточно AP для выстрела! Нужно 3 AP.', 'destroyed');
+    function combatFireTarget() {
+      if (combatState.ap < 3) {
+        addCombatLog('Недостаточно AP для выстрела! Нужно 3 AP.', 'dest');
         return;
       }
 
-      battleState.playerAP -= 3;
-      updateHud();
+      combatState.ap -= 3;
+      updateCombatHud();
 
-      const calc = calculateProbability();
-      const pZ = HEIGHT_MAP[battleState.playerPos.y][battleState.playerPos.x];
-      const eZ = HEIGHT_MAP[battleState.enemyPos.y][battleState.enemyPos.x];
-      const pPt = toIso(battleState.playerPos.x, battleState.playerPos.y, pZ);
-      const ePt = toIso(battleState.enemyPos.x, battleState.enemyPos.y, eZ);
+      const c = calcCombatOdds();
+      const pZ = HEIGHTS[combatState.playerPos.y][combatState.playerPos.x];
+      const eZ = HEIGHTS[combatState.enemyPos.y][combatState.enemyPos.x];
+      const pPt = toIso(combatState.playerPos.x, combatState.playerPos.y, pZ);
+      const ePt = toIso(combatState.enemyPos.x, combatState.enemyPos.y, eZ);
 
-      const isArc = calc.traj.includes('Arc');
-      playSfx(isArc ? 'rocket' : 'laser');
+      const isArc = c.traj.includes('Arc');
 
-      const roll = Math.random() * 100;
-      const isHit = roll <= calc.finalPartChance;
-
-      battleState.projectiles.push({
-        sx: pPt.x,
-        sy: pPt.y + TILE_H/2 - 20,
-        tx: ePt.x,
-        ty: ePt.y + TILE_H/2 - 20,
+      combatState.projectiles.push({
+        sx: pPt.x, sy: pPt.y + pPt.p.tileH/2 - 16,
+        tx: ePt.x, ty: ePt.y + ePt.p.tileH/2 - 16,
+        prog: 0,
         isArc: isArc,
-        progress: 0,
         color: isArc ? '#f59e0b' : '#00f0ff',
-        radius: isArc ? 5 : 3,
-        dmgText: isHit ? `Узел [${battleState.targetNode.toUpperCase()}] пробит!` : 'ПРОМАХ!'
+        rad: isArc ? 5 : 3
       });
 
-      addBattleLog(`Выстрел по [${battleState.targetNode.toUpperCase()}]. Бросок: ${Math.round(roll)} vs Шанс: ${calc.finalPartChance}%.`);
+      const roll = Math.random() * 100;
+      const hit = roll <= c.finalChance;
 
-      if (isHit) {
-        const baseDmg = MECH_CONFIG.slots.armR.dmg || 70;
-        let finalDmg = baseDmg;
-        if (calc.dZ > 0) finalDmg = Math.round(finalDmg * (1 + calc.dZ * 0.15));
+      addCombatLog(`Прицельный огонь по [${combatState.targetNode.toUpperCase()}]. Бросок: ${Math.round(roll)} vs Шанс: ${c.finalChance}%.`);
 
-        if (battleState.targetNode === 'core') finalDmg = Math.round(finalDmg * 1.8);
+      if (hit) {
+        let dmg = HANGAR_CONFIG.slots.armR.dmg || 70;
+        if (c.dZ > 0) dmg = Math.round(dmg * (1 + c.dZ * 0.15));
+        if (combatState.targetNode === 'core') dmg = Math.round(dmg * 1.8);
 
-        const targetPart = battleState.enemyParts[battleState.targetNode];
-        targetPart.hp = Math.max(0, targetPart.hp - finalDmg);
+        const part = combatState.enemyParts[combatState.targetNode];
+        part.hp = Math.max(0, part.hp - dmg);
 
-        addBattleLog(`🎯 КРИТИЧЕСКОЕ ПОПАДАНИЕ! Нанесено ${finalDmg} урона в [${targetPart.name}].`, 'crit');
-        addBattleLog(`[Точность 1.0]: Баллистическая поправка сработала идеально!`, 'pilot-voice');
+        addCombatLog(`🎯 ТОЧНОЕ ПОПАДАНИЕ! Нанесено ${dmg} урона в [${part.name}].`, 'crit');
+        addCombatLog(`[Точность 1.0]: Баллистический пересчет подтвердил попадание!`, 'voice');
 
-        if (targetPart.hp <= 0) {
-          targetPart.status = "DESTROYED";
-          addBattleLog(`💥 УЗЕЛ [${targetPart.name.toUpperCase()}] ПОЛНОСТЬЮ УНИЧТОЖЕН!`, 'destroyed');
-          if (battleState.targetNode === 'arms') addBattleLog('Вражеский дрон лишен возможности вести прицельный огонь!', 'hit');
-          if (battleState.targetNode === 'wings') addBattleLog('Маневровые дюзы разбиты — дрон обездвижен!', 'hit');
-          if (battleState.targetNode === 'core' || battleState.targetNode === 'body') {
-            addBattleLog('⚡ ЯДРО ВЗОРВАНО! Автономный дрон нейтрализован!', 'destroyed');
-            addBattleLog('[Капитан Сол Купер]: «Черт возьми, ты спас верхнюю палубу "Примарха"!»', 'crit');
+        if (part.hp <= 0) {
+          part.status = "DESTROYED";
+          addCombatLog(`💥 УЗЕЛ [${part.name.toUpperCase()}] ПОЛНОСТЬЮ УНИЧТОЖЕН!`, 'dest');
+          if (combatState.targetNode === 'arms') addCombatLog('Вражеская турель выбита — дрон лишен возможности стрелять!', 'hit');
+          if (combatState.targetNode === 'wings') addCombatLog('Приводы маневрирования разбиты — дрон обездвижен!', 'hit');
+          if (combatState.targetNode === 'core' || combatState.targetNode === 'body') {
+            addCombatLog('⚡ ЯДРО ВЗОРВАНО! Дрон нейтрализован!', 'dest');
+            addCombatLog('[Капитан Сол Купер]: «Шлюзы палубы спасены! Отличная работа, пилот!»', 'crit');
           }
         }
       } else {
-        addBattleLog(`❌ ПРОМАХ! Снаряд ушел в защитный экран (фактор укрытия: ${calc.coverMod}%).`, 'crit');
-        addBattleLog(`[Логика 2.0]: «Перепад высот или укрытие смазали точку попадания. Займи господствующую высоту!»`, 'pilot-voice');
+        addCombatLog(`❌ ПРОМАХ! Снаряд ушел в защитный щит (укрытие: ${c.covMod}%).`, 'crit');
+        addCombatLog(`[Логика 2.0]: «Перепад высот или укрытие смазали точку попадания. Займи возвышенность!»`, 'voice');
       }
     }
 
-    function endTurn() {
-      playSfx('click');
-      battleState.round++;
-      battleState.playerAP = 6;
-      updateHud();
-      addBattleLog(`=== РАУНД ${battleState.round} ===`, 'crit');
+    function combatEndTurn() {
+      combatState.round++;
+      combatState.ap = 6;
+      updateCombatHud();
+      addCombatLog(`=== РАУНД ${combatState.round} ===`, 'crit');
 
-      const isAlive = battleState.enemyParts.body.hp > 0 && battleState.enemyParts.core.hp > 0;
-      if (isAlive) {
-        if (battleState.enemyParts.arms.hp <= 0) {
-          addBattleLog('Ход противника: Орудийная турель дрона уничтожена, он пытается восстановить сервоприводы!');
+      const alive = combatState.enemyParts.body.hp > 0 && combatState.enemyParts.core.hp > 0;
+      if (alive) {
+        if (combatState.enemyParts.arms.hp <= 0) {
+          addCombatLog('Ход противника: Орудийная турель дрона выбита, он пропускает атаку!');
         } else {
-          addBattleLog('Ход противника: Дрон открывает ответный огонь по вашему Воплощению!');
-          playSfx('hit');
-          battleState.playerHP = Math.max(0, battleState.playerHP - 25);
-          updateHud();
-          addBattleLog(`Получено 25 урона по композитной броне корпуса.`, 'destroyed');
-          addBattleLog(`[Психика 2.0]: Спокойно. Системы поглощения удара держат нагрузку.`, 'pilot-voice');
+          combatState.playerHP = Math.max(0, combatState.playerHP - 22);
+          updateCombatHud();
+          addCombatLog('Ход противника: Дрон открыл ответный огонь! Получено 22 урона по броне.', 'dest');
+          addCombatLog('[Психика 2.0]: Спокойно. Удар поглощен энергощитами.', 'voice');
         }
       }
     }
 
-    function updateHud() {
-      document.getElementById('hud-round').innerText = battleState.round;
-      document.getElementById('hud-ap').innerText = `${battleState.playerAP} / 6`;
-      document.getElementById('hud-hp').innerText = `${battleState.playerHP} / 180`;
+    function updateCombatHud() {
+      document.getElementById('hudRound').innerText = combatState.round;
+      document.getElementById('hudAP').innerText = `${combatState.ap} / 6`;
+      document.getElementById('hudHP').innerText = combatState.playerHP;
     }
 
-    function addBattleLog(msg, cssClass = '') {
-      const box = document.getElementById('battleLog');
-      const div = document.createElement('div');
-      div.className = `log-entry ${cssClass}`;
-      div.innerText = msg;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
+    function addCombatLog(txt, cls = '') {
+      [document.getElementById('mobileCombatLog'), document.getElementById('deskCombatLog')].forEach(b => {
+        if (!b) return;
+        const div = document.createElement('div');
+        div.className = `log-line ${cls}`;
+        div.innerText = txt;
+        b.appendChild(div);
+        b.scrollTop = b.scrollHeight;
+      });
     }
 
+    /* INITIALIZATION */
+    renderStatsUI();
     loadDialogueScene('prologue');
-    renderHangarSlots();
-    renderCatalog();
+    renderHangarUI();
   </script>
 </body>
 </html>
