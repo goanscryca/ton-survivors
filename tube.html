@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PROJECT INCARNATION // CYLINDER ROLLERCOASTER ARENA</title>
+  <title>PROJECT INCARNATION // SOLID ROLLERCOASTER COMBAT</title>
   <style>
     :root {
-      --bg: #04060a;
+      --bg: #030508;
       --panel: rgba(10, 16, 26, 0.94);
       --border: #1e2c44;
       --cyan: #00f0ff;
@@ -90,12 +90,12 @@
 
     /* Crosshair 3D */
     .crosshair-container {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%);
       width: 140px; height: 140px; pointer-events: none; z-index: 40;
       display: flex; align-items: center; justify-content: center;
     }
     .ac-reticle {
-      width: 80px; height: 80px; border: 1.5px solid rgba(0,240,255,0.6);
+      width: 76px; height: 76px; border: 1.5px solid rgba(0,240,255,0.6);
       border-radius: 50%; position: relative; animation: spinReticle 16s linear infinite;
     }
     @keyframes spinReticle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -103,7 +103,7 @@
     .target-tag {
       position: absolute; bottom: -22px; font-family: var(--font-mono); font-size: 10px;
       color: var(--cyan); background: rgba(0,240,255,0.15); padding: 2px 6px; border-radius: 3px;
-      white-space: nowrap;
+      white-space: nowrap; left: 50%; transform: translateX(-50%);
     }
 
     /* Radio HUD */
@@ -119,8 +119,8 @@
     .radio-author { font-size: 9.5px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
 
     .stagger-alert {
-      position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-      font-size: 26px; font-weight: 900; font-family: var(--font-mono);
+      position: absolute; top: 32%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 24px; font-weight: 900; font-family: var(--font-mono);
       color: #ff2a4b; letter-spacing: 4px; text-shadow: 0 0 20px #ff2a4b, 0 0 40px #ff0000;
       opacity: 0; pointer-events: none; z-index: 60; transition: opacity 0.15s ease;
     }
@@ -130,20 +130,20 @@
       to { transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.5); }
     }
 
-    /* Controls */
+    /* Controls Overlay */
     .controls-overlay {
       position: absolute; bottom: 16px; left: 0; right: 0;
       display: flex; justify-content: space-between; align-items: flex-end;
       padding: 0 16px; pointer-events: none; z-index: 50;
     }
     .steering-pad {
-      display: flex; gap: 8px; pointer-events: auto;
+      display: flex; gap: 10px; pointer-events: auto;
     }
     .steer-btn {
-      width: 64px; height: 64px; border-radius: 12px;
+      width: 66px; height: 66px; border-radius: 14px;
       background: rgba(13, 20, 32, 0.88); border: 2px solid rgba(0,240,255,0.4);
-      color: var(--cyan); font-size: 22px; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; backdrop-filter: blur(4px);
+      color: var(--cyan); font-size: 24px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 0 12px rgba(0,240,255,0.2);
     }
     .steer-btn:active { background: rgba(0,240,255,0.25); transform: scale(0.95); }
 
@@ -270,7 +270,7 @@
     <header class="ac-header">
       <div class="brand-title">
         <span>PROJECT INCARNATION™</span>
-        <span class="brand-tag">ROLLERCOASTER TUBE</span>
+        <span class="brand-tag">SOLID CYLINDER ROLLERCOASTER</span>
       </div>
 
       <nav class="view-switcher">
@@ -278,7 +278,7 @@
           ⚙️ АНГАР (GARAGE)
         </button>
         <button class="mode-tab-btn active" id="tab-btn-arena" onclick="switchMode('arena')">
-          🎢 ТРАССА (ROLLERCOASTER)
+          🎢 ТРАССА (OUTER SURFACE)
         </button>
       </nav>
 
@@ -350,7 +350,7 @@
         </div>
       </section>
 
-      <!-- 2. 3D ROLLERCOASTER TUBE COMBAT SCREEN -->
+      <!-- 2. 3D SOLID ROLLERCOASTER OUTER TRACK SCREEN -->
       <section id="screen-arena" class="view-screen active">
         <div id="webgl-container">
           <canvas id="threeCanvas"></canvas>
@@ -358,7 +358,7 @@
           <!-- Top HUD -->
           <div class="track-hud">
             <div class="hud-bar-block">
-              <div style="font-size:11px; font-weight:700; color:var(--cyan); letter-spacing:1px;" id="arena-build-name">INCARNATION MK-V</div>
+              <div style="font-size:11px; font-weight:700; color:var(--cyan); letter-spacing:1px;" id="arena-build-name">INCARNATION MK-VI</div>
               <div class="hud-label">
                 <span>AP БРОНЯ:</span>
                 <span id="hud-txt-ap" style="color:var(--cyan); font-weight:700;">4200 / 4200</span>
@@ -379,7 +379,7 @@
             <!-- Speedometer -->
             <div class="speedometer-box">
               <div class="speed-val" id="hud-speed">485</div>
-              <div class="speed-sub">KM/H // MAG-BOOST</div>
+              <div class="speed-sub">KM/H // SOLID MAG-TRACK</div>
             </div>
 
             <div class="hud-bar-block" style="align-items:flex-end;">
@@ -414,7 +414,7 @@
           <!-- Result Overlays -->
           <div class="match-result-overlay" id="overlayDefeat">
             <div class="result-badge result-defeat">СИСТЕМНЫЙ СБОЙ // ПОРАЖЕНИЕ</div>
-            <div class="result-sub">Воплощение сорвалось с магнитной трассы или разрушено залпами босса!</div>
+            <div class="result-sub">Воплощение уничтожено огнем Centurion-Titan на магнитной трассе!</div>
             <div class="result-btns">
               <button class="res-btn btn-retry" onclick="restartCombat()">🔄 ПЕРЕЗАПУСТИТЬ ТРАССУ</button>
               <button class="res-btn btn-to-garage" onclick="switchMode('garage')">⚙️ В АНГАР</button>
@@ -423,7 +423,7 @@
 
           <div class="match-result-overlay" id="overlayVictory">
             <div class="result-badge result-victory">ЦЕЛЬ УНИЧТОЖЕНА // ПОБЕДА!</div>
-            <div class="result-sub">Hermann «Centurion-Titan» уничтожен в вираже цилиндрической трассы!</div>
+            <div class="result-sub">Hermann «Centurion-Titan» уничтожен! Поверхность трассы зачищена.</div>
             <div class="result-btns">
               <button class="res-btn btn-retry" onclick="restartCombat()">🔄 ПРОЕХАТЬ СНОВА</button>
               <button class="res-btn btn-to-garage" onclick="switchMode('garage')">⚙️ В АНГАР</button>
@@ -457,7 +457,7 @@
             </div>
           </div>
 
-          <div class="pc-help">Управление: [A / D] или [◀ / ▶] Вращение по цилиндру | [W / S] Газ / Тормоз | [SPACE / SHIFT] Quick Boost | [ЛКМ] Оружие R | [F / ПКМ] Клинок L | [E] Ракеты/Бэк</div>
+          <div class="pc-help">Управление: [A / D] или [◀ / ▶] Скольжение снаружи цилиндра | [SPACE / SHIFT] Quick Boost | [ЛКМ] Оружие R | [F / ПКМ] Клинок L | [E] Ракеты/Бэк</div>
         </div>
       </section>
     </main>
@@ -478,19 +478,19 @@
 
     const PARTS_DB = {
       armR: [
-        { id: "lumier_l9", name: "Лазер Lumier L-9", vendor: "Lumier", type: "laser", icon: "⚡", dmg: 120, stagger: 5.0, weight: 1.8, en: 320, desc: "Скорострельные когерентные лазерные импульсы с бирюзовым свечением." },
-        { id: "hermann_gatling", name: "Пулемет Hermann H-44", vendor: "Hermann", type: "gatling", icon: "💥", dmg: 60, stagger: 7.5, weight: 3.4, en: 120, desc: "Шквал бронебойных пуль. Бешеный темп и быстрое накопление Stagger!" },
-        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "shotgun", icon: "🛑", dmg: 420, stagger: 30, weight: 2.9, en: 180, desc: "Мощный кинетический залп картечью в упор по трассе." }
+        { id: "lumier_l9", name: "Лазер Lumier L-9", vendor: "Lumier", type: "laser", icon: "⚡", dmg: 125, stagger: 5.2, weight: 1.8, en: 320, desc: "Скорострельные когерентные лазерные импульсы с бирюзовым свечением." },
+        { id: "hermann_gatling", name: "Пулемет Hermann H-44", vendor: "Hermann", type: "gatling", icon: "💥", dmg: 65, stagger: 7.8, weight: 3.4, en: 120, desc: "Шквал бронебойных пуль. Бешеный темп и быстрое накопление Stagger!" },
+        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "shotgun", icon: "🛑", dmg: 440, stagger: 32, weight: 2.9, en: 180, desc: "Мощный кинетический залп картечью в упор по поверхности трассы." }
       ],
       armL: [
-        { id: "haruki_muramasa", name: "Клинок Haruki Muramasa", vendor: "Haruki", type: "blade", icon: "🗡️", dmg: 1100, stagger: 55, weight: 1.2, en: 260, desc: "Мономолекулярный клинок. Рывок вперед по трассе с рассекающим ударом!" },
-        { id: "gagarin_hammer", name: "Молот Gagarin Titan", vendor: "Gagarin", type: "hammer", icon: "🔨", dmg: 1600, stagger: 80, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран с круговой ударной волной по цилиндру." },
-        { id: "vertex_buckler", name: "Щит Vertex Pulse", vendor: "Vertex", type: "shield", icon: "🛡️", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Электромагнитный купол, отражающий выстрелы босса." }
+        { id: "haruki_muramasa", name: "Клинок Haruki Muramasa", vendor: "Haruki", type: "blade", icon: "🗡️", dmg: 1150, stagger: 58, weight: 1.2, en: 260, desc: "Мономолекулярный клинок. Стремительный рывок вдоль рельса с рассекающим ударом!" },
+        { id: "gagarin_hammer", name: "Молот Gagarin Titan", vendor: "Gagarin", type: "hammer", icon: "🔨", dmg: 1650, stagger: 82, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран с круговой ударной волной по поверхности цилиндра." },
+        { id: "vertex_buckler", name: "Щит Vertex Pulse", vendor: "Vertex", type: "shield", icon: "🛡️", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Электромагнитный купол, отражающий залпы босса назад." }
       ],
       backL: [
-        { id: "zedong_hail", name: "Ракетный рой Zedong Hail-8", vendor: "Zedong", type: "missile", icon: "🚀", dmg: 200, stagger: 14, weight: 3.2, en: 220, desc: "Веер из 6 самонаводящихся ракет, огибающих виражи цилиндра." },
-        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "railgun", icon: "⚡", dmg: 850, stagger: 60, weight: 5.2, en: 380, desc: "Гиперзвуковой бронебойный луч сквозь босса с мощной отдачей." },
-        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "plasma", icon: "🔮", dmg: 680, stagger: 45, weight: 4.1, en: 450, desc: "Огромный шар плазмы, взрывающийся в тоннеле." }
+        { id: "zedong_hail", name: "Ракетный рой Zedong Hail-8", vendor: "Zedong", type: "missile", icon: "🚀", dmg: 210, stagger: 15, weight: 3.2, en: 220, desc: "Веер из 6 самонаводящихся ракет, огибающих внешнюю сторону цилиндра." },
+        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "railgun", icon: "⚡", dmg: 880, stagger: 62, weight: 5.2, en: 380, desc: "Гиперзвуковой бронебойный луч сквозь босса с мощной отдачей." },
+        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "plasma", icon: "🔮", dmg: 700, stagger: 48, weight: 4.1, en: 450, desc: "Огромный шар плазмы, взрывающийся на внешней поверхности." }
       ],
       core: [
         { id: "lumier_singularity", name: "Сингулярное ядро Lumier-Q", vendor: "Lumier", ap: 1400, weight: 12.0, enOutput: 3800, desc: "Колоссальная энергоотдача для лазеров и бустеров." },
@@ -648,15 +648,15 @@
       document.getElementById(`screen-${m}`).classList.add('active');
       document.getElementById(`tab-btn-${m}`).classList.add('active');
       if (m === 'arena') {
-        init3DArena();
+        initSolidArena();
       }
     }
 
     function launchSortie() {
       playSfx('boost');
       switchMode('arena');
-      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM: ALL GREEN. ВЫХОД НА МАГНИТНУЮ ТРАССУ-ТУНЕЛЬ.", "#00f0ff");
-      triggerRadio("СИЛА", "ВРУБАЙ ТУРБИНЫ! КРУТИСЬ ПО ЦИЛИНДРУ И ВРЕЖЬ ЕМУ!", "#ef4444");
+      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM: ALL GREEN. ВЫХОД НА ВНЕШНЮЮ МАГНИТНУЮ ТРАССУ.", "#00f0ff");
+      triggerRadio("СИЛА", "ВРУБАЙ ТУРБИНЫ! МЫ СНАРУЖИ РЕЛЬСА — ПРИЖИМАЙСЯ И АТАКУЙ!", "#ef4444");
     }
 
     /* ========================================================
@@ -789,31 +789,29 @@
     }
 
     /* ========================================================
-       THREE.JS 3D CYLINDER ROLLERCOASTER SYSTEM
+       SOLID CYLINDRICAL ROLLERCOASTER ENGINE (OUTER SURFACE)
        ======================================================== */
     let scene, camera, renderer;
     let trackCurve = null;
-    let tubeMesh = null;
-    let ringsGroup = null;
+    let solidTrackMesh = null;
+    let railsGroup = null;
 
-    // Track parameters
-    const TUBE_RADIUS = 28; // Radius of the cylindrical surface
-    const TRACK_POINTS_COUNT = 80;
+    const SOLID_RADIUS = 26; // Solid cylinder core radius
+    const TRACK_POINTS_COUNT = 84;
     let trackSplinePoints = [];
 
-    // Player state on cylinder
+    // Player state on the OUTER surface of the solid cylinder
     const player = {
-      s: 0.0,            // Normalized position along the spline [0..1]
-      speed: 0.00065,    // Base forward speed
+      s: 0.0,              // Progress along the spline [0..1]
+      speed: 0.00065,
       currentSpeed: 0.00065,
-      theta: 0.0,        // Angle around the cylinder [0..2*PI] (0 = bottom, PI = top/ceiling)
-      targetTheta: 0.0,  // Smooth interpolation target
+      theta: 0.0,          // Angle around cylinder perimeter [0..2*PI]
       thetaVel: 0.0,
       hp: 4200, maxHp: 4200,
       en: 100, maxEn: 100,
       enRegen: 0.45,
       qbCost: 20,
-      qbForce: 0.12,
+      qbForce: 0.14,
       rCooldown: 0,
       lCooldown: 0,
       backCooldown: 0,
@@ -821,12 +819,13 @@
       hammerTimer: 0,
       shieldTimer: 0,
       mesh: null,
-      shieldMesh: null
+      shieldMesh: null,
+      boosterLight: null
     };
 
-    // Boss state on cylinder ahead
+    // Boss state on the outer surface ahead
     const boss = {
-      s: 0.045,          // Sits ahead of the player on the track
+      s: 0.045,
       theta: 0.0,
       hp: 9500, maxHp: 9500,
       stagger: 0, maxStagger: 100,
@@ -841,33 +840,37 @@
     let missiles3D = [];
     let particles3D = [];
     let matchFinished = false;
-    let steerDir = 0; // -1 = left, +1 = right
+    let steerDir = 0;
 
-    function init3DArena() {
+    function initSolidArena() {
       const container = document.getElementById('webgl-container');
       const canvasEl = document.getElementById('threeCanvas');
 
       if (!renderer) {
         scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x02040a, 0.0035);
+        scene.fog = new THREE.FogExp2(0x03060c, 0.0028);
 
-        camera = new THREE.PerspectiveCamera(65, container.clientWidth / container.clientHeight, 0.5, 2000);
+        camera = new THREE.PerspectiveCamera(65, container.clientWidth / container.clientHeight, 0.5, 2500);
         renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: false });
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Ambient & Directional Lights
-        const ambLight = new THREE.AmbientLight(0x223344, 1.2);
+        // Lighting
+        const ambLight = new THREE.AmbientLight(0x2a3b50, 1.4);
         scene.add(ambLight);
 
-        const dirLight = new THREE.DirectionalLight(0x00f0ff, 1.5);
-        dirLight.position.set(50, 100, 50);
-        scene.add(dirLight);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        sunLight.position.set(120, 250, 80);
+        scene.add(sunLight);
 
-        buildRollercoasterTrack();
-        buildMechModel();
-        buildBossModel();
-        buildStarfield();
+        const neonCyanLight = new THREE.DirectionalLight(0x00f0ff, 1.0);
+        neonCyanLight.position.set(-100, -150, -50);
+        scene.add(neonCyanLight);
+
+        buildSolidTrack();
+        buildThirdPersonMech();
+        buildBossCenturion();
+        buildSpaceEnvironment();
 
         window.addEventListener('resize', onWindowResize);
       }
@@ -884,115 +887,169 @@
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
-    /* Build Rollercoaster Spline & Glowing Tube Mesh */
-    function buildRollercoasterTrack() {
+    /* Build Solid (Non-Hollow) Rollercoaster Pipe */
+    function buildSolidTrack() {
       trackSplinePoints = [];
-      const R_MAIN = 480; // Large circuit radius
+      const R_CIRCUIT = 500;
 
       for (let i = 0; i < TRACK_POINTS_COUNT; i++) {
         const u = (i / TRACK_POINTS_COUNT) * Math.PI * 2;
-        // Rollercoaster path with loops, climbs, dips and corkscrew twists
-        const x = Math.sin(u) * R_MAIN + Math.sin(u * 3) * 120;
-        const y = Math.sin(u * 2) * 160 + Math.cos(u * 4) * 80;
-        const z = Math.cos(u) * R_MAIN + Math.cos(u * 2) * 140;
+        // Sweeping roller-coaster with drops, loops, and corkscrews
+        const x = Math.sin(u) * R_CIRCUIT + Math.sin(u * 3) * 140;
+        const y = Math.sin(u * 2) * 180 + Math.cos(u * 4) * 90;
+        const z = Math.cos(u) * R_CIRCUIT + Math.cos(u * 2) * 150;
         trackSplinePoints.push(new THREE.Vector3(x, y, z));
       }
 
       trackCurve = new THREE.CatmullRomCurve3(trackSplinePoints, true, 'centripetal');
 
-      // Outer Wireframe / Neon Rings Tube
-      const tubeGeo = new THREE.TubeGeometry(trackCurve, 400, TUBE_RADIUS, 18, true);
-      const tubeMat = new THREE.MeshBasicMaterial({
-        color: 0x00f0ff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.12
+      // 1. SOLID, OPAQUE HEAVY CYLINDER (Not hollow! Non-wireframe)
+      // High polygon density with dark titanium-carbon finish
+      const solidGeo = new THREE.TubeGeometry(trackCurve, 500, SOLID_RADIUS, 28, true);
+      const solidMat = new THREE.MeshStandardMaterial({
+        color: 0x111622,
+        roughness: 0.35,
+        metalness: 0.85
       });
-      tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-      scene.add(tubeMesh);
+      solidTrackMesh = new THREE.Mesh(solidGeo, solidMat);
+      scene.add(solidTrackMesh);
 
-      // Glowing Mag-Rail Rings along the track
-      ringsGroup = new THREE.Group();
-      const ringGeo = new THREE.TorusGeometry(TUBE_RADIUS + 0.5, 0.4, 8, 32);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      // 2. GLOWING NEON MAG-RAILS running along the outer surface (4 longitudinal rails)
+      railsGroup = new THREE.Group();
 
-      for (let i = 0; i < 200; i++) {
-        const tVal = i / 200;
+      // Transverse structural ring ribs every few meters
+      const ribGeo = new THREE.TorusGeometry(SOLID_RADIUS + 0.6, 0.5, 8, 32);
+      const ribMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.8 });
+      const neonTrimMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+      for (let i = 0; i < 220; i++) {
+        const tVal = i / 220;
         const pt = trackCurve.getPointAt(tVal);
         const tangent = trackCurve.getTangentAt(tVal).normalize();
 
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.position.copy(pt);
-        ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
-        ringsGroup.add(ring);
+        const rib = new THREE.Mesh(ribGeo, i % 5 === 0 ? neonTrimMat : ribMat);
+        rib.position.copy(pt);
+        rib.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+        railsGroup.add(rib);
       }
-      scene.add(ringsGroup);
+      scene.add(railsGroup);
     }
 
-    function buildStarfield() {
+    function buildSpaceEnvironment() {
+      // Cosmic Starfield
       const starsGeo = new THREE.BufferGeometry();
-      const count = 2500;
+      const count = 3000;
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count * 3; i += 3) {
-        positions[i] = (Math.random() - 0.5) * 3000;
-        positions[i + 1] = (Math.random() - 0.5) * 3000;
-        positions[i + 2] = (Math.random() - 0.5) * 3000;
+        positions[i] = (Math.random() - 0.5) * 3500;
+        positions[i + 1] = (Math.random() - 0.5) * 3500;
+        positions[i + 2] = (Math.random() - 0.5) * 3500;
       }
       starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const starsMat = new THREE.PointsMaterial({ color: 0x64748b, size: 1.5, transparent: true, opacity: 0.8 });
-      const starfield = new THREE.Points(starsGeo, starsMat);
-      scene.add(starfield);
+      const starsMat = new THREE.PointsMaterial({ color: 0x94a3b8, size: 1.8, transparent: true, opacity: 0.75 });
+      scene.add(new THREE.Points(starsGeo, starsMat));
+
+      // Distant Planet in the backdrop
+      const planetGeo = new THREE.SphereGeometry(140, 32, 32);
+      const planetMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.9 });
+      const planet = new THREE.Mesh(planetGeo, planetMat);
+      planet.position.set(600, -350, -700);
+      scene.add(planet);
     }
 
-    /* Build 3D Mech Visual */
-    function buildMechModel() {
+    /* Build 3rd-Person Visible Mech Model */
+    function buildThirdPersonMech() {
       const mechGroup = new THREE.Group();
 
-      // Core Torso
-      const torsoGeo = new THREE.BoxGeometry(4.0, 3.2, 5.0);
-      const torsoMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
+      // Lower Chassis / Legs (planted towards track surface)
+      const chassisGeo = new THREE.BoxGeometry(4.2, 2.0, 5.0);
+      const chassisMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.8 });
+      const chassis = new THREE.Mesh(chassisGeo, chassisMat);
+      chassis.position.set(0, 1.0, 0);
+      mechGroup.add(chassis);
+
+      // Skids / Foot repulsors contacting the rail
+      const skidGeo = new THREE.BoxGeometry(1.0, 0.6, 6.0);
+      const skidMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
+      const skidL = new THREE.Mesh(skidGeo, skidMat);
+      skidL.position.set(-2.0, 0.2, 0);
+      mechGroup.add(skidL);
+
+      const skidR = new THREE.Mesh(skidGeo, skidMat);
+      skidR.position.set(2.0, 0.2, 0);
+      mechGroup.add(skidR);
+
+      // Torso & Armored Cockpit
+      const torsoGeo = new THREE.BoxGeometry(4.8, 3.8, 4.4);
+      const torsoMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.7 });
       const torso = new THREE.Mesh(torsoGeo, torsoMat);
+      torso.position.set(0, 3.4, -0.4);
       mechGroup.add(torso);
 
-      // Reactor Eye
-      const eyeGeo = new THREE.SphereGeometry(1.0, 16, 16);
-      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      const eye = new THREE.Mesh(eyeGeo, eyeMat);
-      eye.position.set(0, 0.4, 2.6);
-      mechGroup.add(eye);
+      // Glowing Reactor Core Eye
+      const coreGeo = new THREE.SphereGeometry(1.2, 16, 16);
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const core = new THREE.Mesh(coreGeo, coreMat);
+      core.position.set(0, 3.6, 1.8);
+      mechGroup.add(core);
 
-      // Boosters (Wings)
-      const wingGeo = new THREE.BoxGeometry(1.4, 1.8, 4.0);
-      const wingMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.7 });
-      const wingL = new THREE.Mesh(wingGeo, wingMat);
-      wingL.position.set(-3.2, 0.8, -1.0);
-      wingL.rotation.z = 0.3;
-      mechGroup.add(wingL);
+      // Massive Back Booster Jets (Firing cyan flames)
+      const boosterGeo = new THREE.CylinderGeometry(0.8, 1.2, 3.0, 16);
+      boosterGeo.rotateX(Math.PI / 2);
+      const boosterMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 });
 
-      const wingR = new THREE.Mesh(wingGeo, wingMat);
-      wingR.position.set(3.2, 0.8, -1.0);
-      wingR.rotation.z = -0.3;
-      mechGroup.add(wingR);
+      const boosterL = new THREE.Mesh(boosterGeo, boosterMat);
+      boosterL.position.set(-1.8, 4.2, -2.4);
+      mechGroup.add(boosterL);
 
-      // Jet Exhaust Sparks PointLight
-      const jetLight = new THREE.PointLight(0x00f0ff, 2.5, 20);
-      jetLight.position.set(0, 0, -3.5);
-      mechGroup.add(jetLight);
+      const boosterR = new THREE.Mesh(boosterGeo, boosterMat);
+      boosterR.position.set(1.8, 4.2, -2.4);
+      mechGroup.add(boosterR);
 
-      // Arms & Weapon pods
-      const armGeo = new THREE.BoxGeometry(1.2, 1.2, 5.5);
-      const armR = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
-      armR.position.set(3.0, -0.6, 1.5);
-      mechGroup.add(armR);
+      // Dynamic Booster Flame Exhausts
+      const flameGeo = new THREE.ConeGeometry(0.9, 4.5, 12);
+      flameGeo.rotateX(-Math.PI / 2);
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.85 });
 
-      const armL = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: 0xffaa00 }));
-      armL.position.set(-3.0, -0.6, 1.5);
+      const flameL = new THREE.Mesh(flameGeo, flameMat);
+      flameL.position.set(-1.8, 4.2, -4.6);
+      mechGroup.add(flameL);
+
+      const flameR = new THREE.Mesh(flameGeo, flameMat);
+      flameR.position.set(1.8, 4.2, -4.6);
+      mechGroup.add(flameR);
+
+      player.boosterLight = new THREE.PointLight(0x00f0ff, 3.5, 25);
+      player.boosterLight.position.set(0, 4.0, -4.0);
+      mechGroup.add(player.boosterLight);
+
+      // Arm Weapons (Visible in 3rd person)
+      // R-Arm Heavy Rifle
+      const gunGeo = new THREE.BoxGeometry(1.2, 1.4, 7.0);
+      const gunR = new THREE.Mesh(gunGeo, new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.8 }));
+      gunR.position.set(3.4, 3.0, 1.5);
+      mechGroup.add(gunR);
+
+      // L-Arm Blade / Shield Mount
+      const armL = new THREE.Mesh(gunGeo, new THREE.MeshStandardMaterial({ color: 0xffaa00, metalness: 0.8 }));
+      armL.position.set(-3.4, 3.0, 1.5);
       mechGroup.add(armL);
 
-      // Shield Sphere Mesh (hidden by default)
-      const shieldGeo = new THREE.SphereGeometry(6.5, 24, 24);
+      // Back Missile Pods
+      const podGeo = new THREE.BoxGeometry(1.6, 2.0, 3.2);
+      const podL = new THREE.Mesh(podGeo, new THREE.MeshStandardMaterial({ color: 0xff2a4b, metalness: 0.7 }));
+      podL.position.set(-2.8, 5.5, -1.0);
+      mechGroup.add(podL);
+
+      const podR = new THREE.Mesh(podGeo, new THREE.MeshStandardMaterial({ color: 0xff2a4b, metalness: 0.7 }));
+      podR.position.set(2.8, 5.5, -1.0);
+      mechGroup.add(podR);
+
+      // Shield Sphere
+      const shieldGeo = new THREE.SphereGeometry(7.5, 24, 24);
       const shieldMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.25, wireframe: true });
       player.shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+      player.shieldMesh.position.set(0, 3.5, 0);
       player.shieldMesh.visible = false;
       mechGroup.add(player.shieldMesh);
 
@@ -1000,31 +1057,32 @@
       scene.add(player.mesh);
     }
 
-    /* Build 3D Centurion-Titan Boss Model */
-    function buildBossModel() {
+    /* Build 3D Centurion-Titan Boss Model on outer surface */
+    function buildBossCenturion() {
       const bossGroup = new THREE.Group();
 
-      const bodyGeo = new THREE.BoxGeometry(10.0, 7.0, 14.0);
-      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.4, metalness: 0.9 });
+      const bodyGeo = new THREE.BoxGeometry(12.0, 8.0, 16.0);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.35, metalness: 0.9 });
       const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.set(0, 4.5, 0);
       bossGroup.add(body);
 
-      // Boss Red Eye
-      const eyeGeo = new THREE.SphereGeometry(2.0, 16, 16);
+      // Glowing Eye
+      const eyeGeo = new THREE.SphereGeometry(2.4, 16, 16);
       const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2a4b });
       const eye = new THREE.Mesh(eyeGeo, eyeMat);
-      eye.position.set(0, 1.5, -7.2);
+      eye.position.set(0, 5.5, -8.2);
       bossGroup.add(eye);
 
-      // Side Armor Turrets
-      const turretGeo = new THREE.CylinderGeometry(2.5, 2.5, 4.0, 16);
-      const turretMat = new THREE.MeshStandardMaterial({ color: 0x18181b });
+      // Heavy Side Turrets
+      const turretGeo = new THREE.CylinderGeometry(2.8, 2.8, 5.0, 16);
+      const turretMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.8 });
       const turretL = new THREE.Mesh(turretGeo, turretMat);
-      turretL.position.set(-6.5, 0, 0);
+      turretL.position.set(-7.5, 4.0, 0);
       bossGroup.add(turretL);
 
       const turretR = new THREE.Mesh(turretGeo, turretMat);
-      turretR.position.set(6.5, 0, 0);
+      turretR.position.set(7.5, 4.0, 0);
       bossGroup.add(turretR);
 
       boss.mesh = bossGroup;
@@ -1041,12 +1099,11 @@
       player.hp = stats.ap;
       player.s = 0.0;
       player.theta = 0.0;
-      player.targetTheta = 0.0;
       player.thetaVel = 0.0;
       player.speed = (stats.speed / 500) * 0.00065;
       player.currentSpeed = player.speed;
       player.qbCost = stats.qbCost;
-      player.qbForce = stats.finalQb * 0.008;
+      player.qbForce = stats.finalQb * 0.01;
       player.shieldTimer = 0;
 
       boss.s = 0.045;
@@ -1057,7 +1114,6 @@
       boss.staggerTimer = 0;
       boss.attackTimer = 60;
 
-      // Clear 3D projectiles
       bullets3D.forEach(b => scene.remove(b.mesh)); bullets3D = [];
       enemyBullets3D.forEach(b => scene.remove(b.mesh)); enemyBullets3D = [];
       missiles3D.forEach(m => scene.remove(m.mesh)); missiles3D = [];
@@ -1088,7 +1144,6 @@
       }
     });
 
-    // Mobile Steer Buttons
     const btnL = document.getElementById('btn-steer-left');
     const btnR = document.getElementById('btn-steer-right');
 
@@ -1102,7 +1157,6 @@
     btnR.addEventListener('mousedown', () => { initAudio(); steerDir = 1; });
     btnR.addEventListener('mouseup', () => { if (steerDir === 1) steerDir = 0; });
 
-    // Action Pad
     document.getElementById('btn-fire-r').addEventListener('click', () => { initAudio(); fireRWeapon3D(); });
     document.getElementById('btn-fire-r').addEventListener('touchstart', (e) => { e.preventDefault(); initAudio(); fireRWeapon3D(); });
 
@@ -1123,16 +1177,15 @@
       player.en -= player.qbCost;
       playSfx('boost');
 
-      // Sudden sideways barrel-roll thrust around the cylinder
       let dir = steerDir;
       if (keys['KeyA'] || keys['ArrowLeft']) dir = -1;
       if (keys['KeyD'] || keys['ArrowRight']) dir = 1;
       if (dir === 0) dir = 1;
 
       player.thetaVel += dir * player.qbForce * 12;
-      player.currentSpeed = player.speed * 1.8; // Forward boost
+      player.currentSpeed = player.speed * 1.85;
 
-      spawnThrusterSparks(player.mesh.position, 20);
+      spawnSurfaceSparks(player.mesh.position, 25);
     }
 
     function fireRWeapon3D() {
@@ -1143,33 +1196,30 @@
         player.rCooldown = 16;
         playSfx('laser');
 
-        const bulletGeo = new THREE.CylinderGeometry(0.3, 0.3, 12, 8);
+        const bulletGeo = new THREE.CylinderGeometry(0.35, 0.35, 14, 8);
         bulletGeo.rotateX(Math.PI / 2);
-        const bulletMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-        const bMesh = new THREE.Mesh(bulletGeo, bulletMat);
-        bMesh.position.copy(player.mesh.position);
+        const bMesh = new THREE.Mesh(bulletGeo, new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
         bMesh.quaternion.copy(player.mesh.quaternion);
         scene.add(bMesh);
 
         bullets3D.push({
           mesh: bMesh,
-          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(5.5),
+          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(6.0),
           dmg: w.dmg, stagger: w.stagger, life: 60
         });
       } else if (w.type === 'gatling') {
         player.rCooldown = 7;
         playSfx('gatling');
 
-        const bulletGeo = new THREE.SphereGeometry(0.5, 8, 8);
-        const bulletMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-        const bMesh = new THREE.Mesh(bulletGeo, bulletMat);
-        bMesh.position.copy(player.mesh.position);
+        const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
         scene.add(bMesh);
 
         const spread = new THREE.Vector3((Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.08, 1).normalize();
         bullets3D.push({
           mesh: bMesh,
-          vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(5.0),
+          vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(5.5),
           dmg: w.dmg, stagger: w.stagger, life: 55
         });
       } else if (w.type === 'shotgun') {
@@ -1177,15 +1227,14 @@
         playSfx('shotgun');
 
         for (let i = 0; i < 7; i++) {
-          const bulletGeo = new THREE.SphereGeometry(0.6, 8, 8);
-          const bMesh = new THREE.Mesh(bulletGeo, new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-          bMesh.position.copy(player.mesh.position);
+          const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.65, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+          bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
           scene.add(bMesh);
 
           const spread = new THREE.Vector3((Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25, 1).normalize();
           bullets3D.push({
             mesh: bMesh,
-            vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(4.5 + Math.random()),
+            vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(4.8 + Math.random()),
             dmg: Math.round(w.dmg / 5), stagger: w.stagger / 5, life: 35
           });
         }
@@ -1200,16 +1249,16 @@
         player.lCooldown = 65;
         player.bladeTimer = 25;
         playSfx('blade');
-        player.currentSpeed = player.speed * 2.4; // Dash strike along track
+        player.currentSpeed = player.speed * 2.5;
 
-        triggerRadio("СИЛА", "РАЗГОН КЛИНКА ПО ДУГЕ! СРЕЗАЙ ТИТАНА!", "#ef4444");
+        triggerRadio("СИЛА", "РАЗГОН КЛИНКА ПО ВНЕШНЕЙ ТРАССЕ! СРЕЗАЙ ТИТАНА!", "#ef4444");
       } else if (w.type === 'hammer') {
         player.lCooldown = 80;
         player.hammerTimer = 30;
         playSfx('hammer');
-        player.currentSpeed = player.speed * 1.9;
+        player.currentSpeed = player.speed * 2.0;
 
-        triggerRadio("СИЛА", "МОЛОТ ТИТАНА ВЗВЕДЕН! ВРЕЖЬ ПО ЦИЛИНДРУ!", "#ef4444");
+        triggerRadio("СИЛА", "МОЛОТ ТИТАНА ВЗВЕДЕН! ВРЕЖЬ В БРОНЮ!", "#ef4444");
       } else if (w.type === 'shield') {
         player.lCooldown = 120;
         player.shieldTimer = 200;
@@ -1229,31 +1278,28 @@
         playSfx('missile');
 
         for (let i = 0; i < 6; i++) {
-          const mGeo = new THREE.ConeGeometry(0.5, 3.0, 8);
+          const mGeo = new THREE.ConeGeometry(0.6, 3.2, 8);
           mGeo.rotateX(Math.PI / 2);
           const mMesh = new THREE.Mesh(mGeo, new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
-          mMesh.position.copy(player.mesh.position);
+          mMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 5, 0).applyQuaternion(player.mesh.quaternion));
           scene.add(mMesh);
 
-          const side = (i % 2 === 0 ? 1 : -1) * (1.5 + Math.random());
+          const side = (i % 2 === 0 ? 1 : -1) * (2.0 + Math.random());
           missiles3D.push({
             mesh: mMesh,
-            sideOffset: side,
-            vel: new THREE.Vector3(side, (Math.random() - 0.5) * 1.5, 2.5).applyQuaternion(player.mesh.quaternion),
+            vel: new THREE.Vector3(side, 2.5, 2.5).applyQuaternion(player.mesh.quaternion),
             dmg: w.dmg, stagger: w.stagger, life: 100, delayTurn: 10 + i * 4
           });
         }
-        triggerRadio("ЛОГИКА", "Ракетный рой запущен по кривизне тоннеля!", "#06b6d4");
+        triggerRadio("ЛОГИКА", "Ракетный рой запущен вдоль рельса!", "#06b6d4");
       } else if (w.type === 'railgun') {
         player.backCooldown = 110;
         playSfx('railgun');
 
-        // Instant Hyper-Velocity Beam
-        const beamGeo = new THREE.CylinderGeometry(0.8, 0.8, 220, 8);
+        const beamGeo = new THREE.CylinderGeometry(0.9, 0.9, 240, 8);
         beamGeo.rotateX(Math.PI / 2);
-        const beamMat = new THREE.MeshBasicMaterial({ color: 0xbf5af2 });
-        const beam = new THREE.Mesh(beamGeo, beamMat);
-        beam.position.copy(player.mesh.position);
+        const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xbf5af2 }));
+        beam.position.copy(player.mesh.position).add(new THREE.Vector3(0, 4, 120).applyQuaternion(player.mesh.quaternion));
         beam.quaternion.copy(player.mesh.quaternion);
         scene.add(beam);
         setTimeout(() => scene.remove(beam), 220);
@@ -1262,26 +1308,24 @@
         boss.hp = Math.max(0, boss.hp - Math.round(w.dmg * crit));
         addBossStagger3D(w.stagger);
         playSfx('hit');
-        spawnThrusterSparks(boss.mesh.position, 35);
+        spawnSurfaceSparks(boss.mesh.position, 40);
 
-        triggerRadio("СИЛА", "ПРЯМОЕ ПОПАДАНИЕ РЕЛЬСОТРОНА СКВОЗЬ БОССА!", "#ef4444");
+        triggerRadio("СИЛА", "ПРЯМОЙ ВЫСТРЕЛ РЕЛЬСОТРОНА! БОСС ПРОБИТ!", "#ef4444");
       } else if (w.type === 'plasma') {
         player.backCooldown = 90;
         playSfx('plasma');
 
-        const pGeo = new THREE.SphereGeometry(3.0, 16, 16);
-        const pMat = new THREE.MeshBasicMaterial({ color: 0xbf5af2, wireframe: true });
-        const pMesh = new THREE.Mesh(pGeo, pMat);
-        pMesh.position.copy(player.mesh.position);
+        const pMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 16, 16), new THREE.MeshBasicMaterial({ color: 0xbf5af2, wireframe: true }));
+        pMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 4, 0).applyQuaternion(player.mesh.quaternion));
         scene.add(pMesh);
 
         bullets3D.push({
           mesh: pMesh,
-          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(3.2),
+          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(3.5),
           dmg: w.dmg, stagger: w.stagger, life: 80, isPlasma: true
         });
 
-        triggerRadio("ЛОГИКА", "Плазменный сгусток выпущен по трассе.", "#06b6d4");
+        triggerRadio("ЛОГИКА", "Плазменный шар выпущен по трассе.", "#06b6d4");
       }
     }
 
@@ -1293,53 +1337,57 @@
         boss.staggerTimer = 180;
         playSfx('stagger');
         document.getElementById('staggerBanner').classList.add('active');
-        triggerRadio("СИЛА", "ACS OVERLOAD! ОН В СТАНЕ НА ВИРАЖЕ — ДОБИВАЙ!", "#ef4444");
+        triggerRadio("СИЛА", "ACS OVERLOAD! ОН В СТАНЕ — ДОБИВАЙ!", "#ef4444");
       }
     }
 
-    function spawnThrusterSparks(pos, count) {
+    function spawnSurfaceSparks(pos, count) {
       for (let i = 0; i < count; i++) {
-        const sGeo = new THREE.SphereGeometry(0.4, 4, 4);
-        const sMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-        const spark = new THREE.Mesh(sGeo, sMat);
+        const spark = new THREE.Mesh(new THREE.SphereGeometry(0.4, 4, 4), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
         spark.position.copy(pos);
         scene.add(spark);
         particles3D.push({
           mesh: spark,
-          vx: (Math.random() - 0.5) * 1.5,
-          vy: (Math.random() - 0.5) * 1.5,
-          vz: (Math.random() - 0.5) * 1.5,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: (Math.random() - 0.5) * 1.6,
+          vz: (Math.random() - 0.5) * 1.6,
           life: 25
         });
       }
     }
 
-    /* Helper: Compute 3D Position & Orientation on Cylinder Surface */
-    function getCylinderTransform(s, theta) {
+    /* Helper: Compute 3D Position & Orientation on OUTER Cylinder Surface */
+    function getOuterCylinderTransform(s, theta) {
       s = ((s % 1.0) + 1.0) % 1.0;
       const centerPt = trackCurve.getPointAt(s);
       const tangent = trackCurve.getTangentAt(s).normalize();
 
-      // Frenet frame normal & binormal
       let up = new THREE.Vector3(0, 1, 0);
       if (Math.abs(tangent.dot(up)) > 0.95) up = new THREE.Vector3(1, 0, 0);
       const normal = new THREE.Vector3().crossVectors(tangent, up).normalize();
       const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
 
-      // Position on the cylindrical tube surface
-      const surfOffset = new THREE.Vector3()
-        .addScaledVector(normal, Math.cos(theta) * TUBE_RADIUS)
-        .addScaledVector(binormal, Math.sin(theta) * TUBE_RADIUS);
+      // Vector pointing OUTWARDS from the solid cylinder center
+      const outVector = new THREE.Vector3()
+        .addScaledVector(normal, Math.cos(theta))
+        .addScaledVector(binormal, Math.sin(theta))
+        .normalize();
 
-      const surfacePos = new THREE.Vector3().addVectors(centerPt, surfOffset);
+      // Outer surface position (solid radius + slight hover clearance)
+      const surfacePos = new THREE.Vector3().addVectors(
+        centerPt,
+        outVector.clone().multiplyScalar(SOLID_RADIUS + 0.3)
+      );
 
-      // Orientation matrix: Z points along track tangent, Y points outward away from tube center
-      const outNorm = surfOffset.clone().normalize();
-      const right = new THREE.Vector3().crossVectors(tangent, outNorm).normalize();
-      const rotMat = new THREE.Matrix4().makeBasis(right, outNorm, tangent);
+      // Orientation:
+      // Y-axis = pointing OUTWARDS (mech feet on cylinder, head facing space)
+      // Z-axis = pointing FORWARD along tangent
+      // X-axis = pointing RIGHT along cylinder circumference
+      const right = new THREE.Vector3().crossVectors(tangent, outVector).normalize();
+      const rotMat = new THREE.Matrix4().makeBasis(right, outVector, tangent);
       const quat = new THREE.Quaternion().setFromRotationMatrix(rotMat);
 
-      return { pos: surfacePos, quat: quat, tangent: tangent, normal: outNorm, center: centerPt };
+      return { pos: surfacePos, quat: quat, tangent: tangent, upVector: outVector, center: centerPt };
     }
 
     /* ========================================================
@@ -1367,47 +1415,48 @@
         if (player.shieldTimer <= 0) player.shieldMesh.visible = false;
       }
 
-      // EN regen
       if (player.en < player.maxEn) player.en = Math.min(player.maxEn, player.en + player.enRegen);
-
-      // Smooth Speed decay
       player.currentSpeed += (player.speed - player.currentSpeed) * 0.05;
 
-      // Forward travel along track
+      // Forward travel along solid track
       player.s = (player.s + player.currentSpeed) % 1.0;
 
-      // Cylinder Theta rotation steering (left/right)
+      // Cylinder Theta steering (skidding around outer perimeter)
       let steerInput = steerDir;
       if (keys['KeyA'] || keys['ArrowLeft']) steerInput = -1;
       if (keys['KeyD'] || keys['ArrowRight']) steerInput = 1;
 
       player.thetaVel += steerInput * 0.007;
-      player.thetaVel *= 0.88; // Damping
+      player.thetaVel *= 0.88;
       player.theta += player.thetaVel;
 
-      // Position Player Mesh on the tube
-      const pTrans = getCylinderTransform(player.s, player.theta);
+      // 1. Position Mech firmly ON THE OUTER SURFACE
+      const pTrans = getOuterCylinderTransform(player.s, player.theta);
       player.mesh.position.copy(pTrans.pos);
       player.mesh.quaternion.copy(pTrans.quat);
 
-      // Tilt / Bank roll effect on quick turns
-      player.mesh.rotateZ(-player.thetaVel * 16);
+      // Banking lean when steering
+      player.mesh.rotateZ(-player.thetaVel * 14);
 
-      // Camera smoothly follows behind player on the tube
-      const camOffset = new THREE.Vector3(0, 6.0, -18.0).applyQuaternion(pTrans.quat);
-      const camTargetPos = new THREE.Vector3().addVectors(pTrans.pos, camOffset);
-      camera.position.lerp(camTargetPos, 0.15);
+      // 2. TRUE THIRD-PERSON CAMERA
+      // Positioned behind (-Z), above (+Y outward from cylinder)
+      // This guarantees the mech is 100% visible in the lower-center of the screen
+      const camLocalOffset = new THREE.Vector3(0, 10.0, -26.0).applyQuaternion(pTrans.quat);
+      const camTargetPos = new THREE.Vector3().addVectors(pTrans.pos, camLocalOffset);
+      camera.position.lerp(camTargetPos, 0.16);
 
-      // Look slightly ahead on the track
-      const lookAhead = getCylinderTransform((player.s + 0.03) % 1.0, player.theta);
+      // Camera up-vector matches cylinder outward vector
+      camera.up.copy(pTrans.upVector);
+
+      // Camera looks forward at the mech and the track ahead
+      const lookAhead = getOuterCylinderTransform((player.s + 0.035) % 1.0, player.theta);
       camera.lookAt(lookAhead.pos);
 
-      // Boss Movement & State
-      boss.s = (boss.s + player.speed * 0.98) % 1.0; // Cruises ahead
-      // Boss weaves slightly left and right across the cylinder
+      // 3. Boss Movement on Outer Track Surface ahead
+      boss.s = (boss.s + player.speed * 0.98) % 1.0;
       boss.theta = Math.sin(Date.now() * 0.001) * 1.2;
 
-      const bTrans = getCylinderTransform(boss.s, boss.theta);
+      const bTrans = getOuterCylinderTransform(boss.s, boss.theta);
       boss.mesh.position.copy(bTrans.pos);
       boss.mesh.quaternion.copy(bTrans.quat);
 
@@ -1419,15 +1468,12 @@
           document.getElementById('staggerBanner').classList.remove('active');
         }
       } else {
-        // Boss Attacks along the track
         boss.attackTimer--;
         if (boss.attackTimer <= 0) {
           boss.attackTimer = 65;
-          // Spawn 3 enemy laser plasma bolts flying backward toward player
           for (let k = -1; k <= 1; k++) {
-            const ebGeo = new THREE.SphereGeometry(1.2, 8, 8);
-            const ebMesh = new THREE.Mesh(ebGeo, new THREE.MeshBasicMaterial({ color: 0xff2a4b }));
-            ebMesh.position.copy(boss.mesh.position);
+            const ebMesh = new THREE.Mesh(new THREE.SphereGeometry(1.4, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff2a4b }));
+            ebMesh.position.copy(boss.mesh.position).add(new THREE.Vector3(0, 4, 0).applyQuaternion(boss.mesh.quaternion));
             scene.add(ebMesh);
 
             const aimDir = new THREE.Vector3().subVectors(player.mesh.position, boss.mesh.position).normalize();
@@ -1441,40 +1487,40 @@
         }
       }
 
-      // Blade / Hammer Melee Hit Check
+      // Melee Hit Checks
       const distToBoss = player.mesh.position.distanceTo(boss.mesh.position);
       document.getElementById('reticleTag').innerText = `LOCK: ${Math.round(distToBoss * 4)}M`;
 
-      if (player.bladeTimer > 0 && distToBoss < 18) {
+      if (player.bladeTimer > 0 && distToBoss < 20) {
         player.bladeTimer = 0;
         const crit = boss.isStaggered ? 2.5 : 1.2;
-        boss.hp = Math.max(0, boss.hp - Math.round(1100 * crit));
-        addBossStagger3D(55);
+        boss.hp = Math.max(0, boss.hp - Math.round(1150 * crit));
+        addBossStagger3D(58);
         playSfx('hit');
-        spawnThrusterSparks(boss.mesh.position, 40);
+        spawnSurfaceSparks(boss.mesh.position, 45);
       }
 
-      if (player.hammerTimer > 0 && distToBoss < 20) {
+      if (player.hammerTimer > 0 && distToBoss < 22) {
         player.hammerTimer = 0;
         const crit = boss.isStaggered ? 2.5 : 1.4;
-        boss.hp = Math.max(0, boss.hp - Math.round(1600 * crit));
-        addBossStagger3D(80);
+        boss.hp = Math.max(0, boss.hp - Math.round(1650 * crit));
+        addBossStagger3D(82);
         playSfx('hammer');
-        spawnThrusterSparks(boss.mesh.position, 55);
+        spawnSurfaceSparks(boss.mesh.position, 60);
       }
 
-      // Player Bullets 3D
+      // Bullets 3D
       for (let i = bullets3D.length - 1; i >= 0; i--) {
         const b = bullets3D[i];
         b.mesh.position.add(b.vel);
         b.life--;
 
-        if (b.mesh.position.distanceTo(boss.mesh.position) < 8.0) {
+        if (b.mesh.position.distanceTo(boss.mesh.position) < 9.0) {
           const crit = boss.isStaggered ? 2.5 : 1.0;
           boss.hp = Math.max(0, boss.hp - Math.round(b.dmg * crit));
           addBossStagger3D(b.stagger);
           playSfx('hit');
-          spawnThrusterSparks(b.mesh.position, 6);
+          spawnSurfaceSparks(b.mesh.position, 8);
           scene.remove(b.mesh);
           bullets3D.splice(i, 1);
           continue;
@@ -1495,19 +1541,18 @@
           m.delayTurn--;
           m.mesh.position.add(m.vel);
         } else {
-          // Homing toward boss
           const dir = new THREE.Vector3().subVectors(boss.mesh.position, m.mesh.position).normalize();
-          m.vel.lerp(dir.multiplyScalar(4.2), 0.12);
+          m.vel.lerp(dir.multiplyScalar(4.4), 0.12);
           m.mesh.position.add(m.vel);
           m.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), m.vel.clone().normalize());
         }
 
-        if (m.mesh.position.distanceTo(boss.mesh.position) < 9.0) {
+        if (m.mesh.position.distanceTo(boss.mesh.position) < 10.0) {
           const crit = boss.isStaggered ? 2.5 : 1.0;
           boss.hp = Math.max(0, boss.hp - Math.round(m.dmg * crit));
           addBossStagger3D(m.stagger);
           playSfx('hit');
-          spawnThrusterSparks(m.mesh.position, 14);
+          spawnSurfaceSparks(m.mesh.position, 16);
           scene.remove(m.mesh);
           missiles3D.splice(i, 1);
           continue;
@@ -1525,17 +1570,16 @@
         eb.mesh.position.add(eb.vel);
         eb.life--;
 
-        // Reflected by Shield
-        if (player.shieldTimer > 0 && eb.mesh.position.distanceTo(player.mesh.position) < 8.0) {
+        if (player.shieldTimer > 0 && eb.mesh.position.distanceTo(player.mesh.position) < 9.0) {
           eb.vel.negate().multiplyScalar(1.5);
           playSfx('shield');
           continue;
         }
 
-        if (eb.mesh.position.distanceTo(player.mesh.position) < 5.0) {
+        if (eb.mesh.position.distanceTo(player.mesh.position) < 6.0) {
           player.hp = Math.max(0, player.hp - eb.dmg);
           playSfx('hit');
-          spawnThrusterSparks(player.mesh.position, 12);
+          spawnSurfaceSparks(player.mesh.position, 14);
           scene.remove(eb.mesh);
           enemyBullets3D.splice(i, 1);
           continue;
@@ -1562,16 +1606,15 @@
 
       update3DHUD();
 
-      // Defeat / Victory Check
       if (player.hp <= 0 && !matchFinished) {
         matchFinished = true;
         playSfx('explosion');
-        spawnThrusterSparks(player.mesh.position, 80);
+        spawnSurfaceSparks(player.mesh.position, 90);
         setTimeout(() => document.getElementById('overlayDefeat').classList.add('active'), 700);
       } else if (boss.hp <= 0 && !matchFinished) {
         matchFinished = true;
         playSfx('explosion');
-        spawnThrusterSparks(boss.mesh.position, 100);
+        spawnSurfaceSparks(boss.mesh.position, 110);
         setTimeout(() => document.getElementById('overlayVictory').classList.add('active'), 800);
       }
     }
@@ -1596,13 +1639,12 @@
       document.getElementById('hud-speed').innerText = speedKmH;
     }
 
-    /* Initialize Default Setup */
     renderGarageSlots();
     renderPartsCatalog();
     updateSpecsMatrix();
 
     window.addEventListener('DOMContentLoaded', () => {
-      init3DArena();
+      initSolidArena();
     });
   </script>
 </body>
