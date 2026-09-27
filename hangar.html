@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PROJECT INCARNATION // ARMORED CORE GARAGE & ARENA</title>
+  <title>PROJECT INCARNATION // ARMORED CORE ARENA</title>
   <style>
     :root {
       --bg: #04060a;
-      --panel-bg: rgba(10, 16, 26, 0.92);
+      --panel-bg: rgba(10, 16, 26, 0.94);
       --card-bg: #0e1624;
       --card-hover: #162238;
       --border: #1e2c44;
@@ -28,7 +28,7 @@
 
     #app { width: 100%; height: 100%; height: 100dvh; display: flex; flex-direction: column; position: relative; }
 
-    /* TOP HEADER */
+    /* HEADER */
     header.ac-header {
       height: 48px; background: #070b12; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
@@ -66,13 +66,13 @@
     }
     .btn-sortie:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
-    /* VIEW SCREENS */
+    /* CONTENT SCREENS */
     main.content-area { flex: 1 1 0; min-height: 0; position: relative; overflow: hidden; display: flex; }
     .view-screen { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
     .view-screen.active { display: flex; }
 
     /* ========================================================
-       1. ARMORED CORE GARAGE (АНГАР СБОРКИ)
+       1. ARMORED CORE GARAGE
        ======================================================== */
     .garage-layout {
       width: 100%; height: 100%; display: grid;
@@ -98,7 +98,6 @@
       text-transform: uppercase; letter-spacing: 1px;
     }
 
-    /* Preset archetypes */
     .preset-row { display: flex; gap: 6px; }
     .preset-pill {
       flex: 1; padding: 6px 4px; border-radius: 5px; background: rgba(255,255,255,0.04);
@@ -108,7 +107,6 @@
     .preset-pill:hover { border-color: var(--cyan); color: #fff; }
     .preset-pill.active { border-color: var(--cyan); background: rgba(0,240,255,0.15); color: var(--cyan); font-weight: 700; }
 
-    /* Slots List */
     .slots-list { display: flex; flex-direction: column; gap: 6px; }
     .slot-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px;
@@ -122,20 +120,18 @@
     .slot-vendor { color: var(--amber); }
     .slot-name { font-size: 12px; font-weight: 700; color: #fff; }
 
-    /* Center Blueprint Preview */
     .garage-col-center {
       position: relative; display: flex; flex-direction: column;
       align-items: center; justify-content: center; padding: 20px;
     }
     .mech-canvas-frame {
-      width: 100%; max-width: 440px; height: 340px; position: relative;
+      width: 100%; max-width: 440px; height: 320px; position: relative;
       display: flex; align-items: center; justify-content: center;
     }
     svg.blueprint-svg {
-      width: 100%; height: 100%; filter: drop-shadow(0 0 16px rgba(0,240,255,0.2));
+      width: 100%; height: 100%; filter: drop-shadow(0 0 16px rgba(0,240,255,0.25));
     }
 
-    /* Specs & Tuning Matrix */
     .mech-specs-box {
       width: 100%; max-width: 440px; background: rgba(10, 16, 26, 0.85);
       border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
@@ -146,9 +142,8 @@
     .spec-lbl { width: 110px; color: #94a3b8; font-size: 10px; }
     .spec-track { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); }
     .spec-fill { height: 100%; transition: width 0.2s ease; }
-    .spec-num { width: 65px; text-align: right; font-weight: 700; color: #fff; }
+    .spec-num { width: 75px; text-align: right; font-weight: 700; color: #fff; }
 
-    /* Right Parts Selector Catalog */
     .parts-catalog { display: flex; flex-direction: column; gap: 8px; }
     .part-option-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px;
@@ -172,7 +167,6 @@
     .arena-layout { width: 100%; height: 100%; position: relative; background: #000; overflow: hidden; }
     canvas#battleCanvas { width: 100%; height: 100%; display: block; }
 
-    /* Top Combat HUD */
     .ac-top-hud {
       position: absolute; top: 0; left: 0; right: 0;
       padding: 10px 14px; display: flex; justify-content: space-between;
@@ -185,7 +179,6 @@
     .hud-bar-track { width: 180px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
     .hud-bar-fill { height: 100%; transition: width 0.08s linear; }
 
-    /* Radio Voices Box */
     .radio-box {
       position: absolute; top: 85px; left: 14px; width: 280px;
       display: flex; flex-direction: column; gap: 6px; pointer-events: none; z-index: 10;
@@ -197,7 +190,6 @@
     }
     .radio-author { font-size: 9.5px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
 
-    /* Stagger Alert */
     .stagger-alert {
       position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
       font-size: 26px; font-weight: 900; font-family: var(--font-mono);
@@ -210,7 +202,35 @@
       to { transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.5); }
     }
 
-    /* Controls Overlay */
+    /* MATCH END OVERLAYS */
+    .match-result-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 6, 12, 0.92); backdrop-filter: blur(8px);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 150; padding: 20px; text-align: center;
+    }
+    .match-result-overlay.active { display: flex; animation: fadeInModal 0.3s ease; }
+    @keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .result-badge {
+      font-family: var(--font-mono); font-size: 32px; font-weight: 900;
+      letter-spacing: 3px; margin-bottom: 8px;
+    }
+    .result-defeat { color: var(--red); text-shadow: 0 0 30px #ff2a4b; }
+    .result-victory { color: var(--green); text-shadow: 0 0 30px #00ff88; }
+    .result-sub { font-size: 13px; color: #94a3b8; max-width: 440px; margin-bottom: 24px; line-height: 1.5; }
+
+    .result-btns { display: flex; gap: 12px; }
+    .res-btn {
+      padding: 10px 20px; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+      border-radius: 6px; cursor: pointer; transition: all 0.15s ease;
+    }
+    .btn-retry { background: #ff2a4b; border: 1px solid #ff4d6d; color: #fff; }
+    .btn-retry:hover { filter: brightness(1.2); }
+    .btn-to-garage { background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #fff; }
+    .btn-to-garage:hover { background: rgba(0,240,255,0.15); border-color: var(--cyan); color: var(--cyan); }
+
+    /* CONTROLS OVERLAY */
     .controls-overlay {
       position: absolute; bottom: 14px; left: 0; right: 0;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -229,12 +249,12 @@
     }
 
     .action-pad {
-      display: grid; grid-template-columns: repeat(2, 68px); gap: 10px; pointer-events: auto;
+      display: grid; grid-template-columns: repeat(2, 70px); gap: 10px; pointer-events: auto;
     }
     .ac-btn {
-      width: 68px; height: 68px; border-radius: 50%;
+      width: 70px; height: 70px; border-radius: 50%;
       background: rgba(13, 20, 32, 0.88); border: 2px solid rgba(255,255,255,0.25);
-      color: #fff; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+      color: #fff; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 3px; cursor: pointer; transition: transform 0.05s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.6); backdrop-filter: blur(4px);
@@ -412,6 +432,31 @@
           <!-- Stagger Alert -->
           <div class="stagger-alert" id="staggerBanner">ACS STAGGERED! DIRECT HIT x2.5</div>
 
+          <!-- Match End Overlays -->
+          <div class="match-result-overlay" id="overlayDefeat">
+            <div class="result-badge result-defeat">СИСТЕМНЫЙ СБОЙ // ПОРАЖЕНИЕ</div>
+            <div class="result-sub">
+              Броня Воплощения разрушена, ядро реактора расплавлено огнем Centurion-Titan.<br>
+              Пилот катапультирован. Требуется ремонт и перебалансировка обвеса в ангаре!
+            </div>
+            <div class="result-btns">
+              <button class="res-btn btn-retry" onclick="restartCombat()">🔄 ПОВТОРИТЬ ВЫЛЕТ</button>
+              <button class="res-btn btn-to-garage" onclick="switchMode('garage')">⚙️ ВЕРНУТЬСЯ В АНГАР</button>
+            </div>
+          </div>
+
+          <div class="match-result-overlay" id="overlayVictory">
+            <div class="result-badge result-victory">ЦЕЛЬ УНИЧТОЖЕНА // ПОБЕДА!</div>
+            <div class="result-sub">
+              Hermann «Centurion-Titan» уничтожен! Палуба лайнера «Примарх» зачищена.<br>
+              Бортовой компьютер COM зафиксировал безупречную боевую эффективность сборки!
+            </div>
+            <div class="result-btns">
+              <button class="res-btn btn-retry" onclick="restartCombat()">🔄 СРАЗИТЬСЯ СНОВА</button>
+              <button class="res-btn btn-to-garage" onclick="switchMode('garage')">⚙️ В АНГАР</button>
+            </div>
+          </div>
+
           <!-- Battle Canvas -->
           <canvas id="battleCanvas"></canvas>
 
@@ -423,15 +468,15 @@
 
             <div class="action-pad">
               <div class="ac-btn btn-r-arm" id="btn-fire-r">
-                <span style="font-size:17px;">🔫</span>
+                <span id="btn-icon-r" style="font-size:17px;">🔫</span>
                 <span id="btn-lbl-r">R-ARM</span>
               </div>
               <div class="ac-btn btn-l-arm" id="btn-fire-l">
-                <span style="font-size:17px;">🗡️</span>
+                <span id="btn-icon-l" style="font-size:17px;">🗡️</span>
                 <span id="btn-lbl-l">L-ARM</span>
               </div>
               <div class="ac-btn btn-back-w" id="btn-fire-back">
-                <span style="font-size:17px;">🚀</span>
+                <span id="btn-icon-back" style="font-size:17px;">🚀</span>
                 <span id="btn-lbl-back">BACK</span>
               </div>
               <div class="ac-btn btn-qb" id="btn-qb">
@@ -454,8 +499,7 @@
     const SLOTS = {
       armR: { id: "armR", name: "Правая рука (R-Arm)", cur: "lumier_l9" },
       armL: { id: "armL", name: "Левая рука (L-Arm)", cur: "haruki_muramasa" },
-      backL: { id: "backL", name: "Левый пилон (L-Back)", cur: "zedong_hail" },
-      backR: { id: "backR", name: "Правый пилон (R-Back)", cur: "gagarin_railgun" },
+      backL: { id: "backL", name: "Плечевой узел (Back)", cur: "zedong_hail" },
       core: { id: "core", name: "Ядро / Генератор", cur: "lumier_singularity" },
       legs: { id: "legs", name: "Шасси / Ноги", cur: "haruki_reverse" },
       wings: { id: "wings", name: "Крылья / Бустеры", cur: "haruki_vector" }
@@ -463,32 +507,29 @@
 
     const PARTS_DB = {
       armR: [
-        { id: "lumier_l9", name: "Лазерная винтовка Lumier L-9", vendor: "Lumier", type: "Лазер", dmg: 90, stagger: 4, weight: 1.8, en: 320, desc: "Скорострельные когерентные импульсы. Высокая точность, умеренное тепло." },
-        { id: "hermann_gatling", name: "Штурмовой пулемет Hermann H-44", vendor: "Hermann", type: "Кинетика", dmg: 75, stagger: 6.5, weight: 3.4, en: 120, desc: "Плотный шквал бронебойных пуль. Идеален для быстрого накопления полосы Stagger." },
-        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "Дробовик", dmg: 280, stagger: 24, weight: 2.9, en: 180, desc: "Мощный кинетический залп картечью в упор. Мгновенно пробивает стабильность ACS." }
+        { id: "lumier_l9", name: "Лазерная винтовка Lumier L-9", vendor: "Lumier", type: "laser", icon: "⚡", dmg: 110, stagger: 4.5, weight: 1.8, en: 320, desc: "Скорострельные когерентные лазерные импульсы. Высокая точность и скорость полета луча." },
+        { id: "hermann_gatling", name: "Штурмовой пулемет Hermann H-44", vendor: "Hermann", type: "gatling", icon: "💥", dmg: 55, stagger: 7.0, weight: 3.4, en: 120, desc: "Шквал бронебойных пуль. Бешеная скорострельность и быстрое накопление шкалы Stagger!" },
+        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "shotgun", icon: "🛑", dmg: 380, stagger: 28, weight: 2.9, en: 180, desc: "Мощный кинетический залп картечью в упор. Мгновенно сбивает стабильность ACS босса!" }
       ],
       armL: [
-        { id: "haruki_muramasa", name: "Энерго-клинок Haruki Muramasa", vendor: "Haruki", type: "Клинок", dmg: 850, stagger: 45, weight: 1.2, en: 260, desc: "Мономолекулярный световой клинок с реактивным рывком. Наносит колоссальный урон в стане." },
-        { id: "gagarin_hammer", name: "Ударный молот Gagarin Titan", vendor: "Gagarin", type: "Молот", dmg: 1100, stagger: 65, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран. Создает сотрясающую ударную волну, сбивающую с ног." },
-        { id: "vertex_buckler", name: "Импульсный щит Vertex Pulse", vendor: "Vertex", type: "Щит", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Разворачивает поле поглощения, отражающее 80% входящих выстрелов." }
+        { id: "haruki_muramasa", name: "Энерго-клинок Haruki Muramasa", vendor: "Haruki", type: "blade", icon: "🗡️", dmg: 950, stagger: 50, weight: 1.2, en: 260, desc: "Мономолекулярный световой клинок с реактивным рывком. Наносит колоссальный урон в стане." },
+        { id: "gagarin_hammer", name: "Ударный молот Gagarin Titan", vendor: "Gagarin", type: "hammer", icon: "🔨", dmg: 1400, stagger: 75, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран. Порождает мощную радиальную ударную волну, опрокидывающую врага." },
+        { id: "vertex_buckler", name: "Импульсный щит Vertex Pulse", vendor: "Vertex", type: "shield", icon: "🛡️", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Разворачивает вокруг меха барьер на 3.5 секунды, отражающий пули босса назад!" }
       ],
       backL: [
-        { id: "zedong_hail", name: "Ракетный рой Zedong Hail-8", vendor: "Zedong", type: "Ракеты", dmg: 160, stagger: 10, weight: 3.2, en: 220, desc: "Веер из 6 самонаводящихся микро-ракет с параболическими траекториями." },
-        { id: "sapkowski_mortar", name: "Вертикальная мортира Sapkowski", vendor: "Sapkowski", type: "Мортира", dmg: 450, stagger: 35, weight: 4.5, en: 190, desc: "Тяжелая фугасная бомба, летящая по высокой дуге в уязвимую верхнюю броню." }
-      ],
-      backR: [
-        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "Рельсотрон", dmg: 600, stagger: 40, weight: 5.2, en: 380, desc: "Сверхзвуковой кинетический снаряд с сокрушительной отдачей и бронепробитием." },
-        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "Плазма", dmg: 520, stagger: 30, weight: 4.1, en: 450, desc: "Ионизированный шар с зоной остаточного термического горения." }
+        { id: "zedong_hail", name: "Ракетный рой Zedong Hail-8", vendor: "Zedong", type: "missile", icon: "🚀", dmg: 180, stagger: 12, weight: 3.2, en: 220, desc: "Веер из 6 самонаводящихся микро-ракет с криволинейными дымовыми траекториями." },
+        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "railgun", icon: "⚡", dmg: 750, stagger: 55, weight: 5.2, en: 380, desc: "Сверхзвуковой кинетический луч сквозь босса. Сокрушительная отдача и пробитие брони." },
+        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "plasma", icon: "🔮", dmg: 620, stagger: 40, weight: 4.1, en: 450, desc: "Гигантский медленный шар плазмы, оставляющий зону остаточного термического горения." }
       ],
       core: [
         { id: "lumier_singularity", name: "Сингулярное ядро Lumier-Q", vendor: "Lumier", ap: 1400, weight: 12.0, enOutput: 3800, desc: "Колоссальная энергоотдача для питания лазеров и быстрых бустеров." },
-        { id: "gagarin_nuclear", name: "Реактор Gagarin Heavy Atom", vendor: "Gagarin", ap: 2200, weight: 18.5, enOutput: 3200, desc: "Тяжелое бронирование корпуса, максимальная надежность и емкость AP." },
+        { id: "gagarin_nuclear", name: "Реактор Gagarin Heavy Atom", vendor: "Gagarin", ap: 2800, weight: 22.5, enOutput: 3200, desc: "Тяжелое бронирование корпуса, максимальная надежность и запас очков AP." },
         { id: "haruki_micro", name: "Микро-турбина Haruki Apex", vendor: "Haruki", ap: 1100, weight: 8.5, enOutput: 3100, desc: "Ультралегкое ядро для скоростных маневренных билдов." }
       ],
       legs: [
         { id: "haruki_reverse", name: "Прыжковые шасси Haruki Spring", vendor: "Haruki", ap: 1200, weight: 9.5, speed: 420, acs: 1400, desc: "Обратный изгиб коленей: максимальная дальность Quick Boost и мобильность." },
-        { id: "hermann_bipedal", name: "Двуногие шасси Hermann Standard", vendor: "Hermann", ap: 1800, weight: 14.0, speed: 360, acs: 1800, desc: "Сбалансированное армейское шасси с хорошей грузоподъемностью." },
-        { id: "gagarin_tank", name: "Гусеничная платформа Gagarin Tank", vendor: "Gagarin", ap: 3100, weight: 26.0, speed: 280, acs: 2900, desc: "Непробиваемый танковый каркас. Колоссальная стабильность, практически не входит в стан." }
+        { id: "hermann_bipedal", name: "Двуногие шасси Hermann Standard", vendor: "Hermann", ap: 1900, weight: 14.0, speed: 360, acs: 1900, desc: "Сбалансированное армейское шасси с хорошей грузоподъемностью." },
+        { id: "gagarin_tank", name: "Гусеничная платформа Gagarin Tank", vendor: "Gagarin", ap: 3200, weight: 28.0, speed: 280, acs: 3100, desc: "Непробиваемый танковый каркас. Колоссальная стабильность, практически не входит в стан." }
       ],
       wings: [
         { id: "haruki_vector", name: "Векторные дюзы Haruki V-1", vendor: "Haruki", qbForce: 18, qbCost: 20, weight: 4.2, en: 300, desc: "Мгновенное ускорение с искрами и высоким форсажем рывка." },
@@ -498,23 +539,20 @@
 
     let selectedSlotKey = "armR";
 
-    /* ========================================================
-       PRESETS (АРХЕТИПЫ ДЛЯ БЫСТРОГО СТАРТА)
-       ======================================================== */
     const PRESETS = {
       haruki_speed: {
         name: "⚡ HARUKI «MIRAGE»",
-        armR: "lumier_l9", armL: "haruki_muramasa", backL: "zedong_hail", backR: "gagarin_railgun",
+        armR: "lumier_l9", armL: "haruki_muramasa", backL: "zedong_hail",
         core: "haruki_micro", legs: "haruki_reverse", wings: "haruki_vector"
       },
       zedong_missile: {
         name: "🚀 ZEDONG «ARTIFICER»",
-        armR: "hermann_gatling", armL: "vertex_buckler", backL: "zedong_hail", backR: "vertex_plasma",
+        armR: "hermann_gatling", armL: "vertex_buckler", backL: "vertex_plasma",
         core: "lumier_singularity", legs: "hermann_bipedal", wings: "lumier_antigrav"
       },
       gagarin_tank: {
         name: "🛡️ GAGARIN «JUGGERNAUT»",
-        armR: "sapkowski_shotgun", armL: "gagarin_hammer", backL: "sapkowski_mortar", backR: "gagarin_railgun",
+        armR: "sapkowski_shotgun", armL: "gagarin_hammer", backL: "gagarin_railgun",
         core: "gagarin_nuclear", legs: "gagarin_tank", wings: "lumier_antigrav"
       }
     };
@@ -529,7 +567,6 @@
       SLOTS.armR.cur = p.armR;
       SLOTS.armL.cur = p.armL;
       SLOTS.backL.cur = p.backL;
-      SLOTS.backR.cur = p.backR;
       SLOTS.core.cur = p.core;
       SLOTS.legs.cur = p.legs;
       SLOTS.wings.cur = p.wings;
@@ -545,7 +582,7 @@
       cont.innerHTML = '';
 
       for (const [key, slot] of Object.entries(SLOTS)) {
-        const item = PARTS_DB[key].find(it => it.id === slot.cur);
+        const item = PARTS_DB[key]?.find(it => it.id === slot.cur);
         const div = document.createElement('div');
         div.className = `slot-card ${selectedSlotKey === key ? 'active' : ''}`;
         div.onclick = () => {
@@ -602,7 +639,6 @@
       });
     }
 
-    /* Compute Mech Physics & Tuning Metrics */
     function computeMechStats() {
       let ap = 1600;
       let weight = 18;
@@ -626,7 +662,6 @@
         if (item.qbCost) qbCost = item.qbCost;
       }
 
-      // Weight penalties on speed
       const weightFactor = Math.max(0.65, 1.4 - (weight / 70));
       const finalSpeed = Math.round(baseSpeed * weightFactor);
       const finalQb = qbForce * weightFactor;
@@ -647,10 +682,10 @@
       const s = computeMechStats();
 
       document.getElementById('spec-val-ap').innerText = `${s.ap} AP`;
-      document.getElementById('fill-ap').style.width = Math.min(100, (s.ap / 5000) * 100) + '%';
+      document.getElementById('fill-ap').style.width = Math.min(100, (s.ap / 6500) * 100) + '%';
 
       document.getElementById('spec-val-weight').innerText = `${s.weight} T`;
-      document.getElementById('fill-weight').style.width = Math.min(100, (s.weight / 70) * 100) + '%';
+      document.getElementById('fill-weight').style.width = Math.min(100, (s.weight / 80) * 100) + '%';
 
       document.getElementById('spec-val-en').innerText = `${s.enLoad} / ${s.enOutput}`;
       document.getElementById('fill-en').style.width = Math.min(100, (s.enLoad / s.enOutput) * 100) + '%';
@@ -659,16 +694,21 @@
       document.getElementById('fill-speed').style.width = Math.min(100, (s.speed / 450) * 100) + '%';
 
       document.getElementById('spec-val-acs').innerText = `${s.acs} PTS`;
-      document.getElementById('fill-acs').style.width = Math.min(100, (s.acs / 3000) * 100) + '%';
+      document.getElementById('fill-acs').style.width = Math.min(100, (s.acs / 3500) * 100) + '%';
 
-      // Update button labels in combat HUD
+      // Update button labels & icons in arena
       const armR = PARTS_DB.armR.find(it => it.id === SLOTS.armR.cur);
       const armL = PARTS_DB.armL.find(it => it.id === SLOTS.armL.cur);
       const back = PARTS_DB.backL.find(it => it.id === SLOTS.backL.cur);
 
       document.getElementById('btn-lbl-r').innerText = armR?.name.split(' ')[0] || 'R-ARM';
+      document.getElementById('btn-icon-r').innerText = armR?.icon || '🔫';
+
       document.getElementById('btn-lbl-l').innerText = armL?.name.split(' ')[0] || 'L-ARM';
+      document.getElementById('btn-icon-l').innerText = armL?.icon || '🗡️';
+
       document.getElementById('btn-lbl-back').innerText = back?.name.split(' ')[0] || 'BACK';
+      document.getElementById('btn-icon-back').innerText = back?.icon || '🚀';
     }
 
     function switchMode(m) {
@@ -680,23 +720,27 @@
 
       if (m === 'arena') {
         initArenaCombat();
+      } else {
+        combatRunning = false;
       }
     }
 
     function launchSortie() {
       playSfx('boost');
       switchMode('arena');
-      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM: ALL GREEN. ВЫЛЕТ НА БОЕВУЮ ПАЛУБУ «ПРИМАРХА».", "#00f0ff");
-      triggerRadio("СИЛА", "ОТЛИЧНЫЙ ОБВЕС! РАЗНЕСЕМ ЭТОГО ЦЕНТУРИОНА НА МЕТАЛЛОЛОМ!", "#ef4444");
+      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM: ALL GREEN. ВЫЛЕТ НА ПАЛУБУ «ПРИМАРХА».", "#00f0ff");
+      triggerRadio("СИЛА", "СВЕЖИЙ ОБВЕС ГОТОВ К БОЮ! РАЗОРВИ ЕМУ БРОНЮ!", "#ef4444");
     }
 
     /* ========================================================
-       WEB AUDIO SYNTHESIZER
+       WEB AUDIO SYNTHESIZER (DIFFERENT SOUND FOR EVERY WEAPON)
        ======================================================== */
     let audioCtx = null;
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
+
     function playSfx(type) {
       try {
         initAudio();
@@ -707,65 +751,115 @@
         gain.connect(audioCtx.destination);
 
         if (type === 'click') {
-          osc.frequency.setValueAtTime(600, t);
-          gain.gain.setValueAtTime(0.05, t);
+          osc.frequency.setValueAtTime(650, t);
+          gain.gain.setValueAtTime(0.06, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
           osc.start(t); osc.stop(t + 0.04);
-        } else if (type === 'boost') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(180, t);
-          osc.frequency.exponentialRampToValueAtTime(50, t + 0.22);
-          gain.gain.setValueAtTime(0.28, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-          osc.start(t); osc.stop(t + 0.22);
         } else if (type === 'laser') {
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(550, t);
-          osc.frequency.exponentialRampToValueAtTime(110, t + 0.09);
+          osc.frequency.setValueAtTime(620, t);
+          osc.frequency.exponentialRampToValueAtTime(140, t + 0.08);
           gain.gain.setValueAtTime(0.18, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-          osc.start(t); osc.stop(t + 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+          osc.start(t); osc.stop(t + 0.08);
+        } else if (type === 'gatling') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(190, t);
+          osc.frequency.exponentialRampToValueAtTime(50, t + 0.05);
+          gain.gain.setValueAtTime(0.22, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+          osc.start(t); osc.stop(t + 0.05);
+        } else if (type === 'shotgun') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(130, t);
+          osc.frequency.exponentialRampToValueAtTime(25, t + 0.22);
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          osc.start(t); osc.stop(t + 0.22);
         } else if (type === 'blade') {
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(350, t);
-          osc.frequency.linearRampToValueAtTime(1200, t + 0.12);
-          osc.frequency.exponentialRampToValueAtTime(200, t + 0.3);
+          osc.frequency.setValueAtTime(320, t);
+          osc.frequency.linearRampToValueAtTime(1350, t + 0.12);
+          osc.frequency.exponentialRampToValueAtTime(220, t + 0.32);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+          osc.start(t); osc.stop(t + 0.32);
+        } else if (type === 'hammer') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(90, t);
+          osc.frequency.exponentialRampToValueAtTime(20, t + 0.4);
+          gain.gain.setValueAtTime(0.5, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t); osc.stop(t + 0.4);
+        } else if (type === 'shield') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, t);
+          osc.frequency.linearRampToValueAtTime(750, t + 0.25);
           gain.gain.setValueAtTime(0.25, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
           osc.start(t); osc.stop(t + 0.3);
         } else if (type === 'missile') {
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, t);
-          osc.frequency.linearRampToValueAtTime(700, t + 0.14);
-          gain.gain.setValueAtTime(0.18, t);
+          osc.frequency.setValueAtTime(240, t);
+          osc.frequency.linearRampToValueAtTime(750, t + 0.14);
+          gain.gain.setValueAtTime(0.2, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
           osc.start(t); osc.stop(t + 0.25);
+        } else if (type === 'railgun') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(950, t);
+          osc.frequency.exponentialRampToValueAtTime(45, t + 0.35);
+          gain.gain.setValueAtTime(0.45, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.start(t); osc.stop(t + 0.35);
+        } else if (type === 'plasma') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(220, t);
+          osc.frequency.linearRampToValueAtTime(440, t + 0.2);
+          gain.gain.setValueAtTime(0.35, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+          osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'boost') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(170, t);
+          osc.frequency.exponentialRampToValueAtTime(50, t + 0.22);
+          gain.gain.setValueAtTime(0.28, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          osc.start(t); osc.stop(t + 0.22);
         } else if (type === 'stagger') {
           osc.type = 'square';
           osc.frequency.setValueAtTime(850, t);
           osc.frequency.setValueAtTime(1300, t + 0.08);
           osc.frequency.setValueAtTime(650, t + 0.16);
-          gain.gain.setValueAtTime(0.22, t);
+          gain.gain.setValueAtTime(0.25, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
           osc.start(t); osc.stop(t + 0.4);
         } else if (type === 'hit') {
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(140, t);
-          osc.frequency.exponentialRampToValueAtTime(30, t + 0.12);
+          osc.frequency.setValueAtTime(130, t);
+          osc.frequency.exponentialRampToValueAtTime(30, t + 0.1);
           gain.gain.setValueAtTime(0.2, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-          osc.start(t); osc.stop(t + 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+          osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'explosion') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, t);
+          osc.frequency.exponentialRampToValueAtTime(15, t + 0.7);
+          gain.gain.setValueAtTime(0.6, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+          osc.start(t); osc.stop(t + 0.7);
         }
       } catch (e) {}
     }
 
     /* ========================================================
-       COMBAT ENGINE (REAL-TIME ARMORED CORE FIGHT)
+       COMBAT ENGINE WITH HEALTH, DEFEAT & VICTORY LOGIC
        ======================================================== */
     const canvas = document.getElementById('battleCanvas');
     const ctx = canvas.getContext('2d');
     let screenShake = 0;
     let combatRunning = false;
+    let matchFinished = false;
 
     const player = {
       x: 0, y: 0,
@@ -780,7 +874,9 @@
       rCooldown: 0,
       lCooldown: 0,
       backCooldown: 0,
-      bladeTimer: 0
+      bladeTimer: 0,
+      hammerTimer: 0,
+      shieldTimer: 0
     };
 
     const boss = {
@@ -791,17 +887,23 @@
       stagger: 0, maxStagger: 100,
       isStaggered: false,
       staggerTimer: 0,
-      attackTimer: 60
+      attackTimer: 55
     };
 
     let bullets = [];
     let missiles = [];
     let particles = [];
     let enemyBullets = [];
+    let railgunBeams = [];
+    let plasmaSpheres = [];
 
     function initArenaCombat() {
       resizeArena();
       window.addEventListener('resize', resizeArena);
+
+      matchFinished = false;
+      document.getElementById('overlayDefeat').classList.remove('active');
+      document.getElementById('overlayVictory').classList.remove('active');
 
       const stats = computeMechStats();
       player.maxHp = stats.ap;
@@ -810,16 +912,36 @@
       player.qbForce = stats.finalQb;
       player.qbCost = stats.qbCost;
       player.enRegen = 0.35 * (stats.enOutput / Math.max(1000, stats.enLoad));
+      player.shieldTimer = 0;
+
+      boss.hp = boss.maxHp;
+      boss.stagger = 0;
+      boss.isStaggered = false;
+      boss.attackTimer = 55;
+
+      bullets = [];
+      missiles = [];
+      particles = [];
+      enemyBullets = [];
+      railgunBeams = [];
+      plasmaSpheres = [];
 
       player.x = window.innerWidth * 0.5;
       player.y = window.innerHeight * 0.72;
       boss.x = window.innerWidth * 0.5;
       boss.y = window.innerHeight * 0.28;
 
+      updateCombatHUD();
+
       if (!combatRunning) {
         combatRunning = true;
         gameLoop();
       }
+    }
+
+    function restartCombat() {
+      playSfx('boost');
+      initArenaCombat();
     }
 
     function resizeArena() {
@@ -837,6 +959,7 @@
 
     joyZone.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      initAudio();
       const r = joyZone.getBoundingClientRect();
       joystick.active = true;
       joystick.startX = r.left + r.width / 2;
@@ -875,6 +998,7 @@
     /* PC Controls */
     const keys = {};
     window.addEventListener('keydown', (e) => {
+      initAudio();
       keys[e.code] = true;
       if (e.code === 'Space' || e.code === 'ShiftLeft') triggerQB();
       if (e.code === 'KeyE') fireBackWeapon();
@@ -882,27 +1006,30 @@
     });
     window.addEventListener('keyup', (e) => { keys[e.code] = false; });
     window.addEventListener('mousedown', (e) => {
-      if (e.target.tagName !== 'BUTTON' && !e.target.closest('.ac-btn')) {
+      initAudio();
+      if (e.target.tagName !== 'BUTTON' && !e.target.closest('.ac-btn') && !e.target.closest('.res-btn')) {
         fireRWeapon();
       }
     });
 
     /* Button Binds */
-    document.getElementById('btn-fire-r').addEventListener('touchstart', (e) => { e.preventDefault(); fireRWeapon(); });
-    document.getElementById('btn-fire-r').addEventListener('click', fireRWeapon);
+    document.getElementById('btn-fire-r').addEventListener('touchstart', (e) => { e.preventDefault(); initAudio(); fireRWeapon(); });
+    document.getElementById('btn-fire-r').addEventListener('click', () => { initAudio(); fireRWeapon(); });
 
-    document.getElementById('btn-fire-l').addEventListener('touchstart', (e) => { e.preventDefault(); fireLWeapon(); });
-    document.getElementById('btn-fire-l').addEventListener('click', fireLWeapon);
+    document.getElementById('btn-fire-l').addEventListener('touchstart', (e) => { e.preventDefault(); initAudio(); fireLWeapon(); });
+    document.getElementById('btn-fire-l').addEventListener('click', () => { initAudio(); fireLWeapon(); });
 
-    document.getElementById('btn-fire-back').addEventListener('touchstart', (e) => { e.preventDefault(); fireBackWeapon(); });
-    document.getElementById('btn-fire-back').addEventListener('click', fireBackWeapon);
+    document.getElementById('btn-fire-back').addEventListener('touchstart', (e) => { e.preventDefault(); initAudio(); fireBackWeapon(); });
+    document.getElementById('btn-fire-back').addEventListener('click', () => { initAudio(); fireBackWeapon(); });
 
-    document.getElementById('btn-qb').addEventListener('touchstart', (e) => { e.preventDefault(); triggerQB(); });
-    document.getElementById('btn-qb').addEventListener('click', triggerQB);
+    document.getElementById('btn-qb').addEventListener('touchstart', (e) => { e.preventDefault(); initAudio(); triggerQB(); });
+    document.getElementById('btn-qb').addEventListener('click', () => { initAudio(); triggerQB(); });
 
-    /* Actions */
+    /* ========================================================
+       WEAPON ACTION LOGIC (DIVERSE MECHANICS & SOUNDS)
+       ======================================================== */
     function triggerQB() {
-      if (player.en < player.qbCost) return;
+      if (matchFinished || player.en < player.qbCost) return;
       player.en -= player.qbCost;
       playSfx('boost');
       screenShake = 8;
@@ -931,68 +1058,168 @@
     }
 
     function fireRWeapon() {
-      if (player.rCooldown > 0) return;
-      const w = PARTS_DB.armR.find(it => it.id === SLOTS.armR.cur);
-      player.rCooldown = w?.type === 'Дробовик' ? 45 : 12;
+      if (matchFinished || player.rCooldown > 0) return;
+      const w = PARTS_DB.armR.find(it => it.id === SLOTS.armR.cur) || PARTS_DB.armR[0];
 
-      playSfx('laser');
-      screenShake = 3;
+      if (w.type === 'laser') {
+        player.rCooldown = 18;
+        playSfx('laser');
+        screenShake = 3;
 
-      const spreadCount = w?.type === 'Дробовик' ? 5 : 1;
-      for (let i = 0; i < spreadCount; i++) {
-        const spread = (Math.random() - 0.5) * (w?.type === 'Дробовик' ? 0.4 : 0.08);
-        const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x) + spread;
+        for (let burst = 0; burst < 2; burst++) {
+          setTimeout(() => {
+            if (matchFinished) return;
+            const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x) + (Math.random() - 0.5) * 0.04;
+            bullets.push({
+              x: player.x + Math.cos(bAngle + 0.3) * 24,
+              y: player.y + Math.sin(bAngle + 0.3) * 24,
+              vx: Math.cos(bAngle) * 26, vy: Math.sin(bAngle) * 26,
+              life: 45, dmg: w.dmg, staggerAdd: w.stagger, color: '#00f0ff', size: 3.5
+            });
+          }, burst * 70);
+        }
+      } else if (w.type === 'gatling') {
+        player.rCooldown = 7;
+        playSfx('gatling');
+        screenShake = 2;
+
+        const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x) + (Math.random() - 0.5) * 0.12;
         bullets.push({
-          x: player.x + Math.cos(bAngle + 0.3) * 22,
-          y: player.y + Math.sin(bAngle + 0.3) * 22,
-          vx: Math.cos(bAngle) * 22,
-          vy: Math.sin(bAngle) * 22,
-          life: 45, dmg: w?.dmg || 80, staggerAdd: w?.stagger || 4,
-          color: '#00f0ff'
+          x: player.x + Math.cos(bAngle + 0.3) * 24,
+          y: player.y + Math.sin(bAngle + 0.3) * 24,
+          vx: Math.cos(bAngle) * 23, vy: Math.sin(bAngle) * 23,
+          life: 40, dmg: w.dmg, staggerAdd: w.stagger, color: '#ffaa00', size: 2.8
         });
+
+        particles.push({
+          x: player.x, y: player.y,
+          vx: -Math.cos(player.angle + 1.2) * 4, vy: -Math.sin(player.angle + 1.2) * 4,
+          life: 0.5, color: '#eab308', size: 2
+        });
+      } else if (w.type === 'shotgun') {
+        player.rCooldown = 48;
+        playSfx('shotgun');
+        screenShake = 8;
+
+        for (let i = 0; i < 7; i++) {
+          const spread = (Math.random() - 0.5) * 0.42;
+          const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x) + spread;
+          bullets.push({
+            x: player.x + Math.cos(bAngle + 0.3) * 24,
+            y: player.y + Math.sin(bAngle + 0.3) * 24,
+            vx: Math.cos(bAngle) * (18 + Math.random() * 6),
+            vy: Math.sin(bAngle) * (18 + Math.random() * 6),
+            life: 25, dmg: Math.round(w.dmg / 5), staggerAdd: w.stagger / 5,
+            color: '#f43f5e', size: 3
+          });
+        }
       }
     }
 
     function fireLWeapon() {
-      if (player.lCooldown > 0) return;
-      const w = PARTS_DB.armL.find(it => it.id === SLOTS.armL.cur);
-      player.lCooldown = 60;
-      player.bladeTimer = 18;
+      if (matchFinished || player.lCooldown > 0) return;
+      const w = PARTS_DB.armL.find(it => it.id === SLOTS.armL.cur) || PARTS_DB.armL[0];
 
-      playSfx('blade');
-      screenShake = 14;
+      if (w.type === 'blade') {
+        player.lCooldown = 60;
+        player.bladeTimer = 18;
+        playSfx('blade');
+        screenShake = 14;
 
-      // Dash towards target
-      const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x);
-      player.vx = Math.cos(bAngle) * (player.qbForce * 1.25);
-      player.vy = Math.sin(bAngle) * (player.qbForce * 1.25);
+        const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x);
+        player.vx = Math.cos(bAngle) * (player.qbForce * 1.3);
+        player.vy = Math.sin(bAngle) * (player.qbForce * 1.3);
 
-      triggerRadio("СИЛА", `ВРУБИЛ [${w?.name.toUpperCase()}]! РАССЕКАЙ КОРПУС!`, "#ef4444");
+        triggerRadio("СИЛА", "ВСПЫШКА МУРАМАСЫ! СРЕЗАЙ ЕМУ БРОНЮ!", "#ef4444");
+      } else if (w.type === 'hammer') {
+        player.lCooldown = 75;
+        player.hammerTimer = 22;
+        playSfx('hammer');
+        screenShake = 22;
+
+        const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x);
+        player.vx = Math.cos(bAngle) * (player.qbForce * 0.9);
+        player.vy = Math.sin(bAngle) * (player.qbForce * 0.9);
+
+        triggerRadio("СИЛА", "ТЯЖЕЛЫЙ УДАР ТИТАНА! СОКРУШАЙ В ПЫЛЬ!", "#ef4444");
+      } else if (w.type === 'shield') {
+        player.lCooldown = 120;
+        player.shieldTimer = 210;
+        playSfx('shield');
+        screenShake = 6;
+
+        triggerRadio("ЛОГИКА", "Импульсный щит развернут! Отражаем залпы босса!", "#06b6d4");
+      }
     }
 
     function fireBackWeapon() {
-      if (player.backCooldown > 0) return;
-      const w = PARTS_DB.backL.find(it => it.id === SLOTS.backL.cur);
-      player.backCooldown = 90;
+      if (matchFinished || player.backCooldown > 0) return;
+      const w = PARTS_DB.backL.find(it => it.id === SLOTS.backL.cur) || PARTS_DB.backL[0];
 
-      playSfx('missile');
-      screenShake = 7;
+      if (w.type === 'missile') {
+        player.backCooldown = 90;
+        playSfx('missile');
+        screenShake = 7;
 
-      for (let i = 0; i < 6; i++) {
-        const side = i % 2 === 0 ? -1 : 1;
-        const initialAngle = player.angle + side * (0.8 + Math.random() * 0.6);
-        missiles.push({
-          x: player.x + side * 16,
-          y: player.y,
-          vx: Math.cos(initialAngle) * 6,
-          vy: Math.sin(initialAngle) * 6,
-          speed: 8.5 + Math.random() * 2,
-          life: 120, dmg: w?.dmg || 150, staggerAdd: w?.stagger || 10,
-          delayTurn: 10 + i * 4
+        for (let i = 0; i < 6; i++) {
+          const side = i % 2 === 0 ? -1 : 1;
+          const initialAngle = player.angle + side * (0.8 + Math.random() * 0.6);
+          missiles.push({
+            x: player.x + side * 16,
+            y: player.y,
+            vx: Math.cos(initialAngle) * 6,
+            vy: Math.sin(initialAngle) * 6,
+            speed: 8.5 + Math.random() * 2,
+            life: 120, dmg: w.dmg, staggerAdd: w.stagger,
+            delayTurn: 10 + i * 4
+          });
+        }
+        triggerRadio("ЛОГИКА", "Ракетный залп запущен. Копи шкалу Stagger!", "#06b6d4");
+      } else if (w.type === 'railgun') {
+        player.backCooldown = 100;
+        playSfx('railgun');
+        screenShake = 24;
+
+        player.vx -= Math.cos(player.angle) * 12;
+        player.vy -= Math.sin(player.angle) * 12;
+
+        railgunBeams.push({
+          x1: player.x, y1: player.y,
+          x2: player.x + Math.cos(player.angle) * 900,
+          y2: player.y + Math.sin(player.angle) * 900,
+          life: 18
         });
-      }
 
-      triggerRadio("ЛОГИКА", "Ракетный залп запущен. Копи шкалу Stagger!", "#06b6d4");
+        const critMult = boss.isStaggered ? 2.5 : 1.2;
+        boss.hp = Math.max(0, boss.hp - Math.round(w.dmg * critMult));
+        addBossStagger(w.stagger);
+        playSfx('hit');
+
+        for (let i = 0; i < 30; i++) {
+          particles.push({
+            x: boss.x, y: boss.y,
+            vx: (Math.random() - 0.5) * 18, vy: (Math.random() - 0.5) * 18,
+            life: 1.0, color: '#bf5af2', size: 4
+          });
+        }
+        triggerRadio("СИЛА", "ПРЯМОЕ ПОПАДАНИЕ РЕЛЬСОТРОНА! БРОНЯ ПРОБИТА!", "#ef4444");
+      } else if (w.type === 'plasma') {
+        player.backCooldown = 90;
+        playSfx('plasma');
+        screenShake = 9;
+
+        const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x);
+        plasmaSpheres.push({
+          x: player.x + Math.cos(bAngle) * 20,
+          y: player.y + Math.sin(bAngle) * 20,
+          vx: Math.cos(bAngle) * 7.5,
+          vy: Math.sin(bAngle) * 7.5,
+          dmg: w.dmg, stagger: w.stagger,
+          life: 90, radius: 18
+        });
+
+        triggerRadio("ЛОГИКА", "Плазменный сгусток выпущен. Зона поражения активирована.", "#06b6d4");
+      }
     }
 
     function triggerRadio(author, text, color = "#00f0ff") {
@@ -1018,16 +1245,19 @@
     }
 
     function updateCombat() {
+      if (matchFinished) return;
+
       if (screenShake > 0) screenShake *= 0.88;
 
       if (player.rCooldown > 0) player.rCooldown--;
       if (player.lCooldown > 0) player.lCooldown--;
       if (player.backCooldown > 0) player.backCooldown--;
       if (player.bladeTimer > 0) player.bladeTimer--;
+      if (player.hammerTimer > 0) player.hammerTimer--;
+      if (player.shieldTimer > 0) player.shieldTimer--;
 
       if (player.en < player.maxEn) player.en = Math.min(player.maxEn, player.en + player.enRegen);
 
-      // Move player
       let mx = 0, my = 0;
       if (joystick.active) {
         mx = joystick.dx; my = joystick.dy;
@@ -1077,13 +1307,13 @@
 
         boss.attackTimer--;
         if (boss.attackTimer <= 0) {
-          boss.attackTimer = 55;
+          boss.attackTimer = 50;
           for (let a = -0.3; a <= 0.3; a += 0.2) {
             enemyBullets.push({
               x: boss.x, y: boss.y,
-              vx: Math.cos(boss.angle + a) * 7,
-              vy: Math.sin(boss.angle + a) * 7,
-              dmg: 80, life: 90
+              vx: Math.cos(boss.angle + a) * 7.5,
+              vy: Math.sin(boss.angle + a) * 7.5,
+              dmg: 95, life: 90
             });
           }
         }
@@ -1094,9 +1324,9 @@
         if (Math.hypot(boss.x - player.x, boss.y - player.y) < 75) {
           player.bladeTimer = 0;
           const critMult = boss.isStaggered ? 2.5 : 1.2;
-          const dmg = Math.round(850 * critMult);
+          const dmg = Math.round(950 * critMult);
           boss.hp = Math.max(0, boss.hp - dmg);
-          addBossStagger(45);
+          addBossStagger(50);
           playSfx('hit');
           screenShake = 18;
 
@@ -1105,6 +1335,27 @@
               x: boss.x, y: boss.y,
               vx: (Math.random() - 0.5) * 16, vy: (Math.random() - 0.5) * 16,
               life: 1.0, color: '#ffaa00', size: 4
+            });
+          }
+        }
+      }
+
+      // Hammer Hit
+      if (player.hammerTimer > 0) {
+        if (Math.hypot(boss.x - player.x, boss.y - player.y) < 85) {
+          player.hammerTimer = 0;
+          const critMult = boss.isStaggered ? 2.5 : 1.4;
+          const dmg = Math.round(1400 * critMult);
+          boss.hp = Math.max(0, boss.hp - dmg);
+          addBossStagger(75);
+          playSfx('hammer');
+          screenShake = 26;
+
+          for (let i = 0; i < 35; i++) {
+            particles.push({
+              x: boss.x, y: boss.y,
+              vx: (Math.random() - 0.5) * 22, vy: (Math.random() - 0.5) * 22,
+              life: 1.2, color: '#ef4444', size: 5
             });
           }
         }
@@ -1164,19 +1415,71 @@
         if (m.life <= 0) missiles.splice(i, 1);
       }
 
-      // Enemy Bullets
+      // Plasma Spheres
+      for (let i = plasmaSpheres.length - 1; i >= 0; i--) {
+        const p = plasmaSpheres[i];
+        p.x += p.vx; p.y += p.vy; p.life--;
+
+        particles.push({
+          x: p.x + (Math.random() - 0.5) * 16, y: p.y + (Math.random() - 0.5) * 16,
+          vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+          life: 0.4, color: '#a855f7', size: 4
+        });
+
+        if (Math.hypot(boss.x - p.x, boss.y - p.y) < 48) {
+          const critMult = boss.isStaggered ? 2.5 : 1.0;
+          boss.hp = Math.max(0, boss.hp - Math.round(p.dmg * critMult));
+          addBossStagger(p.stagger);
+          playSfx('hit');
+          screenShake = 12;
+
+          for (let k = 0; k < 20; k++) {
+            particles.push({
+              x: p.x, y: p.y,
+              vx: (Math.random() - 0.5) * 14, vy: (Math.random() - 0.5) * 14,
+              life: 0.8, color: '#c084fc', size: 5
+            });
+          }
+          plasmaSpheres.splice(i, 1);
+          continue;
+        }
+        if (p.life <= 0) plasmaSpheres.splice(i, 1);
+      }
+
+      // Enemy Bullets with Shield & Player Collision
       for (let i = enemyBullets.length - 1; i >= 0; i--) {
         const eb = enemyBullets[i];
         eb.x += eb.vx; eb.y += eb.vy; eb.life--;
 
+        if (player.shieldTimer > 0 && Math.hypot(player.x - eb.x, player.y - eb.y) < 45) {
+          eb.vx = -eb.vx * 1.5;
+          eb.vy = -eb.vy * 1.5;
+          playSfx('shield');
+          screenShake = 4;
+          continue;
+        }
+
         if (Math.hypot(player.x - eb.x, player.y - eb.y) < 26) {
           player.hp = Math.max(0, player.hp - eb.dmg);
           playSfx('hit');
-          screenShake = 5;
+          screenShake = 6;
+
+          particles.push({
+            x: player.x, y: player.y,
+            vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
+            life: 0.6, color: '#ff2a4b', size: 3
+          });
+
           enemyBullets.splice(i, 1);
           continue;
         }
         if (eb.life <= 0) enemyBullets.splice(i, 1);
+      }
+
+      // Railgun Beams
+      for (let i = railgunBeams.length - 1; i >= 0; i--) {
+        railgunBeams[i].life--;
+        if (railgunBeams[i].life <= 0) railgunBeams.splice(i, 1);
       }
 
       // Particles
@@ -1188,6 +1491,49 @@
       }
 
       updateCombatHUD();
+
+      // Check Match Finish (DEFEAT / VICTORY)
+      if (player.hp <= 0 && !matchFinished) {
+        handleDefeat();
+      } else if (boss.hp <= 0 && !matchFinished) {
+        handleVictory();
+      }
+    }
+
+    function handleDefeat() {
+      matchFinished = true;
+      playSfx('explosion');
+      screenShake = 30;
+
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: player.x, y: player.y,
+          vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20,
+          life: 1.5, color: '#ff2a4b', size: 5
+        });
+      }
+
+      setTimeout(() => {
+        document.getElementById('overlayDefeat').classList.add('active');
+      }, 700);
+    }
+
+    function handleVictory() {
+      matchFinished = true;
+      playSfx('explosion');
+      screenShake = 35;
+
+      for (let i = 0; i < 70; i++) {
+        particles.push({
+          x: boss.x, y: boss.y,
+          vx: (Math.random() - 0.5) * 25, vy: (Math.random() - 0.5) * 25,
+          life: 1.8, color: '#00f0ff', size: 6
+        });
+      }
+
+      setTimeout(() => {
+        document.getElementById('overlayVictory').classList.add('active');
+      }, 800);
     }
 
     function addBossStagger(amt) {
@@ -1199,7 +1545,7 @@
         playSfx('stagger');
         screenShake = 22;
         document.getElementById('staggerBanner').classList.add('active');
-        triggerRadio("СИЛА", "ACS OVERLOAD! ОН В СТАНЕ — ДОБИВАЙ КЛИНОМ!", "#ef4444");
+        triggerRadio("СИЛА", "ACS OVERLOAD! ОН В СТАНЕ — ВРЕЖЬ НА МАКСИМУМЕ!", "#ef4444");
       }
     }
 
@@ -1207,6 +1553,7 @@
       const hpPct = Math.max(0, (player.hp / player.maxHp) * 100);
       document.getElementById('hud-bar-ap').style.width = hpPct + '%';
       document.getElementById('hud-txt-ap').innerText = `${player.hp} / ${player.maxHp}`;
+      document.getElementById('hud-bar-ap').style.background = hpPct < 30 ? '#ef4444' : 'linear-gradient(90deg, #10b981, #00f0ff)';
 
       document.getElementById('hud-bar-en').style.width = player.en + '%';
       document.getElementById('hud-txt-en').innerText = Math.round(player.en) + '%';
@@ -1228,7 +1575,7 @@
       ctx.fillStyle = '#05070c';
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-      // Sci-fi Floor Grid
+      // Grid
       ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
       ctx.lineWidth = 1;
       const step = 40;
@@ -1239,98 +1586,147 @@
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(window.innerWidth, y); ctx.stroke();
       }
 
-      // Draw Boss
-      ctx.save();
-      ctx.translate(boss.x, boss.y);
-      ctx.rotate(boss.angle);
+      // Railgun Beams
+      railgunBeams.forEach(rb => {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(191, 90, 242, ' + (rb.life / 18) + ')';
+        ctx.lineWidth = 6;
+        ctx.shadowColor = '#bf5af2'; ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.moveTo(rb.x1, rb.y1); ctx.lineTo(rb.x2, rb.y2); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(rb.x1, rb.y1); ctx.lineTo(rb.x2, rb.y2); ctx.stroke();
+        ctx.restore();
+      });
 
-      if (boss.isStaggered) {
-        ctx.strokeStyle = 'rgba(255, 42, 75, 0.6)';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, 48 + Math.sin(Date.now() * 0.02) * 6, 0, Math.PI * 2); ctx.stroke();
-      }
+      // Boss
+      if (boss.hp > 0) {
+        ctx.save();
+        ctx.translate(boss.x, boss.y);
+        ctx.rotate(boss.angle);
 
-      ctx.fillStyle = '#1c1917';
-      ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : '#ef4444';
-      ctx.lineWidth = 2.5;
-      ctx.fillRect(-20, -32, 38, 10);
-      ctx.fillRect(-20, 22, 38, 10);
+        if (boss.isStaggered) {
+          ctx.strokeStyle = 'rgba(255, 42, 75, 0.6)';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(0, 0, 48 + Math.sin(Date.now() * 0.02) * 6, 0, Math.PI * 2); ctx.stroke();
+        }
 
-      ctx.beginPath();
-      ctx.moveTo(24, 0); ctx.lineTo(8, 22); ctx.lineTo(-20, 16); ctx.lineTo(-24, 0);
-      ctx.lineTo(-20, -16); ctx.lineTo(8, -22); ctx.closePath();
-      ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#1c1917';
+        ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : '#ef4444';
+        ctx.lineWidth = 2.5;
+        ctx.fillRect(-20, -32, 38, 10);
+        ctx.fillRect(-20, 22, 38, 10);
 
-      ctx.fillStyle = boss.isStaggered ? '#ffaa00' : '#ff2a4b';
-      ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14;
-      ctx.beginPath(); ctx.arc(4, 0, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.restore();
+        ctx.beginPath();
+        ctx.moveTo(24, 0); ctx.lineTo(8, 22); ctx.lineTo(-20, 16); ctx.lineTo(-24, 0);
+        ctx.lineTo(-20, -16); ctx.lineTo(8, -22); ctx.closePath();
+        ctx.fill(); ctx.stroke();
 
-      // Draw Player Mech
-      ctx.save();
-      ctx.translate(player.x, player.y);
-      ctx.rotate(player.angle);
-
-      ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
-      ctx.beginPath(); ctx.arc(-14, 0, 16, 0, Math.PI * 2); ctx.fill();
-
-      ctx.fillStyle = '#1e293b';
-      ctx.strokeStyle = '#00f0ff';
-      ctx.lineWidth = 2;
-
-      ctx.beginPath();
-      ctx.moveTo(-10, -22); ctx.lineTo(-24, -32); ctx.lineTo(-14, -14); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-10, 22); ctx.lineTo(-24, 32); ctx.lineTo(-14, 14); ctx.closePath(); ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.moveTo(18, 0); ctx.lineTo(6, 16); ctx.lineTo(-14, 12); ctx.lineTo(-18, 0); ctx.lineTo(-14, -12); ctx.lineTo(6, -16);
-      ctx.closePath(); ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#00f0ff';
-      ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 12;
-      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(8, 12, 22, 4);
-
-      if (player.bladeTimer > 0) {
-        ctx.strokeStyle = '#ffaa00';
-        ctx.shadowColor = '#ffaa00'; ctx.shadowBlur = 20;
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(0, 0, 75, -0.6, 0.6); ctx.stroke();
+        ctx.fillStyle = boss.isStaggered ? '#ffaa00' : '#ff2a4b';
+        ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.arc(4, 0, 6, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
+        ctx.restore();
       }
-      ctx.restore();
+
+      // Player Mech
+      if (player.hp > 0) {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(player.angle);
+
+        if (player.shieldTimer > 0) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(0, 240, 255, ' + (0.5 + Math.sin(Date.now() * 0.03) * 0.3) + ')';
+          ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(0, 0, 38, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+        ctx.beginPath(); ctx.arc(-14, 0, 16, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(-10, -22); ctx.lineTo(-24, -32); ctx.lineTo(-14, -14); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-10, 22); ctx.lineTo(-24, 32); ctx.lineTo(-14, 14); ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(18, 0); ctx.lineTo(6, 16); ctx.lineTo(-14, 12); ctx.lineTo(-18, 0); ctx.lineTo(-14, -12); ctx.lineTo(6, -16);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#00f0ff';
+        ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        const curR = PARTS_DB.armR.find(it => it.id === SLOTS.armR.cur);
+        if (curR?.type === 'gatling') {
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(8, 11, 26, 6);
+        } else if (curR?.type === 'shotgun') {
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(8, 10, 20, 8);
+        } else {
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(8, 12, 22, 4);
+        }
+
+        if (player.bladeTimer > 0) {
+          ctx.strokeStyle = '#ffaa00';
+          ctx.shadowColor = '#ffaa00'; ctx.shadowBlur = 20;
+          ctx.lineWidth = 5;
+          ctx.beginPath(); ctx.arc(0, 0, 75, -0.6, 0.6); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        if (player.hammerTimer > 0) {
+          ctx.strokeStyle = '#ef4444';
+          ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 25;
+          ctx.lineWidth = 6;
+          ctx.beginPath(); ctx.arc(0, 0, 85, 0, Math.PI * 2); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.restore();
+      }
 
       // Lock-On Reticle
-      ctx.save();
-      ctx.translate(boss.x, boss.y);
-      ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : 'rgba(0, 240, 255, 0.7)';
-      ctx.lineWidth = 1.5;
-      ctx.rotate(Date.now() * 0.0015);
-      ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 0.4); ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 0.5, Math.PI * 0.9); ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 1.0, Math.PI * 1.4); ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 1.5, Math.PI * 1.9); ctx.stroke();
-      ctx.rotate(-Date.now() * 0.003);
-      ctx.strokeRect(-8, -8, 16, 16);
-      const dist = Math.round(Math.hypot(boss.x - player.x, boss.y - player.y));
-      ctx.fillStyle = ctx.strokeStyle;
-      ctx.font = '10px monospace'; ctx.textAlign = 'center';
-      ctx.fillText(`LOCK: ${dist}M`, 0, 56);
-      ctx.restore();
+      if (boss.hp > 0 && player.hp > 0) {
+        ctx.save();
+        ctx.translate(boss.x, boss.y);
+        ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : 'rgba(0, 240, 255, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.rotate(Date.now() * 0.0015);
+        ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 0.4); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 0.5, Math.PI * 0.9); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 1.0, Math.PI * 1.4); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI * 1.5, Math.PI * 1.9); ctx.stroke();
+        ctx.rotate(-Date.now() * 0.003);
+        ctx.strokeRect(-8, -8, 16, 16);
+        const dist = Math.round(Math.hypot(boss.x - player.x, boss.y - player.y));
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.font = '10px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`LOCK: ${dist}M`, 0, 56);
+        ctx.restore();
+      }
 
-      // Entities
-      ctx.fillStyle = '#00f0ff';
-      bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI*2); ctx.fill(); });
+      // Bullets
+      bullets.forEach(b => {
+        ctx.fillStyle = b.color;
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.size || 3, 0, Math.PI*2); ctx.fill();
+      });
 
+      // Enemy Bullets
       ctx.fillStyle = '#ff2a4b';
       enemyBullets.forEach(eb => { ctx.beginPath(); ctx.arc(eb.x, eb.y, 4, 0, Math.PI*2); ctx.fill(); });
 
+      // Missiles
       missiles.forEach(m => {
         ctx.save();
         ctx.translate(m.x, m.y);
@@ -1340,6 +1736,17 @@
         ctx.restore();
       });
 
+      // Plasma Spheres
+      plasmaSpheres.forEach(p => {
+        ctx.save();
+        ctx.fillStyle = '#bf5af2';
+        ctx.shadowColor = '#bf5af2'; ctx.shadowBlur = 15;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      });
+
+      // Particles
       particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.life;
@@ -1350,10 +1757,18 @@
       ctx.restore();
     }
 
-    /* Initialize */
     renderGarageSlots();
     renderPartsCatalog();
     updateSpecsMatrix();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#arena') {
+        switchMode('arena');
+      }
+    });
+    if (window.location.hash === '#arena') {
+      switchMode('arena');
+    }
   </script>
 </body>
 </html>
