@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PROJECT INCARNATION // RIGID CAMERA TRACK</title>
+  <title>PROJECT INCARNATION // SOLID HIGHWAY COMBAT</title>
   <style>
     :root {
-      --bg: #030508;
-      --panel: rgba(10, 16, 26, 0.94);
+      --bg: #03060c;
+      --panel: rgba(10, 16, 28, 0.95);
       --border: #1e2c44;
       --cyan: #00f0ff;
       --red: #ff2a4b;
@@ -26,7 +26,7 @@
     #app { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; }
 
     header.ac-header {
-      height: 48px; background: rgba(7, 11, 18, 0.95); border-bottom: 1px solid var(--border);
+      height: 48px; background: rgba(7, 11, 20, 0.96); border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 14px; z-index: 100; flex-shrink: 0; backdrop-filter: blur(6px);
     }
@@ -60,7 +60,7 @@
     .view-screen { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
     .view-screen.active { display: flex; }
 
-    #webgl-container { width: 100%; height: 100%; position: relative; background: #010205; overflow: hidden; }
+    #webgl-container { width: 100%; height: 100%; position: relative; background: #02040a; overflow: hidden; }
     canvas#threeCanvas { width: 100%; height: 100%; display: block; }
 
     /* HUD */
@@ -68,7 +68,7 @@
       position: absolute; top: 0; left: 0; right: 0;
       padding: 12px 16px; display: flex; justify-content: space-between;
       align-items: flex-start; pointer-events: none; z-index: 50;
-      background: linear-gradient(to bottom, rgba(4,6,10,0.85) 0%, rgba(4,6,10,0) 100%);
+      background: linear-gradient(to bottom, rgba(4,7,14,0.9) 0%, rgba(4,7,14,0) 100%);
     }
     .hud-bar-block { display: flex; flex-direction: column; gap: 3px; font-family: var(--font-mono); }
     .hud-label { font-size: 9.5px; color: #94a3b8; display: flex; justify-content: space-between; width: 190px; }
@@ -79,17 +79,17 @@
       position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
       font-family: var(--font-mono); text-align: center; pointer-events: none; z-index: 50;
     }
-    .speed-val { font-size: 26px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 14px var(--cyan); }
+    .speed-val { font-size: 28px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 16px var(--cyan); }
     .speed-sub { font-size: 9.5px; color: #94a3b8; letter-spacing: 2px; }
 
     /* Crosshair */
     .crosshair-container {
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+      position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
       width: 120px; height: 120px; pointer-events: none; z-index: 40;
       display: flex; align-items: center; justify-content: center;
     }
     .ac-reticle {
-      width: 68px; height: 68px; border: 1.5px solid rgba(0,240,255,0.6);
+      width: 72px; height: 72px; border: 1.5px solid rgba(0,240,255,0.65);
       border-radius: 50%; position: relative; animation: spinReticle 16s linear infinite;
     }
     @keyframes spinReticle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -100,20 +100,19 @@
       white-space: nowrap; left: 50%; transform: translateX(-50%);
     }
 
-    /* Radio HUD */
     .radio-box {
       position: absolute; top: 85px; left: 14px; width: 280px;
       display: flex; flex-direction: column; gap: 6px; pointer-events: none; z-index: 50;
     }
     .radio-card {
-      background: rgba(8, 14, 24, 0.88); border-left: 3px solid var(--cyan);
+      background: rgba(8, 14, 24, 0.9); border-left: 3px solid var(--cyan);
       border-radius: 4px; padding: 7px 10px; font-size: 11.5px; line-height: 1.35;
       box-shadow: 0 4px 15px rgba(0,0,0,0.7); backdrop-filter: blur(4px);
     }
     .radio-author { font-size: 9.5px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
 
     .stagger-alert {
-      position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+      position: absolute; top: 28%; left: 50%; transform: translate(-50%, -50%);
       font-size: 24px; font-weight: 900; font-family: var(--font-mono);
       color: #ff2a4b; letter-spacing: 4px; text-shadow: 0 0 20px #ff2a4b, 0 0 40px #ff0000;
       opacity: 0; pointer-events: none; z-index: 60; transition: opacity 0.15s ease;
@@ -124,7 +123,7 @@
       to { transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.5); }
     }
 
-    /* Controls */
+    /* Controls Overlay */
     .controls-overlay {
       position: absolute; bottom: 16px; left: 0; right: 0;
       display: flex; justify-content: space-between; align-items: flex-end;
@@ -157,7 +156,7 @@
 
     .pc-help {
       position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-      font-family: var(--font-mono); font-size: 10.5px; color: rgba(255,255,255,0.55);
+      font-family: var(--font-mono); font-size: 10.5px; color: rgba(255,255,255,0.6);
       pointer-events: none; z-index: 50; white-space: nowrap;
     }
     @media (max-width: 768px) { .pc-help { display: none; } }
@@ -255,7 +254,7 @@
     <header class="ac-header">
       <div class="brand-title">
         <span>PROJECT INCARNATION™</span>
-        <span class="brand-tag">LOCKED CAMERA // SOLID MAG-TRACK</span>
+        <span class="brand-tag">CONTINUOUS SOLID HIGHWAY // LOCKED CHASE CAM</span>
       </div>
 
       <nav class="view-switcher">
@@ -335,7 +334,7 @@
         </div>
       </section>
 
-      <!-- 2. COMBAT ARENA (RIGID LOCKED CAMERA) -->
+      <!-- 2. COMBAT ARENA (TRUE CHASE CAM // CONTINUOUS SOLID HIGHWAY) -->
       <section id="screen-arena" class="view-screen active">
         <div id="webgl-container">
           <canvas id="threeCanvas"></canvas>
@@ -362,7 +361,7 @@
 
             <div class="speedometer-box">
               <div class="speed-val" id="hud-speed">485</div>
-              <div class="speed-sub">KM/H // SOLID MAG-TRACK</div>
+              <div class="speed-sub">KM/H // CONTINUOUS MAG-TRACK</div>
             </div>
 
             <div class="hud-bar-block" style="align-items:flex-end;">
@@ -434,7 +433,7 @@
             </div>
           </div>
 
-          <div class="pc-help">Управление: [A / D] или [◀ / ▶] Смещение влево/вправо | [SPACE / SHIFT] Quick Boost | [ЛКМ] Оружие R | [F] Клинок L | [E] Ракеты/Бэк</div>
+          <div class="pc-help">Управление: [A / D] или [◀ / ▶] Смещение вокруг трассы | [SPACE / SHIFT] Quick Boost | [ЛКМ] Оружие R | [F] Клинок L | [E] Ракеты/Бэк</div>
         </div>
       </section>
     </main>
@@ -442,7 +441,7 @@
 
   <script>
     /* ========================================================
-       PARTS CATALOG & SLOTS
+       PARTS CATALOG & PRESETS
        ======================================================== */
     const SLOTS = {
       armR: { id: "armR", name: "Правая рука (R-Arm)", cur: "lumier_l9" },
@@ -455,33 +454,33 @@
 
     const PARTS_DB = {
       armR: [
-        { id: "lumier_l9", name: "Лазер Lumier L-9", vendor: "Lumier", type: "laser", icon: "⚡", dmg: 130, stagger: 5.2, weight: 1.8, en: 320, desc: "Скорострельные когерентные лазерные импульсы." },
-        { id: "hermann_gatling", name: "Пулемет Hermann H-44", vendor: "Hermann", type: "gatling", icon: "💥", dmg: 70, stagger: 8.2, weight: 3.4, en: 120, desc: "Шквал бронебойных пуль. Быстрое накопление Stagger!" },
-        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "shotgun", icon: "🛑", dmg: 480, stagger: 35, weight: 2.9, en: 180, desc: "Тяжелый кинетический залп картечью в упор." }
+        { id: "lumier_l9", name: "Лазер Lumier L-9", vendor: "Lumier", type: "laser", icon: "⚡", dmg: 130, stagger: 5.2, weight: 1.8, en: 320, desc: "Скорострельные лазерные импульсы." },
+        { id: "hermann_gatling", name: "Пулемет Hermann H-44", vendor: "Hermann", type: "gatling", icon: "💥", dmg: 70, stagger: 8.2, weight: 3.4, en: 120, desc: "Шквал бронебойных пуль. Быстрый Stagger!" },
+        { id: "sapkowski_shotgun", name: "Дробовик Sapkowski Krab-12", vendor: "Sapkowski", type: "shotgun", icon: "🛑", dmg: 480, stagger: 35, weight: 2.9, en: 180, desc: "Тяжелый кинетический залп в упор." }
       ],
       armL: [
-        { id: "haruki_muramasa", name: "Клинок Haruki Muramasa", vendor: "Haruki", type: "blade", icon: "🗡️", dmg: 1200, stagger: 60, weight: 1.2, en: 260, desc: "Мономолекулярный клинок. Стремительный рывок с рассекающим ударом!" },
-        { id: "gagarin_hammer", name: "Молот Gagarin Titan", vendor: "Gagarin", type: "hammer", icon: "🔨", dmg: 1750, stagger: 85, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран с круговой ударной волной." },
-        { id: "vertex_buckler", name: "Щит Vertex Pulse", vendor: "Vertex", type: "shield", icon: "🛡️", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Электромагнитный купол, отражающий залпы босса назад." }
+        { id: "haruki_muramasa", name: "Клинок Haruki Muramasa", vendor: "Haruki", type: "blade", icon: "🗡️", dmg: 1200, stagger: 60, weight: 1.2, en: 260, desc: "Мономолекулярный клинок. Стремительный рывок!" },
+        { id: "gagarin_hammer", name: "Молот Gagarin Titan", vendor: "Gagarin", type: "hammer", icon: "🔨", dmg: 1750, stagger: 85, weight: 4.8, en: 150, desc: "Тяжелый взрывной таран с круговой волной." },
+        { id: "vertex_buckler", name: "Щит Vertex Pulse", vendor: "Vertex", type: "shield", icon: "🛡️", dmg: 0, stagger: 0, weight: 1.6, en: 350, desc: "Отражает залпы босса назад." }
       ],
       backL: [
         { id: "zedong_hail", name: "Ракетный рой Zedong Hail-8", vendor: "Zedong", type: "missile", icon: "🚀", dmg: 220, stagger: 16, weight: 3.2, en: 220, desc: "Веер из 6 самонаводящихся ракет." },
-        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "railgun", icon: "⚡", dmg: 920, stagger: 65, weight: 5.2, en: 380, desc: "Гиперзвуковой бронебойный луч с мощной отдачей." },
-        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "plasma", icon: "🔮", dmg: 750, stagger: 50, weight: 4.1, en: 450, desc: "Огромный шар плазмы с зоной термического горения." }
+        { id: "gagarin_railgun", name: "Рельсотрон Gagarin Titan", vendor: "Gagarin", type: "railgun", icon: "⚡", dmg: 920, stagger: 65, weight: 5.2, en: 380, desc: "Гиперзвуковой бронебойный луч." },
+        { id: "vertex_plasma", name: "Плазменная пушка Vertex Nova", vendor: "Vertex", type: "plasma", icon: "🔮", dmg: 750, stagger: 50, weight: 4.1, en: 450, desc: "Огромный шар плазмы с термической зоной." }
       ],
       core: [
-        { id: "lumier_singularity", name: "Сингулярное ядро Lumier-Q", vendor: "Lumier", ap: 1400, weight: 12.0, enOutput: 3800, desc: "Колоссальная энергоотдача для лазеров и бустеров." },
-        { id: "gagarin_nuclear", name: "Реактор Gagarin Heavy Atom", vendor: "Gagarin", ap: 2800, weight: 22.5, enOutput: 3200, desc: "Тяжелая танковая броня корпуса и максимальный запас AP." },
-        { id: "haruki_micro", name: "Микро-турбина Haruki Apex", vendor: "Haruki", ap: 1100, weight: 8.5, enOutput: 3100, desc: "Ультралегкое ядро для высоких скоростей." }
+        { id: "lumier_singularity", name: "Сингулярное ядро Lumier-Q", vendor: "Lumier", ap: 1400, weight: 12.0, enOutput: 3800, desc: "Высокая энергоотдача." },
+        { id: "gagarin_nuclear", name: "Реактор Gagarin Heavy Atom", vendor: "Gagarin", ap: 2800, weight: 22.5, enOutput: 3200, desc: "Максимальный запас AP." },
+        { id: "haruki_micro", name: "Микро-турбина Haruki Apex", vendor: "Haruki", ap: 1100, weight: 8.5, enOutput: 3100, desc: "Ультралегкое ядро." }
       ],
       legs: [
-        { id: "haruki_reverse", name: "Прыжковые шасси Haruki Spring", vendor: "Haruki", ap: 1200, weight: 9.5, speed: 490, acs: 1400, desc: "Максимальная скорость скольжения по трассе." },
-        { id: "hermann_bipedal", name: "Двуногие шасси Hermann Standard", vendor: "Hermann", ap: 1900, weight: 14.0, speed: 430, acs: 1900, desc: "Сбалансированное армейское шасси." },
-        { id: "gagarin_tank", name: "Гусеницы Gagarin Heavy Tank", vendor: "Gagarin", ap: 3200, weight: 28.0, speed: 360, acs: 3100, desc: "Колоссальная броня и устойчивость к стану." }
+        { id: "haruki_reverse", name: "Прыжковые шасси Haruki Spring", vendor: "Haruki", ap: 1200, weight: 9.5, speed: 490, acs: 1400, desc: "Максимальная скорость." },
+        { id: "hermann_bipedal", name: "Двуногие шасси Hermann Standard", vendor: "Hermann", ap: 1900, weight: 14.0, speed: 430, acs: 1900, desc: "Сбалансированное шасси." },
+        { id: "gagarin_tank", name: "Гусеницы Gagarin Heavy Tank", vendor: "Gagarin", ap: 3200, weight: 28.0, speed: 360, acs: 3100, desc: "Колоссальная броня." }
       ],
       wings: [
-        { id: "haruki_vector", name: "Векторные дюзы Haruki V-1", vendor: "Haruki", qbForce: 20, qbCost: 20, weight: 4.2, en: 300, desc: "Взрывное ускорение на поворотах трассы." },
-        { id: "lumier_antigrav", name: "Антиграв Lumier Glide", vendor: "Lumier", qbForce: 16, qbCost: 14, weight: 5.5, en: 240, desc: "Плавное парение и экономичный расход энергии." }
+        { id: "haruki_vector", name: "Векторные дюзы Haruki V-1", vendor: "Haruki", qbForce: 20, qbCost: 20, weight: 4.2, en: 300, desc: "Взрывной рывок." },
+        { id: "lumier_antigrav", name: "Антиграв Lumier Glide", vendor: "Lumier", qbForce: 16, qbCost: 14, weight: 5.5, en: 240, desc: "Плавное парение." }
       ]
     };
 
@@ -625,15 +624,15 @@
       document.getElementById(`screen-${m}`).classList.add('active');
       document.getElementById(`tab-btn-${m}`).classList.add('active');
       if (m === 'arena') {
-        initRigidArena();
+        initHighwayArena();
       }
     }
 
     function launchSortie() {
       playSfx('boost');
       switchMode('arena');
-      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM: ALL GREEN. ФИКСАЦИЯ КАМЕРЫ НА ШАССИ ВОПЛОЩЕНИЯ.", "#00f0ff");
-      triggerRadio("СИЛА", "ВОТ ТАК НАМНОГО ЛУЧШЕ! КАМЕРА КАК ВЛИТАЯ — ВПЕРЁД!", "#ef4444");
+      triggerRadio("КОМПЬЮТЕР COM", "SYSTEM ALL GREEN. ВЫХОД НА СПЛОШНОЕ ПОЛОТНО МАГ-ТРАССЫ.", "#00f0ff");
+      triggerRadio("СИЛА", "ТРАССА ПЕРЕД НАМИ! ВПЕРЕД К ЦЕЛИ!", "#ef4444");
     }
 
     /* ========================================================
@@ -683,7 +682,6 @@
           osc.type = 'sine';
           osc.frequency.setValueAtTime(350, t);
           osc.frequency.linearRampToValueAtTime(1400, t + 0.12);
-          osc.frequency.exponentialRampToValueAtTime(200, t + 0.32);
           gain.gain.setValueAtTime(0.3, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
           osc.start(t); osc.stop(t + 0.32);
@@ -766,26 +764,22 @@
     }
 
     /* ========================================================
-       RIGID LOCKED CAMERA 3D ENGINE
+       3D HIGHWAY ENGINE: CONTINUOUS ROAD TEXTURE & FORWARD CAM
        ======================================================== */
     let scene, camera, renderer;
     let trackCurve = null;
     let solidTrackMesh = null;
-    let railsGroup = null;
-
-    const SOLID_RADIUS = 28; // Monolithic cylinder radius
-    const TRACK_POINTS_COUNT = 96;
-    let trackSplinePoints = [];
-
-    // Precomputed rotation-minimizing Frenet frames to prevent any flips
     let trackFrames = null;
+    let roadTexture = null;
 
-    // Player state on OUTER surface of solid cylinder
+    const SOLID_RADIUS = 30; // Radius of solid cylinder
+    const TRACK_POINTS_COUNT = 96;
+
     const player = {
       s: 0.0,
-      speed: 0.00065,
-      currentSpeed: 0.00065,
-      theta: 0.0,
+      speed: 0.00075,
+      currentSpeed: 0.00075,
+      theta: 0.0,          // 0 is top of the cylinder
       thetaVel: 0.0,
       hp: 4200, maxHp: 4200,
       en: 100, maxEn: 100,
@@ -799,13 +793,12 @@
       hammerTimer: 0,
       shieldTimer: 0,
       mesh: null,
-      shieldMesh: null,
-      cameraRig: null // RIGID PARENT FOR CAMERA
+      visualMech: null,
+      shieldMesh: null
     };
 
-    // Boss state on outer surface ahead
     const boss = {
-      s: 0.045,
+      s: 0.045,            // Ahead on track
       theta: 0.0,
       hp: 9500, maxHp: 9500,
       stagger: 0, maxStagger: 100,
@@ -822,32 +815,103 @@
     let matchFinished = false;
     let steerDir = 0;
 
-    function initRigidArena() {
+    /* Generate High-Visibility Continuous Road Texture */
+    function createContinuousRoadTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Dark Carbon-Titanium Highway Base
+      ctx.fillStyle = '#0d131f';
+      ctx.fillRect(0, 0, 1024, 512);
+
+      // Subtle metallic grid
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      for (let x = 0; x < 1024; x += 64) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+      }
+      for (let y = 0; y < 512; y += 64) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+      }
+
+      // 2. High-Tech Luminous Neon Road Borders (Left and Right Rails)
+      ctx.fillStyle = '#00f0ff';
+      ctx.fillRect(0, 0, 1024, 18);
+      ctx.fillRect(0, 494, 1024, 18);
+
+      // Amber Hazard Curbs
+      ctx.fillStyle = '#ffaa00';
+      ctx.fillRect(0, 18, 1024, 10);
+      ctx.fillRect(0, 484, 1024, 10);
+
+      // 3. Central Neon Lane Dividers
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(0, 252, 1024, 8);
+
+      // Secondary lane lines
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      for (let x = 0; x < 1024; x += 96) {
+        ctx.fillRect(x, 130, 48, 6);
+        ctx.fillRect(x, 376, 48, 6);
+      }
+
+      // 4. Bright Luminous Chevron Arrows (>>> FORWARD DIRECTION)
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.85)';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 4;
+
+      for (let x = 32; x < 1024; x += 128) {
+        // Upper chevron
+        ctx.beginPath();
+        ctx.moveTo(x, 190);
+        ctx.lineTo(x + 36, 205);
+        ctx.lineTo(x, 220);
+        ctx.stroke();
+
+        // Lower chevron
+        ctx.beginPath();
+        ctx.moveTo(x, 292);
+        ctx.lineTo(x + 36, 307);
+        ctx.lineTo(x, 322);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(160, 4); // 160 repeating segments along the track, 4 around circumference
+      return tex;
+    }
+
+    function initHighwayArena() {
       const container = document.getElementById('webgl-container');
       const canvasEl = document.getElementById('threeCanvas');
 
       if (!renderer) {
         scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x020408, 0.0025);
+        scene.fog = new THREE.FogExp2(0x02050c, 0.0018);
 
         camera = new THREE.PerspectiveCamera(65, container.clientWidth / container.clientHeight, 0.5, 2500);
         renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: false });
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        const ambLight = new THREE.AmbientLight(0x2d3e55, 1.4);
+        // Bright clear lighting
+        const ambLight = new THREE.AmbientLight(0x475569, 1.8);
         scene.add(ambLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
-        sunLight.position.set(150, 300, 100);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        sunLight.position.set(200, 400, 150);
         scene.add(sunLight);
 
-        const cyanFill = new THREE.DirectionalLight(0x00f0ff, 1.2);
-        cyanFill.position.set(-120, -180, -80);
-        scene.add(cyanFill);
+        const cyanRim = new THREE.DirectionalLight(0x00f0ff, 1.5);
+        cyanRim.position.set(-150, -200, -100);
+        scene.add(cyanRim);
 
-        buildSmoothSolidTrack();
-        buildRigidThirdPersonMech();
+        buildSolidHighwayTrack();
+        buildForwardMech();
         buildBossCenturion();
         buildSpaceEnvironment();
 
@@ -866,157 +930,164 @@
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
-    /* Build Smooth Rollercoaster Spline */
-    function buildSmoothSolidTrack() {
-      trackSplinePoints = [];
-      const R_CIRCUIT = 520;
+    /* Build Solid, Continuous Monolithic Rollercoaster Track */
+    function buildSolidHighwayTrack() {
+      const trackSplinePoints = [];
+      const R_CIRCUIT = 540;
 
       for (let i = 0; i < TRACK_POINTS_COUNT; i++) {
         const u = (i / TRACK_POINTS_COUNT) * Math.PI * 2;
-        // Smooth sweeping rollercoaster loop with zero sharp kinks
-        const x = Math.sin(u) * R_CIRCUIT + Math.sin(u * 2) * 120;
-        const y = Math.sin(u * 2) * 160 + Math.cos(u * 3) * 70;
-        const z = Math.cos(u) * R_CIRCUIT + Math.cos(u * 2) * 130;
+        // Sweeping smooth rollercoaster circuit
+        const x = Math.sin(u) * R_CIRCUIT + Math.sin(u * 2) * 110;
+        const y = Math.sin(u * 2) * 150 + Math.cos(u * 3) * 60;
+        const z = Math.cos(u) * R_CIRCUIT + Math.cos(u * 2) * 120;
         trackSplinePoints.push(new THREE.Vector3(x, y, z));
       }
 
       trackCurve = new THREE.CatmullRomCurve3(trackSplinePoints, true, 'centripetal');
-
-      // Precompute continuous Frenet frames with zero twist flips
       trackFrames = trackCurve.computeFrenetFrames(1000, true);
 
-      // Solid, opaque monolithic cylinder
-      const solidGeo = new THREE.TubeGeometry(trackCurve, 600, SOLID_RADIUS, 32, true);
+      // Generate road texture
+      roadTexture = createContinuousRoadTexture();
+
+      // Continuous Opaque Solid Tube
+      const solidGeo = new THREE.TubeGeometry(trackCurve, 600, SOLID_RADIUS, 36, true);
       const solidMat = new THREE.MeshStandardMaterial({
-        color: 0x111622,
+        map: roadTexture,
         roughness: 0.35,
-        metalness: 0.85
+        metalness: 0.6,
+        bumpScale: 0.05
       });
       solidTrackMesh = new THREE.Mesh(solidGeo, solidMat);
       scene.add(solidTrackMesh);
 
-      // Structural neon track rings and mag-rails
-      railsGroup = new THREE.Group();
-      const ribGeo = new THREE.TorusGeometry(SOLID_RADIUS + 0.8, 0.6, 8, 36);
-      const ribMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9 });
-      const neonTrimMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      // Outer Structural Girders and Neon Rings every 40m
+      const ringsGroup = new THREE.Group();
+      const ringGeo = new THREE.TorusGeometry(SOLID_RADIUS + 1.2, 0.8, 8, 36);
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
+      const neonRingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
 
-      for (let i = 0; i < 250; i++) {
-        const tVal = i / 250;
+      for (let i = 0; i < 200; i++) {
+        const tVal = i / 200;
         const pt = trackCurve.getPointAt(tVal);
         const tangent = trackCurve.getTangentAt(tVal).normalize();
 
-        const rib = new THREE.Mesh(ribGeo, i % 4 === 0 ? neonTrimMat : ribMat);
-        rib.position.copy(pt);
-        rib.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
-        railsGroup.add(rib);
+        const ring = new THREE.Mesh(ringGeo, i % 4 === 0 ? neonRingMat : ringMat);
+        ring.position.copy(pt);
+        ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tangent);
+        ringsGroup.add(ring);
       }
-      scene.add(railsGroup);
+      scene.add(ringsGroup);
     }
 
     function buildSpaceEnvironment() {
       const starsGeo = new THREE.BufferGeometry();
-      const count = 3500;
+      const count = 4000;
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count * 3; i += 3) {
-        positions[i] = (Math.random() - 0.5) * 4000;
-        positions[i + 1] = (Math.random() - 0.5) * 4000;
-        positions[i + 2] = (Math.random() - 0.5) * 4000;
+        positions[i] = (Math.random() - 0.5) * 4500;
+        positions[i + 1] = (Math.random() - 0.5) * 4500;
+        positions[i + 2] = (Math.random() - 0.5) * 4500;
       }
       starsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const starsMat = new THREE.PointsMaterial({ color: 0x94a3b8, size: 2.0, transparent: true, opacity: 0.8 });
+      const starsMat = new THREE.PointsMaterial({ color: 0x94a3b8, size: 2.2, transparent: true, opacity: 0.85 });
       scene.add(new THREE.Points(starsGeo, starsMat));
 
-      const planetGeo = new THREE.SphereGeometry(160, 32, 32);
-      const planetMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.9 });
+      const planetGeo = new THREE.SphereGeometry(180, 32, 32);
+      const planetMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.9 });
       const planet = new THREE.Mesh(planetGeo, planetMat);
-      planet.position.set(700, -380, -800);
+      planet.position.set(750, -420, -900);
       scene.add(planet);
     }
 
-    /* Build Mech & RIGIDLY MOUNT CAMERA directly into player frame */
-    function buildRigidThirdPersonMech() {
-      // 1. Root group representing player's reference frame on the outer cylinder
+    /* Build Mech: STRICTLY FACING FORWARD (+Z), BACK TO CAMERA */
+    function buildForwardMech() {
       const playerRoot = new THREE.Group();
-
-      // Mech visual model
       const mechModel = new THREE.Group();
 
-      // Chassis & Skids
-      const chassisGeo = new THREE.BoxGeometry(4.2, 2.0, 5.2);
-      const chassisMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4, metalness: 0.8 });
+      // Coordinate Conventions for Mech:
+      // +Z = FORWARD (towards nose / weapon barrels)
+      // -Z = BACKWARD (towards back boosters / exhaust flames)
+      // +Y = UP (away from track surface)
+      // +X = RIGHT
+
+      // Lower Chassis & Skids
+      const chassisGeo = new THREE.BoxGeometry(4.4, 2.0, 5.4);
+      const chassisMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.8 });
       const chassis = new THREE.Mesh(chassisGeo, chassisMat);
       chassis.position.set(0, 1.0, 0);
       mechModel.add(chassis);
 
-      const skidGeo = new THREE.BoxGeometry(1.0, 0.6, 6.2);
+      // Foot Skids contacting surface
+      const skidGeo = new THREE.BoxGeometry(1.0, 0.6, 6.4);
       const skidMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
       const skidL = new THREE.Mesh(skidGeo, skidMat);
-      skidL.position.set(-2.0, 0.2, 0);
+      skidL.position.set(-2.2, 0.3, 0);
       mechModel.add(skidL);
 
       const skidR = new THREE.Mesh(skidGeo, skidMat);
-      skidR.position.set(2.0, 0.2, 0);
+      skidR.position.set(2.2, 0.3, 0);
       mechModel.add(skidR);
 
       // Torso & Cockpit
-      const torsoGeo = new THREE.BoxGeometry(4.8, 3.8, 4.4);
+      const torsoGeo = new THREE.BoxGeometry(5.0, 4.0, 4.6);
       const torsoMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.7 });
       const torso = new THREE.Mesh(torsoGeo, torsoMat);
-      torso.position.set(0, 3.4, -0.4);
+      torso.position.set(0, 3.4, 0);
       mechModel.add(torso);
 
-      // Core Eye
-      const coreGeo = new THREE.SphereGeometry(1.2, 16, 16);
-      const coreMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-      const core = new THREE.Mesh(coreGeo, coreMat);
-      core.position.set(0, 3.6, 1.8);
-      mechModel.add(core);
+      // Front Cockpit Visor / Eye pointing FORWARD (+Z)
+      const visorGeo = new THREE.BoxGeometry(2.8, 1.2, 1.0);
+      const visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const visor = new THREE.Mesh(visorGeo, visorMat);
+      visor.position.set(0, 4.2, 2.3);
+      mechModel.add(visor);
 
-      // Booster Jets
-      const boosterGeo = new THREE.CylinderGeometry(0.8, 1.2, 3.0, 16);
-      boosterGeo.rotateX(Math.PI / 2);
+      // Back Jet Boosters pointing BACKWARDS (-Z)
+      const boosterGeo = new THREE.CylinderGeometry(0.9, 1.3, 3.2, 16);
+      boosterGeo.rotateX(-Math.PI / 2); // Cylinder along Z
       const boosterMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.9 });
 
       const boosterL = new THREE.Mesh(boosterGeo, boosterMat);
-      boosterL.position.set(-1.8, 4.2, -2.4);
+      boosterL.position.set(-1.9, 4.0, -2.4);
       mechModel.add(boosterL);
 
       const boosterR = new THREE.Mesh(boosterGeo, boosterMat);
-      boosterR.position.set(1.8, 4.2, -2.4);
+      boosterR.position.set(1.9, 4.0, -2.4);
       mechModel.add(boosterR);
 
-      // Twin Exhaust Flames
-      const flameGeo = new THREE.ConeGeometry(0.9, 4.8, 12);
-      flameGeo.rotateX(-Math.PI / 2);
+      // Twin Booster Exhaust Flames Shooting BACKWARDS (-Z) towards camera
+      const flameGeo = new THREE.ConeGeometry(1.0, 5.2, 12);
+      flameGeo.rotateX(Math.PI / 2); // Pointing towards -Z
       const flameMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.85 });
 
       const flameL = new THREE.Mesh(flameGeo, flameMat);
-      flameL.position.set(-1.8, 4.2, -4.8);
+      flameL.position.set(-1.9, 4.0, -5.2);
       mechModel.add(flameL);
 
       const flameR = new THREE.Mesh(flameGeo, flameMat);
-      flameR.position.set(1.8, 4.2, -4.8);
+      flameR.position.set(1.9, 4.0, -5.2);
       mechModel.add(flameR);
 
-      // Arm Weapons
-      const gunGeo = new THREE.BoxGeometry(1.2, 1.4, 7.0);
+      // R-Arm Weapon (Right arm at +X, pointing forward to +Z)
+      const gunGeo = new THREE.BoxGeometry(1.2, 1.4, 7.5);
       const gunR = new THREE.Mesh(gunGeo, new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.8 }));
-      gunR.position.set(3.4, 3.0, 1.5);
+      gunR.position.set(3.6, 3.0, 2.0);
       mechModel.add(gunR);
 
+      // L-Arm Weapon (Left arm at -X, pointing forward to +Z)
       const armL = new THREE.Mesh(gunGeo, new THREE.MeshStandardMaterial({ color: 0xffaa00, metalness: 0.8 }));
-      armL.position.set(-3.4, 3.0, 1.5);
+      armL.position.set(-3.6, 3.0, 2.0);
       mechModel.add(armL);
 
-      // Back Missile Pods
+      // Shoulder Missile Pods (at -Z rear shoulders)
       const podGeo = new THREE.BoxGeometry(1.6, 2.0, 3.2);
       const podL = new THREE.Mesh(podGeo, new THREE.MeshStandardMaterial({ color: 0xff2a4b, metalness: 0.7 }));
-      podL.position.set(-2.8, 5.5, -1.0);
+      podL.position.set(-2.8, 5.5, -0.8);
       mechModel.add(podL);
 
       const podR = new THREE.Mesh(podGeo, new THREE.MeshStandardMaterial({ color: 0xff2a4b, metalness: 0.7 }));
-      podR.position.set(2.8, 5.5, -1.0);
+      podR.position.set(2.8, 5.5, -0.8);
       mechModel.add(podR);
 
       // Shield Sphere
@@ -1029,44 +1100,37 @@
 
       playerRoot.add(mechModel);
 
-      // ==========================================================
-      // CRITICAL: RIGID CAMERA ATTACHMENT
-      // The camera is attached DIRECTLY as a child of playerRoot!
-      // This guarantees 0% drift, 0% lag, rock-solid locked view!
-      // ==========================================================
-      camera.position.set(0, 9.5, -23.0); // Exactly behind and slightly above the mech
-      camera.lookAt(new THREE.Vector3(0, 3.2, 35.0)); // Locked looking forward down the track
-      playerRoot.add(camera);
-
       player.mesh = playerRoot;
       player.visualMech = mechModel;
       scene.add(player.mesh);
     }
 
-    /* Build 3D Centurion-Titan Boss Model */
+    /* Build Boss Centurion facing BACKWARDS (-Z) to shoot at player */
     function buildBossCenturion() {
       const bossGroup = new THREE.Group();
 
-      const bodyGeo = new THREE.BoxGeometry(12.0, 8.0, 16.0);
+      const bodyGeo = new THREE.BoxGeometry(14.0, 8.5, 18.0);
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.35, metalness: 0.9 });
       const body = new THREE.Mesh(bodyGeo, bodyMat);
       body.position.set(0, 4.5, 0);
       bossGroup.add(body);
 
-      const eyeGeo = new THREE.SphereGeometry(2.4, 16, 16);
+      // Glowing Rear Eye facing player (-Z)
+      const eyeGeo = new THREE.SphereGeometry(2.6, 16, 16);
       const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2a4b });
       const eye = new THREE.Mesh(eyeGeo, eyeMat);
-      eye.position.set(0, 5.5, -8.2);
+      eye.position.set(0, 5.5, -9.2);
       bossGroup.add(eye);
 
-      const turretGeo = new THREE.CylinderGeometry(2.8, 2.8, 5.0, 16);
+      // Heavy Side Turrets
+      const turretGeo = new THREE.CylinderGeometry(2.8, 2.8, 6.0, 16);
       const turretMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.8 });
       const turretL = new THREE.Mesh(turretGeo, turretMat);
-      turretL.position.set(-7.5, 4.0, 0);
+      turretL.position.set(-8.5, 4.0, 0);
       bossGroup.add(turretL);
 
       const turretR = new THREE.Mesh(turretGeo, turretMat);
-      turretR.position.set(7.5, 4.0, 0);
+      turretR.position.set(8.5, 4.0, 0);
       bossGroup.add(turretR);
 
       boss.mesh = bossGroup;
@@ -1084,7 +1148,7 @@
       player.s = 0.0;
       player.theta = 0.0;
       player.thetaVel = 0.0;
-      player.speed = (stats.speed / 500) * 0.00065;
+      player.speed = (stats.speed / 500) * 0.00075;
       player.currentSpeed = player.speed;
       player.qbCost = stats.qbCost;
       player.qbForce = stats.finalQb * 0.01;
@@ -1166,8 +1230,8 @@
       if (keys['KeyD'] || keys['ArrowRight']) dir = 1;
       if (dir === 0) dir = 1;
 
-      player.thetaVel += dir * player.qbForce * 10;
-      player.currentSpeed = player.speed * 1.85;
+      player.thetaVel += dir * player.qbForce * 12;
+      player.currentSpeed = player.speed * 1.9;
 
       spawnSurfaceSparks(player.mesh.position, 25);
     }
@@ -1183,13 +1247,13 @@
         const bulletGeo = new THREE.CylinderGeometry(0.35, 0.35, 14, 8);
         bulletGeo.rotateX(Math.PI / 2);
         const bMesh = new THREE.Mesh(bulletGeo, new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
+        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 2).applyQuaternion(player.mesh.quaternion));
         bMesh.quaternion.copy(player.mesh.quaternion);
         scene.add(bMesh);
 
         bullets3D.push({
           mesh: bMesh,
-          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(6.5),
+          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(7.0),
           dmg: w.dmg, stagger: w.stagger, life: 60
         });
       } else if (w.type === 'gatling') {
@@ -1197,13 +1261,13 @@
         playSfx('gatling');
 
         const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
-        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
+        bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 2).applyQuaternion(player.mesh.quaternion));
         scene.add(bMesh);
 
         const spread = new THREE.Vector3((Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.08, 1).normalize();
         bullets3D.push({
           mesh: bMesh,
-          vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(5.8),
+          vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(6.2),
           dmg: w.dmg, stagger: w.stagger, life: 55
         });
       } else if (w.type === 'shotgun') {
@@ -1212,13 +1276,13 @@
 
         for (let i = 0; i < 7; i++) {
           const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.65, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-          bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 0).applyQuaternion(player.mesh.quaternion));
+          bMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 3, 2).applyQuaternion(player.mesh.quaternion));
           scene.add(bMesh);
 
           const spread = new THREE.Vector3((Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25, 1).normalize();
           bullets3D.push({
             mesh: bMesh,
-            vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(5.0 + Math.random()),
+            vel: spread.applyQuaternion(player.mesh.quaternion).multiplyScalar(5.2 + Math.random()),
             dmg: Math.round(w.dmg / 5), stagger: w.stagger / 5, life: 35
           });
         }
@@ -1268,10 +1332,10 @@
           mMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 5, 0).applyQuaternion(player.mesh.quaternion));
           scene.add(mMesh);
 
-          const side = (i % 2 === 0 ? 1 : -1) * (2.0 + Math.random());
+          const side = (i % 2 === 0 ? 1 : -1) * (2.2 + Math.random());
           missiles3D.push({
             mesh: mMesh,
-            vel: new THREE.Vector3(side, 2.5, 2.5).applyQuaternion(player.mesh.quaternion),
+            vel: new THREE.Vector3(side, 2.5, 3.0).applyQuaternion(player.mesh.quaternion),
             dmg: w.dmg, stagger: w.stagger, life: 100, delayTurn: 10 + i * 4
           });
         }
@@ -1300,12 +1364,12 @@
         playSfx('plasma');
 
         const pMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 16, 16), new THREE.MeshBasicMaterial({ color: 0xbf5af2, wireframe: true }));
-        pMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 4, 0).applyQuaternion(player.mesh.quaternion));
+        pMesh.position.copy(player.mesh.position).add(new THREE.Vector3(0, 4, 2).applyQuaternion(player.mesh.quaternion));
         scene.add(pMesh);
 
         bullets3D.push({
           mesh: pMesh,
-          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(3.8),
+          vel: new THREE.Vector3(0, 0, 1).applyQuaternion(player.mesh.quaternion).multiplyScalar(4.0),
           dmg: w.dmg, stagger: w.stagger, life: 80, isPlasma: true
         });
 
@@ -1350,7 +1414,7 @@
       const p1 = trackCurve.getPointAt(s);
       const tangent = trackCurve.getTangentAt(s).normalize();
 
-      // Interpolate precomputed smooth Frenet frames
+      // Interpolate smooth Frenet frames
       const n1 = trackFrames.normals[idx];
       const n2 = trackFrames.normals[nextIdx];
       const normal = new THREE.Vector3().lerpVectors(n1, n2, frac).normalize();
@@ -1366,7 +1430,7 @@
         .normalize();
 
       // Circumferential right vector (tangent to cylinder circle)
-      const rightVector = new THREE.Vector3().crossVectors(tangent, outVector).normalize();
+      const rightVector = new THREE.Vector3().crossVectors(outVector, tangent).normalize();
 
       // Outer surface position
       const surfacePos = new THREE.Vector3().addVectors(
@@ -1374,7 +1438,7 @@
         outVector.clone().multiplyScalar(SOLID_RADIUS + 0.3)
       );
 
-      // Orientation basis: X = rightVector, Y = outVector (up for mech), Z = tangent (forward)
+      // Orientation basis: X = rightVector, Y = outVector (up for mech), Z = tangent (FORWARD)
       const rotMat = new THREE.Matrix4().makeBasis(rightVector, outVector, tangent);
       const quat = new THREE.Quaternion().setFromRotationMatrix(rotMat);
 
@@ -1409,10 +1473,15 @@
       if (player.en < player.maxEn) player.en = Math.min(player.maxEn, player.en + player.enRegen);
       player.currentSpeed += (player.speed - player.currentSpeed) * 0.05;
 
-      // Forward travel
+      // 1. FORWARD TRAVEL: Player moves FORWARD along the track
       player.s = (player.s + player.currentSpeed) % 1.0;
 
-      // Steering
+      // Road texture scrolling effect
+      if (roadTexture) {
+        roadTexture.offset.x = (roadTexture.offset.x - player.currentSpeed * 12.0) % 1.0;
+      }
+
+      // 2. Steering around the cylinder circumference
       let steerInput = steerDir;
       if (keys['KeyA'] || keys['ArrowLeft']) steerInput = -1;
       if (keys['KeyD'] || keys['ArrowRight']) steerInput = 1;
@@ -1421,22 +1490,32 @@
       player.thetaVel *= 0.86;
       player.theta += player.thetaVel;
 
-      // 1. POSITION PLAYER ON OUTER SURFACE
+      // 3. Compute Player Transform on Outer Surface
       const pTrans = getOuterTransform(player.s, player.theta);
       player.mesh.position.copy(pTrans.pos);
       player.mesh.quaternion.copy(pTrans.quat);
 
-      // Visual tilt on steering (applied to mechModel only, so camera stays totally solid!)
+      // Visual tilt on steering
       if (player.visualMech) {
         player.visualMech.rotation.z = -player.thetaVel * 16;
       }
 
-      // NOTE: CAMERA IS RIGIDLY MOUNTED INSIDE player.mesh!
-      // No lag, no floating, no wobble! Rock solid behind the mech.
+      // ==========================================================
+      // TRUE RIGID CHASE CAM: BEHIND MECH, LOOKING FORWARD DOWN TRACK
+      // ==========================================================
+      // Camera is positioned at -Z (behind), +Y (above)
+      const camOffsetLocal = new THREE.Vector3(0, 9.0, -22.0).applyQuaternion(pTrans.quat);
+      camera.position.copy(pTrans.pos).add(camOffsetLocal);
+      camera.up.copy(pTrans.upVector);
 
-      // 2. Boss Movement on outer surface
+      // Camera looks forward along +Z tangent at the road ahead
+      const lookTargetLocal = new THREE.Vector3(0, 3.5, 38.0).applyQuaternion(pTrans.quat);
+      const lookTargetWorld = new THREE.Vector3().addVectors(pTrans.pos, lookTargetLocal);
+      camera.lookAt(lookTargetWorld);
+
+      // 4. Boss Movement: Ahead on track (+Z)
       boss.s = (boss.s + player.speed * 0.98) % 1.0;
-      boss.theta = Math.sin(Date.now() * 0.001) * 1.1;
+      boss.theta = Math.sin(Date.now() * 0.001) * 1.0;
 
       const bTrans = getOuterTransform(boss.s, boss.theta);
       boss.mesh.position.copy(bTrans.pos);
@@ -1455,7 +1534,7 @@
           boss.attackTimer = 65;
           for (let k = -1; k <= 1; k++) {
             const ebMesh = new THREE.Mesh(new THREE.SphereGeometry(1.4, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff2a4b }));
-            ebMesh.position.copy(boss.mesh.position).add(new THREE.Vector3(0, 4, 0).applyQuaternion(boss.mesh.quaternion));
+            ebMesh.position.copy(boss.mesh.position).add(new THREE.Vector3(0, 4, -4).applyQuaternion(boss.mesh.quaternion));
             scene.add(ebMesh);
 
             const aimDir = new THREE.Vector3().subVectors(player.mesh.position, boss.mesh.position).normalize();
@@ -1525,7 +1604,7 @@
           m.mesh.position.add(m.vel);
         } else {
           const dir = new THREE.Vector3().subVectors(boss.mesh.position, m.mesh.position).normalize();
-          m.vel.lerp(dir.multiplyScalar(4.4), 0.12);
+          m.vel.lerp(dir.multiplyScalar(4.5), 0.12);
           m.mesh.position.add(m.vel);
           m.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), m.vel.clone().normalize());
         }
@@ -1618,7 +1697,7 @@
 
       document.getElementById('hud-txt-boss-hp').innerText = boss.hp;
 
-      const speedKmH = Math.round(player.currentSpeed * 750000);
+      const speedKmH = Math.round(player.currentSpeed * 650000);
       document.getElementById('hud-speed').innerText = speedKmH;
     }
 
@@ -1627,7 +1706,7 @@
     updateSpecsMatrix();
 
     window.addEventListener('DOMContentLoaded', () => {
-      initRigidArena();
+      initHighwayArena();
     });
   </script>
 </body>
