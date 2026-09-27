@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PROJECT INCARNATION // ARMORED CORE PROTO</title>
+  <style>
+    :root {
+      --bg: #04060a;
+      --cyan: #00f0ff;
+      --red: #ff2a4b;
+      --amber: #ffaa00;
+      --green: #00ff88;
+      --purple: #bf5af2;
+      --hud-bg: rgba(6, 10, 18, 0.85);
+      --font-mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; height: 100dvh; background: var(--bg); color: #fff; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    #game-container {
+      position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: #000;
+    }
+
+    canvas#battleCanvas {
+      width: 100%; height: 100%; display: block;
+    }
+
+    /* TOP AC HUD */
+    .ac-top-hud {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 10px 14px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      pointer-events: none; z-index: 10;
+      background: linear-gradient(to bottom, rgba(4,6,10,0.9) 0%, rgba(4,6,10,0) 100%);
+    }
+
+    .pilot-card {
+      display: flex; flex-direction: column; gap: 3px; font-family: var(--font-mono);
+    }
+    .ac-title { font-size: 11px; color: var(--cyan); letter-spacing: 2px; font-weight: 700; text-shadow: 0 0 8px rgba(0,240,255,0.6); }
+    .ac-bar-wrap { width: 180px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.2); }
+    .ac-bar-fill { height: 100%; transition: width 0.1s linear; }
+    .bar-hp { background: linear-gradient(90deg, #10b981, #00f0ff); width: 100%; }
+    .bar-en { background: linear-gradient(90deg, #f59e0b, #eab308); width: 100%; }
+
+    .target-card {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 3px; font-family: var(--font-mono);
+    }
+    .boss-name { font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,42,75,0.8); }
+    .stagger-bar-wrap { width: 180px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; border: 1px solid rgba(255,42,75,0.4); }
+    .stagger-fill { height: 100%; width: 0%; background: #ffaa00; transition: width 0.05s ease; }
+    .stagger-label { font-size: 9px; color: #ffaa00; }
+
+    /* RADIO THOUGHTS (DISCO ELYSIUM VOICES IN AC COCKPIT) */
+    .radio-box {
+      position: absolute; top: 75px; left: 14px; width: 280px;
+      display: flex; flex-direction: column; gap: 6px;
+      pointer-events: none; z-index: 10;
+    }
+    .radio-msg {
+      background: rgba(10, 15, 26, 0.88);
+      border-left: 3px solid var(--cyan);
+      border-radius: 4px; padding: 6px 10px;
+      font-size: 11px; line-height: 1.35;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      animation: radioSlide 0.25s ease forwards;
+    }
+    @keyframes radioSlide {
+      from { opacity: 0; transform: translateX(-15px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .radio-speaker { font-size: 9.5px; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+    .radio-logic { border-left-color: #06b6d4; }
+    .radio-logic .radio-speaker { color: #06b6d4; }
+    .radio-strength { border-left-color: #ef4444; }
+    .radio-strength .radio-speaker { color: #ef4444; }
+    .radio-mind { border-left-color: #bf5af2; }
+    .radio-mind .radio-speaker { color: #bf5af2; }
+
+    /* WARNING ALERTS */
+    .stagger-alert {
+      position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 26px; font-weight: 900; font-family: var(--font-mono);
+      color: #ff2a4b; letter-spacing: 4px; text-shadow: 0 0 20px #ff2a4b, 0 0 40px #ff0000;
+      opacity: 0; pointer-events: none; z-index: 20;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .stagger-alert.active {
+      opacity: 1; transform: translate(-50%, -50%) scale(1.15);
+      animation: pulseAlert 0.4s infinite alternate;
+    }
+    @keyframes pulseAlert {
+      from { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1); }
+      to { transform: translate(-50%, -50%) scale(1.25); filter: brightness(1.4); }
+    }
+
+    /* CONTROLS OVERLAY */
+    .controls-overlay {
+      position: absolute; bottom: 12px; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 0 16px; pointer-events: none; z-index: 30;
+    }
+
+    /* Virtual Joystick Left */
+    .joystick-zone {
+      width: 130px; height: 130px; background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(0,240,255,0.3); border-radius: 50%;
+      position: relative; pointer-events: auto; touch-action: none;
+    }
+    .joystick-thumb {
+      width: 50px; height: 50px; background: radial-gradient(circle, rgba(0,240,255,0.7) 0%, rgba(0,240,255,0.15) 80%);
+      border: 2px solid var(--cyan); border-radius: 50%; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none; box-shadow: 0 0 12px rgba(0,240,255,0.5);
+    }
+
+    /* Action Buttons Right */
+    .action-pad {
+      display: grid; grid-template-columns: repeat(2, 68px); gap: 10px;
+      pointer-events: auto;
+    }
+    .ac-btn {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: rgba(13, 20, 32, 0.85); border: 2px solid rgba(255,255,255,0.25);
+      color: #fff; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; transition: transform 0.05s ease, border-color 0.1s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    }
+    .ac-btn:active { transform: scale(0.92); }
+    .ac-btn-icon { font-size: 18px; }
+    
+    .btn-fire { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,240,255,0.3); }
+    .btn-fire:active { background: rgba(0,240,255,0.3); }
+    .btn-blade { border-color: #ffaa00; box-shadow: 0 0 10px rgba(255,170,0,0.3); }
+    .btn-blade:active { background: rgba(255,170,0,0.3); }
+    .btn-missiles { border-color: #ff2a4b; box-shadow: 0 0 10px rgba(255,42,75,0.3); }
+    .btn-missiles:active { background: rgba(255,42,75,0.3); }
+    .btn-boost { border-color: #00ff88; box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    .btn-boost:active { background: rgba(0,255,136,0.3); }
+
+    /* Desktop Controls Help */
+    .pc-help {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-mono); font-size: 10.5px; color: rgba(255,255,255,0.45);
+      pointer-events: none; z-index: 10; white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .pc-help { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- Top HUD -->
+    <div class="ac-top-hud">
+      <div class="pilot-card">
+        <div class="ac-title">INCARNATION // LUMIER MK-IV</div>
+        <div style="font-size:9.5px; color:#94a3b8; display:flex; justify-content:space-between; width:180px;">
+          <span>AP (БРОНЯ):</span>
+          <span id="txt-hp" style="color:var(--cyan); font-weight:700;">4200 / 4200</span>
+        </div>
+        <div class="ac-bar-wrap">
+          <div class="ac-bar-fill bar-hp" id="bar-hp"></div>
+        </div>
+
+        <div style="font-size:9.5px; color:#94a3b8; display:flex; justify-content:space-between; width:180px; margin-top:2px;">
+          <span>EN (БУСТЕРЫ):</span>
+          <span id="txt-en" style="color:var(--amber); font-weight:700;">100%</span>
+        </div>
+        <div class="ac-bar-wrap">
+          <div class="ac-bar-fill bar-en" id="bar-en"></div>
+        </div>
+      </div>
+
+      <div class="target-card">
+        <div class="boss-name">HERMANN «CENTURION-TITAN»</div>
+        <div style="font-size:9.5px; color:#94a3b8; display:flex; justify-content:space-between; width:180px;">
+          <span>ACS OVERLOAD:</span>
+          <span class="stagger-label" id="txt-stagger">0%</span>
+        </div>
+        <div class="stagger-bar-wrap">
+          <div class="stagger-fill" id="bar-stagger"></div>
+        </div>
+        <div style="font-size:9.5px; color:#ef4444; width:180px; text-align:right; margin-top:2px;">
+          HP БОССА: <span id="txt-boss-hp" style="font-weight:700;">8500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radio / Cockpit Thoughts -->
+    <div class="radio-box" id="radioBox"></div>
+
+    <!-- Warning / Stagger Banner -->
+    <div class="stagger-alert" id="staggerBanner">ACS STAGGERED! DIRECT HIT x2.5</div>
+
+    <!-- Main Game Canvas -->
+    <canvas id="battleCanvas"></canvas>
+
+    <!-- Controls Overlay -->
+    <div class="controls-overlay">
+      <div class="joystick-zone" id="joystickZone">
+        <div class="joystick-thumb" id="joystickThumb"></div>
+      </div>
+
+      <div class="action-pad">
+        <div class="ac-btn btn-fire" id="btnFire">
+          <span class="ac-btn-icon">⚡</span>
+          <span>ПУЛЕМЁТ</span>
+        </div>
+        <div class="ac-btn btn-blade" id="btnBlade">
+          <span class="ac-btn-icon">🗡️</span>
+          <span>КЛИНОК</span>
+        </div>
+        <div class="ac-btn btn-missiles" id="btnMissiles">
+          <span class="ac-btn-icon">🚀</span>
+          <span>РАКЕТЫ</span>
+        </div>
+        <div class="ac-btn btn-boost" id="btnBoost">
+          <span class="ac-btn-icon">💨</span>
+          <span>РЫВОК</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pc-help">Управление на ПК: [WASD] Движение | [SPACE / SHIFT] Quick Boost | [КЛИК] Огонь | [E] Ракеты | [F] Клинок</div>
+  </div>
+
+  <script>
+    /* ========================================================
+       ARMORED CORE SOUND SYNTHESIZER (WEB AUDIO API)
+       ======================================================== */
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playSfx(type) {
+      try {
+        initAudio();
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'rifle') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(450, t);
+          osc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+          gain.gain.setValueAtTime(0.15, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+          osc.start(t); osc.stop(t + 0.08);
+        } else if (type === 'blade') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, t);
+          osc.frequency.linearRampToValueAtTime(1100, t + 0.12);
+          osc.frequency.exponentialRampToValueAtTime(200, t + 0.3);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+          osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'boost') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(160, t);
+          osc.frequency.exponentialRampToValueAtTime(60, t + 0.22);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          osc.start(t); osc.stop(t + 0.22);
+        } else if (type === 'missile') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, t);
+          osc.frequency.linearRampToValueAtTime(650, t + 0.15);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          osc.start(t); osc.stop(t + 0.25);
+        } else if (type === 'stagger') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(800, t);
+          osc.frequency.setValueAtTime(1200, t + 0.08);
+          osc.frequency.setValueAtTime(600, t + 0.16);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t); osc.stop(t + 0.4);
+        } else if (type === 'hit') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(120, t);
+          osc.frequency.exponentialRampToValueAtTime(30, t + 0.12);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          osc.start(t); osc.stop(t + 0.12);
+        }
+      } catch (e) {}
+    }
+
+    /* ========================================================
+       GAME STATE & CORE LOGIC
+       ======================================================== */
+    const canvas = document.getElementById('battleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let screenShake = 0;
+
+    const player = {
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+      speed: 3.8,
+      angle: 0,
+      hp: 4200, maxHp: 4200,
+      en: 100, maxEn: 100,
+      isBoosting: false,
+      bladeCooldown: 0,
+      missileCooldown: 0,
+      rifleCooldown: 0,
+      bladeSlashTimer: 0
+    };
+
+    const boss = {
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+      angle: 0,
+      hp: 8500, maxHp: 8500,
+      stagger: 0, maxStagger: 100,
+      isStaggered: false,
+      staggerTimer: 0,
+      attackTimer: 60,
+      phase: 1
+    };
+
+    let bullets = [];
+    let missiles = [];
+    let particles = [];
+    let enemyBullets = [];
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    player.x = window.innerWidth * 0.5;
+    player.y = window.innerHeight * 0.72;
+    boss.x = window.innerWidth * 0.5;
+    boss.y = window.innerHeight * 0.28;
+
+    /* JOYSTICK & INPUT */
+    const joystick = {
+      active: false,
+      startX: 0, startY: 0,
+      dx: 0, dy: 0,
+      dist: 0
+    };
+
+    const joyZone = document.getElementById('joystickZone');
+    const joyThumb = document.getElementById('joystickThumb');
+
+    joyZone.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const rect = joyZone.getBoundingClientRect();
+      joystick.active = true;
+      joystick.startX = rect.left + rect.width / 2;
+      joystick.startY = rect.top + rect.height / 2;
+      handleJoyTouch(e.touches[0]);
+    }, { passive: false });
+
+    joyZone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (joystick.active) handleJoyTouch(e.touches[0]);
+    }, { passive: false });
+
+    joyZone.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      joystick.active = false;
+      joystick.dx = 0; joystick.dy = 0;
+      joyThumb.style.transform = `translate(-50%, -50%)`;
+    }, { passive: false });
+
+    function handleJoyTouch(touch) {
+      const maxRadius = 45;
+      let rawDx = touch.clientX - joystick.startX;
+      let rawDy = touch.clientY - joystick.startY;
+      let dist = Math.hypot(rawDx, rawDy);
+      if (dist > maxRadius) {
+        rawDx = (rawDx / dist) * maxRadius;
+        rawDy = (rawDy / dist) * maxRadius;
+        dist = maxRadius;
+      }
+      joystick.dx = rawDx / maxRadius;
+      joystick.dy = rawDy / maxRadius;
+      joystick.dist = dist / maxRadius;
+      joyThumb.style.transform = `translate(calc(-50% + ${rawDx}px), calc(-50% + ${rawDy}px))`;
+    }
+
+    /* KEYBOARD INPUT FOR PC */
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      if (e.code === 'Space' || e.code === 'ShiftLeft') doQuickBoost();
+      if (e.code === 'KeyE') fireMissiles();
+      if (e.code === 'KeyF') fireBlade();
+    });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+    window.addEventListener('mousedown', (e) => {
+      if (e.target.tagName !== 'BUTTON' && !e.target.closest('.ac-btn')) {
+        shootRifle();
+      }
+    });
+
+    /* BUTTON LISTENERS */
+    document.getElementById('btnFire').addEventListener('touchstart', (e) => { e.preventDefault(); shootRifle(); });
+    document.getElementById('btnFire').addEventListener('click', shootRifle);
+
+    document.getElementById('btnBlade').addEventListener('touchstart', (e) => { e.preventDefault(); fireBlade(); });
+    document.getElementById('btnBlade').addEventListener('click', fireBlade);
+
+    document.getElementById('btnMissiles').addEventListener('touchstart', (e) => { e.preventDefault(); fireMissiles(); });
+    document.getElementById('btnMissiles').addEventListener('click', fireMissiles);
+
+    document.getElementById('btnBoost').addEventListener('touchstart', (e) => { e.preventDefault(); doQuickBoost(); });
+    document.getElementById('btnBoost').addEventListener('click', doQuickBoost);
+
+    /* ========================================================
+       COMBAT ACTIONS (ARMORED CORE STYLE)
+       ======================================================== */
+    function doQuickBoost() {
+      if (player.en < 25) return;
+      player.en -= 25;
+      playSfx('boost');
+      screenShake = 7;
+
+      let moveAngle = player.angle;
+      if (joystick.active && joystick.dist > 0.1) {
+        moveAngle = Math.atan2(joystick.dy, joystick.dx);
+      } else if (keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD']) {
+        let kx = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
+        let ky = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
+        if (kx !== 0 || ky !== 0) moveAngle = Math.atan2(ky, kx);
+      }
+
+      player.vx = Math.cos(moveAngle) * 16;
+      player.vy = Math.sin(moveAngle) * 16;
+
+      // Spawn thruster sparks
+      for (let i = 0; i < 16; i++) {
+        particles.push({
+          x: player.x - Math.cos(moveAngle) * 20,
+          y: player.y - Math.sin(moveAngle) * 20,
+          vx: -Math.cos(moveAngle) * (4 + Math.random() * 6) + (Math.random() - 0.5) * 4,
+          vy: -Math.sin(moveAngle) * (4 + Math.random() * 6) + (Math.random() - 0.5) * 4,
+          life: 1.0, color: '#00f0ff', size: 3
+        });
+      }
+    }
+
+    function shootRifle() {
+      playSfx('rifle');
+      screenShake = 3;
+
+      const spread = (Math.random() - 0.5) * 0.1;
+      const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x) + spread;
+
+      bullets.push({
+        x: player.x + Math.cos(bAngle + 0.3) * 22,
+        y: player.y + Math.sin(bAngle + 0.3) * 22,
+        vx: Math.cos(bAngle) * 22,
+        vy: Math.sin(bAngle) * 22,
+        life: 45, dmg: 85, staggerAdd: 3.5,
+        color: '#00f0ff'
+      });
+    }
+
+    function fireBlade() {
+      if (player.bladeCooldown > 0) return;
+      player.bladeCooldown = 60;
+      player.bladeSlashTimer = 18;
+      playSfx('blade');
+      screenShake = 12;
+
+      // Quick dash towards boss
+      const bAngle = Math.atan2(boss.y - player.y, boss.x - player.x);
+      player.vx = Math.cos(bAngle) * 22;
+      player.vy = Math.sin(bAngle) * 22;
+
+      triggerRadio("СИЛА", "РАЗМАХ МУРАМАСЫ! СРЕЗАЙ ЕМУ БРОНЮ!", "radio-strength");
+    }
+
+    function fireMissiles() {
+      if (player.missileCooldown > 0) return;
+      player.missileCooldown = 90;
+      playSfx('missile');
+      screenShake = 6;
+
+      // 6-missile swarm
+      for (let i = 0; i < 6; i++) {
+        const side = i % 2 === 0 ? -1 : 1;
+        const initialAngle = player.angle + side * (0.8 + Math.random() * 0.6);
+        missiles.push({
+          x: player.x + side * 15,
+          y: player.y,
+          vx: Math.cos(initialAngle) * 6,
+          vy: Math.sin(initialAngle) * 6,
+          speed: 8 + Math.random() * 2,
+          life: 120, dmg: 140, staggerAdd: 8,
+          delayTurn: 10 + i * 4
+        });
+      }
+
+      triggerRadio("ЛОГИКА", "Ракетный веер запущен. Захват цели стабильный.", "radio-logic");
+    }
+
+    /* RADIO COCKPIT VOICE SYSTEM */
+    let radioTimeout = null;
+    function triggerRadio(speaker, text, cls = 'radio-logic') {
+      const box = document.getElementById('radioBox');
+      const div = document.createElement('div');
+      div.className = `radio-msg ${cls}`;
+      div.innerHTML = `
+        <div class="radio-speaker">▲ ${speaker}</div>
+        <div>${text}</div>
+      `;
+      box.appendChild(div);
+
+      if (box.children.length > 3) box.removeChild(box.firstChild);
+
+      setTimeout(() => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }, 4500);
+    }
+
+    // Initial voice message
+    setTimeout(() => {
+      triggerRadio("ЛОГИКА", "Босс активирован: Hermann «Centurion-Titan». Копи шкалу Stagger, затем бей клинком!", "radio-logic");
+    }, 1000);
+
+    /* ========================================================
+       MAIN GAME LOOP
+       ======================================================== */
+    function gameLoop() {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+      // Screen shake decay
+      if (screenShake > 0) screenShake *= 0.88;
+
+      // Cooldowns
+      if (player.bladeCooldown > 0) player.bladeCooldown--;
+      if (player.missileCooldown > 0) player.missileCooldown--;
+      if (player.bladeSlashTimer > 0) player.bladeSlashTimer--;
+
+      // EN Regeneration
+      if (player.en < player.maxEn) player.en = Math.min(player.maxEn, player.en + 0.35);
+
+      // Player Movement
+      let moveX = 0, moveY = 0;
+      if (joystick.active) {
+        moveX = joystick.dx;
+        moveY = joystick.dy;
+      } else {
+        if (keys['KeyW']) moveY -= 1;
+        if (keys['KeyS']) moveY += 1;
+        if (keys['KeyA']) moveX -= 1;
+        if (keys['KeyD']) moveX += 1;
+        const len = Math.hypot(moveX, moveY);
+        if (len > 0) { moveX /= len; moveY /= len; }
+      }
+
+      player.vx += moveX * player.speed * 0.25;
+      player.vy += moveY * player.speed * 0.25;
+      player.vx *= 0.82;
+      player.vy *= 0.82;
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // Constrain to screen
+      const margin = 30;
+      player.x = Math.max(margin, Math.min(window.innerWidth - margin, player.x));
+      player.y = Math.max(margin, Math.min(window.innerHeight - margin, player.y));
+
+      // Mech Angle faces Boss (Hard Lock-on like AC6)
+      player.angle = Math.atan2(boss.y - player.y, boss.x - player.x);
+
+      // Boss Logic
+      boss.angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+
+      if (boss.isStaggered) {
+        boss.staggerTimer--;
+        boss.vx *= 0.8; boss.vy *= 0.8;
+        if (boss.staggerTimer <= 0) {
+          boss.isStaggered = false;
+          boss.stagger = 0;
+          document.getElementById('staggerBanner').classList.remove('active');
+        }
+      } else {
+        // Boss strafes around player
+        const dist = Math.hypot(boss.x - player.x, boss.y - player.y);
+        const desiredDist = 220;
+        const approachSpeed = (dist - desiredDist) * 0.01;
+
+        boss.vx = Math.cos(boss.angle) * approachSpeed - Math.sin(boss.angle) * 1.8;
+        boss.vy = Math.sin(boss.angle) * approachSpeed + Math.cos(boss.angle) * 1.8;
+
+        boss.x += boss.vx;
+        boss.y += boss.vy;
+
+        // Boss attacks
+        boss.attackTimer--;
+        if (boss.attackTimer <= 0) {
+          boss.attackTimer = 55;
+          // Spawn spread of red bullets
+          for (let a = -0.3; a <= 0.3; a += 0.2) {
+            enemyBullets.push({
+              x: boss.x, y: boss.y,
+              vx: Math.cos(boss.angle + a) * 7,
+              vy: Math.sin(boss.angle + a) * 7,
+              dmg: 80, life: 90
+            });
+          }
+        }
+      }
+
+      // Blade Hit Check
+      if (player.bladeSlashTimer > 0) {
+        const bladeDist = Math.hypot(boss.x - player.x, boss.y - player.y);
+        if (bladeDist < 75) {
+          player.bladeSlashTimer = 0;
+          const critMult = boss.isStaggered ? 2.5 : 1.2;
+          const dmg = Math.round(750 * critMult);
+          boss.hp = Math.max(0, boss.hp - dmg);
+          addStagger(40);
+          playSfx('hit');
+          screenShake = 18;
+
+          for (let i = 0; i < 25; i++) {
+            particles.push({
+              x: boss.x, y: boss.y,
+              vx: (Math.random() - 0.5) * 16,
+              vy: (Math.random() - 0.5) * 16,
+              life: 1.0, color: '#ffaa00', size: 4
+            });
+          }
+        }
+      }
+
+      // Update Bullets
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.x += b.vx; b.y += b.vy; b.life--;
+
+        // Check collision with boss
+        if (Math.hypot(boss.x - b.x, boss.y - b.y) < 40) {
+          const critMult = boss.isStaggered ? 2.5 : 1.0;
+          boss.hp = Math.max(0, boss.hp - Math.round(b.dmg * critMult));
+          addStagger(b.staggerAdd);
+          playSfx('hit');
+
+          particles.push({
+            x: b.x, y: b.y,
+            vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+            life: 0.6, color: '#00f0ff', size: 2.5
+          });
+
+          bullets.splice(i, 1);
+          continue;
+        }
+
+        if (b.life <= 0) bullets.splice(i, 1);
+      }
+
+      // Update Missiles
+      for (let i = missiles.length - 1; i >= 0; i--) {
+        const m = missiles[i];
+        m.life--;
+
+        if (m.delayTurn > 0) {
+          m.delayTurn--;
+        } else {
+          // Homing towards boss
+          const targetAngle = Math.atan2(boss.y - m.y, boss.x - m.x);
+          const currentAngle = Math.atan2(m.vy, m.vx);
+          let diff = targetAngle - currentAngle;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          const turn = Math.sign(diff) * Math.min(Math.abs(diff), 0.14);
+          const newAngle = currentAngle + turn;
+          m.vx = Math.cos(newAngle) * m.speed;
+          m.vy = Math.sin(newAngle) * m.speed;
+        }
+
+        m.x += m.vx; m.y += m.vy;
+
+        // Smoke particles behind missile
+        particles.push({
+          x: m.x, y: m.y,
+          vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5,
+          life: 0.5, color: '#64748b', size: 3
+        });
+
+        // Hit check
+        if (Math.hypot(boss.x - m.x, boss.y - m.y) < 42) {
+          const critMult = boss.isStaggered ? 2.5 : 1.0;
+          boss.hp = Math.max(0, boss.hp - Math.round(m.dmg * critMult));
+          addStagger(m.staggerAdd);
+          playSfx('hit');
+          screenShake = 8;
+
+          for (let p = 0; p < 12; p++) {
+            particles.push({
+              x: m.x, y: m.y,
+              vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+              life: 0.8, color: '#ff2a4b', size: 3.5
+            });
+          }
+
+          missiles.splice(i, 1);
+          continue;
+        }
+
+        if (m.life <= 0) missiles.splice(i, 1);
+      }
+
+      // Update Enemy Bullets
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const eb = enemyBullets[i];
+        eb.x += eb.vx; eb.y += eb.vy; eb.life--;
+
+        if (Math.hypot(player.x - eb.x, player.y - eb.y) < 26) {
+          player.hp = Math.max(0, player.hp - eb.dmg);
+          playSfx('hit');
+          screenShake = 5;
+
+          particles.push({
+            x: player.x, y: player.y,
+            vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8,
+            life: 0.6, color: '#ff2a4b', size: 3
+          });
+
+          enemyBullets.splice(i, 1);
+          continue;
+        }
+
+        if (eb.life <= 0) enemyBullets.splice(i, 1);
+      }
+
+      // Update Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 0.035;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // Update HUD
+      updateHudUI();
+    }
+
+    function addStagger(amount) {
+      if (boss.isStaggered) return;
+      boss.stagger += amount;
+      if (boss.stagger >= boss.maxStagger) {
+        boss.isStaggered = true;
+        boss.staggerTimer = 180; // 3 seconds of Stagger
+        playSfx('stagger');
+        screenShake = 22;
+        document.getElementById('staggerBanner').classList.add('active');
+        triggerRadio("СИЛА", "ACS OVERLOAD! ОН В СТАНЕ — ВРЕЖЬ КЛИНОМ!", "radio-strength");
+      }
+    }
+
+    function updateHudUI() {
+      // HP bar
+      const hpPct = Math.max(0, (player.hp / player.maxHp) * 100);
+      document.getElementById('bar-hp').style.width = hpPct + '%';
+      document.getElementById('txt-hp').innerText = `${player.hp} / ${player.maxHp}`;
+
+      // EN bar
+      document.getElementById('bar-en').style.width = player.en + '%';
+      document.getElementById('txt-en').innerText = Math.round(player.en) + '%';
+
+      // Boss Stagger
+      const stagPct = boss.isStaggered ? 100 : Math.min(100, (boss.stagger / boss.maxStagger) * 100);
+      document.getElementById('bar-stagger').style.width = stagPct + '%';
+      document.getElementById('txt-stagger').innerText = boss.isStaggered ? 'STAGGERED!' : `${Math.round(stagPct)}%`;
+      document.getElementById('bar-stagger').style.background = boss.isStaggered ? '#ff2a4b' : '#ffaa00';
+
+      // Boss HP
+      document.getElementById('txt-boss-hp').innerText = boss.hp;
+    }
+
+    /* ========================================================
+       RENDERING: SCI-FI GRID, MECHS, LOCK-ON RETICLE, PARTICLES
+       ======================================================== */
+    function render() {
+      ctx.save();
+
+      // Screen Shake
+      if (screenShake > 0) {
+        const sx = (Math.random() - 0.5) * screenShake;
+        const sy = (Math.random() - 0.5) * screenShake;
+        ctx.translate(sx, sy);
+      }
+
+      // Clear
+      ctx.fillStyle = '#05070c';
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      // Sci-fi Floor Grid
+      drawGrid();
+
+      // Draw Boss
+      drawBossMech();
+
+      // Draw Player Mech
+      drawPlayerMech();
+
+      // Draw Reticle (AC6 Hard Lock-on)
+      drawLockOnReticle();
+
+      // Draw Projectiles & Particles
+      drawCombatEntities();
+
+      ctx.restore();
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
+      ctx.lineWidth = 1;
+      const step = 40;
+      for (let x = 0; x < window.innerWidth; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, window.innerHeight); ctx.stroke();
+      }
+      for (let y = 0; y < window.innerHeight; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(window.innerWidth, y); ctx.stroke();
+      }
+    }
+
+    function drawPlayerMech() {
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.rotate(player.angle);
+
+      // Thruster trail glow
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+      ctx.beginPath();
+      ctx.arc(-14, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mech Wings / Boosters
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+
+      // Left Wing
+      ctx.beginPath();
+      ctx.moveTo(-10, -22); ctx.lineTo(-24, -32); ctx.lineTo(-14, -14);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      // Right Wing
+      ctx.beginPath();
+      ctx.moveTo(-10, 22); ctx.lineTo(-24, 32); ctx.lineTo(-14, 14);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      // Main Torso Armor
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(18, 0);
+      ctx.lineTo(6, 16);
+      ctx.lineTo(-14, 12);
+      ctx.lineTo(-18, 0);
+      ctx.lineTo(-14, -12);
+      ctx.lineTo(6, -16);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Glowing Core
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Weapon: Gun on Right Arm
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(8, 12, 22, 4);
+
+      // Weapon: Blade on Left Arm
+      if (player.bladeSlashTimer > 0) {
+        ctx.strokeStyle = '#ffaa00';
+        ctx.shadowColor = '#ffaa00';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, 75, -0.6, 0.6);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.restore();
+    }
+
+    function drawBossMech() {
+      ctx.save();
+      ctx.translate(boss.x, boss.y);
+      ctx.rotate(boss.angle);
+
+      // Warning Stagger Glow
+      if (boss.isStaggered) {
+        ctx.strokeStyle = 'rgba(255, 42, 75, 0.6)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 48 + Math.sin(Date.now() * 0.02) * 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Heavy Centurion Hull
+      ctx.fillStyle = '#1c1917';
+      ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : '#ef4444';
+      ctx.lineWidth = 2.5;
+
+      // Heavy Shoulder Cannons
+      ctx.fillRect(-20, -32, 38, 10);
+      ctx.fillRect(-20, 22, 38, 10);
+
+      // Quad leg silhouettes
+      ctx.beginPath();
+      ctx.moveTo(-16, -26); ctx.lineTo(-32, -38);
+      ctx.moveTo(-16, 26); ctx.lineTo(-32, 38);
+      ctx.stroke();
+
+      // Main Chassis
+      ctx.beginPath();
+      ctx.moveTo(24, 0);
+      ctx.lineTo(8, 22);
+      ctx.lineTo(-20, 16);
+      ctx.lineTo(-24, 0);
+      ctx.lineTo(-20, -16);
+      ctx.lineTo(8, -22);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Ominous Eye / Core
+      ctx.fillStyle = boss.isStaggered ? '#ffaa00' : '#ff2a4b';
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(4, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.restore();
+    }
+
+    function drawLockOnReticle() {
+      ctx.save();
+      ctx.translate(boss.x, boss.y);
+
+      ctx.strokeStyle = boss.isStaggered ? '#ff2a4b' : 'rgba(0, 240, 255, 0.7)';
+      ctx.lineWidth = 1.5;
+
+      // Rotating Outer Ring
+      ctx.rotate(Date.now() * 0.0015);
+      ctx.beginPath();
+      ctx.arc(0, 0, 42, 0, Math.PI * 0.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 42, Math.PI * 0.5, Math.PI * 0.9);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 42, Math.PI * 1.0, Math.PI * 1.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 42, Math.PI * 1.5, Math.PI * 1.9);
+      ctx.stroke();
+
+      // Center lock diamond
+      ctx.rotate(-Date.now() * 0.003);
+      ctx.strokeRect(-8, -8, 16, 16);
+
+      // Distance tag
+      const dist = Math.round(Math.hypot(boss.x - player.x, boss.y - player.y));
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`LOCK: ${dist}M`, 0, 56);
+
+      ctx.restore();
+    }
+
+    function drawCombatEntities() {
+      // Bullets
+      ctx.fillStyle = '#00f0ff';
+      bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Enemy Bullets
+      ctx.fillStyle = '#ff2a4b';
+      enemyBullets.forEach(eb => {
+        ctx.beginPath();
+        ctx.arc(eb.x, eb.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Missiles
+      missiles.forEach(m => {
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(Math.atan2(m.vy, m.vx));
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(-6, -2, 12, 4);
+        ctx.restore();
+      });
+
+      // Particles
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Start loop
+    gameLoop();
+  </script>
+</body>
+</html>
