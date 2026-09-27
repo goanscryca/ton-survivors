@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PROJECT INCARNATION™ // Sci-Fi TRPG Prototype</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: #0d121c;
+      --bg-card: #141b29;
+      --bg-card-hover: #1c263a;
+      --border: #222e44;
+      --border-accent: #00f0ff;
+      --accent-cyan: #00f0ff;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-green: #10b981;
+      --accent-purple: #a855f7;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --font-mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); font-family: var(--font-sans); }
+
+    /* Layout */
+    #app { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+    
+    /* Top Navigation Bar */
+    header.top-bar {
+      height: 48px;
+      background: #0a0e17;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; letter-spacing: 1px; color: var(--accent-cyan); font-family: var(--font-mono); }
+    .brand .logo-tag { background: rgba(0,240,255,0.15); border: 1px solid var(--accent-cyan); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    
+    .nav-tabs { display: flex; gap: 4px; height: 100%; align-items: center; }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: var(--font-mono);
+    }
+    .nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-btn.active { color: var(--accent-cyan); background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.3); }
+
+    .header-status { display: flex; gap: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
+    .status-badge { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+    .status-badge.highlight { color: var(--accent-amber); border-color: rgba(245,158,11,0.3); }
+
+    /* Main Container */
+    main.view-container { flex: 1; position: relative; overflow: hidden; }
+    .tab-view { display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
+    .tab-view.active { display: flex; }
+
+    /* ========================================================
+       1. DIALOGUE VIEW (DISCO ELYSIUM STYLE)
+       ======================================================== */
+    .dialogue-layout {
+      width: 100%; height: 100%; display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      background: #090d15;
+    }
+    @media (max-width: 900px) {
+      .dialogue-layout { grid-template-columns: 1fr; }
+      .left-sidebar, .right-sidebar { display: none !important; }
+    }
+
+    /* Left: Pilot stats & thoughts preview */
+    .left-sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .sidebar-title { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; }
+    .pilot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pilot-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .pilot-role { font-size: 11px; color: var(--accent-cyan); font-family: var(--font-mono); }
+    
+    .stats-grid { display: flex; flex-direction: column; gap: 6px; }
+    .stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px; border-radius: 6px; background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.05); font-size: 12px;
+    }
+    .stat-name { display: flex; align-items: center; gap: 6px; }
+    .stat-icon { width: 8px; height: 8px; border-radius: 50%; }
+    .stat-val { font-family: var(--font-mono); font-weight: 700; color: #fff; }
+    
+    .icon-intellect { background: #3b82f6; }
+    .icon-logic { background: #06b6d4; }
+    .icon-mind { background: #a855f7; }
+    .icon-rhetoric { background: #ec4899; }
+    .icon-charm { background: #f59e0b; }
+    .icon-strength { background: #ef4444; }
+    .icon-accuracy { background: #10b981; }
+
+    /* Center: The Disco Elysium Dialogue Flow */
+    .dialogue-center {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      background: radial-gradient(circle at center 20%, #101726 0%, #080b12 80%);
+    }
+    .dialogue-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+    
+    /* Dialogue Entry Types */
+    .msg-entry { display: flex; flex-direction: column; gap: 4px; max-width: 820px; animation: fadeIn 0.25s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .msg-narrative {
+      font-size: 14px;
+      color: #94a3b8;
+      font-style: italic;
+      line-height: 1.5;
+      padding-left: 8px;
+      border-left: 2px solid #334155;
+    }
+    .msg-character {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .msg-author { font-size: 11px; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 2px; }
+    .msg-text { font-size: 14px; line-height: 1.5; color: #f1f5f9; }
+
+    .author-lara { color: #38bdf8; }
+    .author-oscar { color: #4ade80; }
+    .author-sol { color: #f97316; }
+    .author-clara { color: #f43f5e; }
+    .author-hieronymus { color: #e2e8f0; }
+
+    /* Thought / Voice of Skill Entry */
+    .msg-thought {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.4);
+      border-left: 3px solid #64748b;
+      margin-left: 16px;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+    }
+    .thought-header { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-family: var(--font-mono); }
+    .thought-badge { font-weight: 700; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; }
+    .thought-text { font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.4; }
+
+    .thought-logic { border-left-color: #06b6d4; }
+    .thought-logic .thought-badge { background: rgba(6,182,212,0.2); color: #06b6d4; }
+    .thought-mind { border-left-color: #a855f7; }
+    .thought-mind .thought-badge { background: rgba(168,85,247,0.2); color: #a855f7; }
+    .thought-charm { border-left-color: #f59e0b; }
+    .thought-charm .thought-badge { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .thought-intellect { border-left-color: #3b82f6; }
+    .thought-intellect .thought-badge { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .thought-rhetoric { border-left-color: #ec4899; }
+    .thought-rhetoric .thought-badge { background: rgba(236,72,153,0.2); color: #ec4899; }
+
+    /* Check Success Box */
+    .msg-check {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.3);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Dialogue Choices Panel (Bottom) */
+    .dialogue-input-area {
+      border-top: 1px solid var(--border);
+      background: var(--bg-panel);
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .input-title { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; }
+    .choices-list { display: flex; flex-direction: column; gap: 6px; }
+    .choice-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      text-align: left;
+      color: #f1f5f9;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: all 0.15s ease;
+    }
+    .choice-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-cyan);
+      transform: translateX(4px);
+    }
+    .choice-num {
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .choice-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      background: rgba(245,158,11,0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.4);
+      margin-right: 6px;
+    }
+
+    /* Right Sidebar: Active Quest & Location */
+    .right-sidebar {
+      border-left: 1px solid var(--border);
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .location-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .loc-date { font-size: 11px; font-family: var(--font-mono); color: var(--accent-amber); }
+    .loc-title { font-size: 14px; font-weight: 700; color: #fff; }
+    .loc-sub { font-size: 12px; color: var(--text-muted); }
+
+    .quest-card {
+      background: rgba(0,240,255,0.03);
+      border: 1px dashed rgba(0,240,255,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .quest-title { font-size: 12px; font-weight: 700; color: var(--accent-cyan); font-family: var(--font-mono); text-transform: uppercase; }
+    .quest-desc { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+
+    /* ========================================================
+       2. HANGAR / MECH CONFIGURATOR VIEW
+       ======================================================== */
+    .hangar-layout {
+      width: 100%; height: 100%; display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      background: #080b12;
+    }
+    @media (max-width: 960px) {
+      .hangar-layout { grid-template-columns: 1fr; overflow-y: auto; }
+      .mech-visual-center { min-height: 380px; }
+    }
+
+    /* 10 Slots Panel */
+    .slots-panel {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    .slot-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .slot-row:hover { border-color: rgba(0,240,255,0.4); background: var(--bg-card-hover); }
+    .slot-row.active { border-color: var(--accent-cyan); background: rgba(0,240,255,0.06); }
+    .slot-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: var(--font-mono); }
+    .slot-label { color: var(--text-muted); font-weight: 600; }
+    .slot-vendor { color: var(--accent-amber); font-size: 10px; }
+    .slot-installed { font-size: 12px; font-weight: 700; color: #fff; }
+
+    /* Mech Visual Center (Blueprint / Diagram) */
+    .mech-visual-center {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: radial-gradient(circle at center, #111a2e 0%, #07090f 80%);
+    }
+    .blueprint-svg {
+      width: 100%;
+      max-width: 440px;
+      height: 380px;
+      filter: drop-shadow(0 0 15px rgba(0,240,255,0.2));
+    }
+    .mech-stats-bar {
+      margin-top: 16px;
+      display: flex;
+      gap: 16px;
+      padding: 10px 18px;
+      background: rgba(13,18,28,0.8);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .stat-pill { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-pill-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+    .stat-pill-value { font-size: 14px; font-weight: 700; color: var(--accent-cyan); }
+
+    /* Right: Vendor Catalog & Weapon selector */
+    .vendor-panel {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .corp-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .corp-badge {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+    .corp-badge.active { background: rgba(0,240,255,0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+    .equip-list { display: flex; flex-direction: column; gap: 6px; }
+    .equip-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .equip-card:hover { border-color: var(--accent-cyan); }
+    .equip-card.selected { border-color: var(--accent-green); background: rgba(16,185,129,0.06); }
+    .equip-name { font-size: 12px; font-weight: 700; color: #fff; }
+    .equip-desc { font-size: 11px; color: var(--text-muted); }
+    .equip-stats { font-size: 10px; font-family: var(--font-mono); color: var(--accent-amber); display: flex; gap: 8px; }
+
+    .launch-btn {
+      margin-top: auto;
+      background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0,240,255,0.3);
+    }
+    .launch-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ========================================================
+       3. TRPG BATTLE VIEW (TACTICAL GRID)
+       ======================================================== */
+    .battle-layout {
+      width: 100%; height: 100%; display: grid;
+      grid-template-columns: 1fr 340px;
+      background: #05070c;
+    }
+    @media (max-width: 900px) {
+      .battle-layout { grid-template-columns: 1fr; }
+      .battle-sidebar { display: none; }
+    }
+
+    .battle-canvas-area {
+      position: relative;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    canvas#battleGrid {
+      background: #090e18;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+    }
+    .battle-hud-top {
+      position: absolute; top: 12px; left: 16px; right: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none;
+    }
+    .hud-box {
+      background: rgba(10,14,23,0.85);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      pointer-events: auto;
+    }
+
+    .battle-actions-dock {
+      position: absolute; bottom: 16px;
+      display: flex; gap: 8px;
+      background: rgba(10,14,23,0.9);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+    .action-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .action-btn:hover { border-color: var(--accent-cyan); background: var(--bg-card-hover); }
+    .action-btn.active { background: rgba(0,240,255,0.2); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    .action-btn.end-turn { background: rgba(239,68,68,0.2); border-color: var(--accent-red); color: #fca5a5; }
+
+    /* Battle Sidebar: Target parts & Combat log */
+    .battle-sidebar {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .target-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .target-header { display: flex; justify-content: space-between; align-items: center; }
+    .target-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .target-sub { font-size: 10px; font-family: var(--font-mono); color: var(--accent-red); }
+
+    /* Parts targeting rows */
+    .part-target-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px; border-radius: 4px; background: rgba(0,0,0,0.3);
+      border: 1px solid transparent; cursor: pointer; font-size: 11px;
+    }
+    .part-target-row:hover { border-color: rgba(239,68,68,0.5); }
+    .part-target-row.selected { border-color: var(--accent-red); background: rgba(239,68,68,0.15); }
+    .part-name { font-weight: 600; }
+    .part-hp-bar { width: 60px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+    .part-hp-fill { height: 100%; background: #10b981; }
+    .part-hp-fill.danger { background: #ef4444; }
+
+    .combat-log {
+      flex: 1;
+      background: #090c13;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .log-line { line-height: 1.4; color: #94a3b8; }
+    .log-crit { color: #f59e0b; }
+    .log-hit { color: #38bdf8; }
+    .log-destroy { color: #ef4444; font-weight: 700; }
+
+    /* ========================================================
+       4. THOUGHT CABINET VIEW
+       ======================================================== */
+    .cabinet-layout {
+      width: 100%; height: 100%; padding: 24px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px; overflow-y: auto; background: #080b12;
+    }
+    .concept-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+    .concept-header { display: flex; justify-content: space-between; align-items: center; }
+    .concept-title { font-size: 14px; font-weight: 700; color: #fff; }
+    .concept-attr { font-size: 10px; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px; }
+    .concept-desc { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .concept-status { font-size: 11px; font-family: var(--font-mono); margin-top: auto; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navigation -->
+    <header class="top-bar">
+      <div class="brand">
+        <span>PROJECT INCARNATION™</span>
+        <span class="logo-tag">VERTICAL SLICE v0.9</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-btn active" onclick="switchTab('dialogue')">
+          <span>💬</span> Диалоги & Мысли
+        </button>
+        <button class="nav-btn" onclick="switchTab('hangar')">
+          <span>⚙️</span> Ангар Воплощения
+        </button>
+        <button class="nav-btn" onclick="switchTab('battle')">
+          <span>⚔️</span> Тактический Бой (TRPG)
+        </button>
+        <button class="nav-btn" onclick="switchTab('cabinet')">
+          <span>🧠</span> Кабинет мыслей (7×9)
+        </button>
+      </nav>
+      <div class="header-status">
+        <div class="status-badge highlight">Марс // Гора Олимп</div>
+        <div class="status-badge">Оператор: Иероним</div>
+      </div>
+    </header>
+
+    <!-- Main Views -->
+    <main class="view-container">
+      
+      <!-- 1. DIALOGUE VIEW -->
+      <section id="tab-dialogue" class="tab-view active">
+        <div class="dialogue-layout">
+          <!-- Left: Stats -->
+          <aside class="left-sidebar">
+            <div class="sidebar-title">Оператор сознания</div>
+            <div class="pilot-card">
+              <div class="pilot-name">Иероним</div>
+              <div class="pilot-role">Пилот Проекта «Воплощение»</div>
+            </div>
+
+            <div class="sidebar-title">Атрибуты разума</div>
+            <div class="stats-grid">
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-logic"></span>Логика (Logic)</span>
+                <span class="stat-val" id="val-logic">2.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-mind"></span>Психика (Mind)</span>
+                <span class="stat-val" id="val-mind">2.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-charm"></span>Обаяние (Charm)</span>
+                <span class="stat-val" id="val-charm">2.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-intellect"></span>Интеллект (Intellect)</span>
+                <span class="stat-val" id="val-intellect">3.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-rhetoric"></span>Риторика (Rhetoric)</span>
+                <span class="stat-val" id="val-rhetoric">2.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-strength"></span>Сила (Strength)</span>
+                <span class="stat-val" id="val-strength">1.0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-name"><span class="stat-icon icon-accuracy"></span>Точность (Accuracy)</span>
+                <span class="stat-val" id="val-accuracy">1.0</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Center: Dialogue flow -->
+          <div class="dialogue-center">
+            <div class="dialogue-history" id="dialogueHistory">
+              <!-- Dynamically populated -->
+            </div>
+            <div class="dialogue-input-area">
+              <div class="input-title">Варианты ответа Иеронима:</div>
+              <div class="choices-list" id="dialogueChoices">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Location & Quest -->
+          <aside class="right-sidebar">
+            <div class="sidebar-title">Текущая локация</div>
+            <div class="location-card">
+              <div class="loc-date">1 января 2034 года</div>
+              <div class="loc-title">Станция Накамура</div>
+              <div class="loc-sub">Марс, Провинция Фарсид, Гора Олимп</div>
+            </div>
+
+            <div class="sidebar-title">Текущее задание</div>
+            <div class="quest-card">
+              <div class="quest-title">Первый прыжок сознания</div>
+              <div class="quest-desc">
+                Пройдите первичный инструктаж с Ларой Фликер и учеными станции, затем направляйтесь в ангар сборки Воплощения.
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 2. HANGAR / MECH CONFIGURATOR -->
+      <section id="tab-hangar" class="tab-view">
+        <div class="hangar-layout">
+          <!-- 10 Slots -->
+          <aside class="slots-panel">
+            <div class="sidebar-title">Слоты Воплощения (10)</div>
+            <div id="slotsList">
+              <!-- Rendered via JS -->
+            </div>
+          </aside>
+
+          <!-- Blueprint view -->
+          <div class="mech-visual-center">
+            <svg class="blueprint-svg" viewBox="0 0 400 360">
+              <!-- Grid background -->
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,240,255,0.06)" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+              
+              <!-- Silhouette & Parts -->
+              <!-- Wings -->
+              <polygon id="svg-wing-l" points="60,90 140,130 130,170 50,110" fill="rgba(0,240,255,0.12)" stroke="#00f0ff" stroke-width="1.5" />
+              <polygon id="svg-wing-r" points="340,90 260,130 270,170 350,110" fill="rgba(0,240,255,0.12)" stroke="#00f0ff" stroke-width="1.5" />
+
+              <!-- Shoulders -->
+              <rect id="svg-shoulder-l" x="120" y="100" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
+              <rect id="svg-shoulder-r" x="245" y="100" width="35" height="35" rx="4" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5" />
+
+              <!-- Arms / Weapons -->
+              <rect id="svg-arm-l" x="105" y="145" width="30" height="85" rx="4" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="1.5" />
+              <rect id="svg-arm-r" x="265" y="145" width="30" height="85" rx="4" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.5" />
+
+              <!-- Torso Body -->
+              <polygon id="svg-body" points="160,85 240,85 225,185 175,185" fill="rgba(255,255,255,0.1)" stroke="#e2e8f0" stroke-width="2" />
+              <!-- Core -->
+              <circle id="svg-core" cx="200" cy="135" r="22" fill="rgba(0,240,255,0.4)" stroke="#00f0ff" stroke-width="2.5" />
+
+              <!-- Legs -->
+              <polygon id="svg-leg-l" points="165,190 195,190 185,310 150,310" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
+              <polygon id="svg-leg-r" points="205,190 235,190 250,310 215,310" fill="rgba(16,185,129,0.15)" stroke="#10b981" stroke-width="1.5" />
+
+              <!-- Labels -->
+              <text x="200" y="139" fill="#fff" font-size="10" font-family="monospace" text-anchor="middle">ЯДРО</text>
+              <text x="200" y="70" fill="#64748b" font-size="11" font-family="monospace" text-anchor="middle">MODEL: LMR-01 INCARNATION</text>
+            </svg>
+
+            <div class="mech-stats-bar">
+              <div class="stat-pill">
+                <span class="stat-pill-label">Общая броня</span>
+                <span class="stat-pill-value" id="stat-armor">1450 AP</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-pill-label">Выход энергии</span>
+                <span class="stat-pill-value" id="stat-energy">320 MW</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-pill-label">Тяга крыльев</span>
+                <span class="stat-pill-value" id="stat-thrust">6.8 G</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-pill-label">ДПС оружия</span>
+                <span class="stat-pill-value" id="stat-dps">480/s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catalog -->
+          <aside class="vendor-panel">
+            <div class="sidebar-title">Корпорации-производители (7)</div>
+            <div class="corp-list" id="corpList">
+              <span class="corp-badge active" onclick="filterVendor('ALL')">Все</span>
+              <span class="corp-badge" onclick="filterVendor('Lumier')">Lumier</span>
+              <span class="corp-badge" onclick="filterVendor('Gagarin')">Gagarin</span>
+              <span class="corp-badge" onclick="filterVendor('Hermann')">Hermann</span>
+              <span class="corp-badge" onclick="filterVendor('Haruki')">Haruki</span>
+              <span class="corp-badge" onclick="filterVendor('Vertex')">Vertex</span>
+              <span class="corp-badge" onclick="filterVendor('Zedong')">Zedong</span>
+              <span class="corp-badge" onclick="filterVendor('Sapkowski')">Sapkowski</span>
+            </div>
+
+            <div class="sidebar-title" id="equipSlotTitle">Доступно для слота: Правая рука</div>
+            <div class="equip-list" id="equipItems">
+              <!-- Rendered items -->
+            </div>
+
+            <button class="launch-btn" onclick="startBattle()">
+              <span>🚀</span> Запустить прыжок на Сириус
+            </button>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 3. TRPG BATTLE VIEW -->
+      <section id="tab-battle" class="tab-view">
+        <div class="battle-layout">
+          <div class="battle-canvas-area">
+            <div class="battle-hud-top">
+              <div class="hud-box">
+                <span>МИССИЯ 1: ЛАЙНЕР «ПРИМАРХ»</span> | 
+                <span style="color:var(--accent-amber)">РАУНД: <strong id="battleRound">1</strong></span>
+              </div>
+              <div class="hud-box">
+                <span>ОЧКИ ДЕЙСТВИЙ (AP): </span>
+                <span id="playerAP" style="color:var(--accent-cyan); font-weight:700">6 / 6</span>
+              </div>
+            </div>
+
+            <canvas id="battleGrid" width="640" height="480"></canvas>
+
+            <div class="battle-actions-dock">
+              <button class="action-btn active" id="btn-mode-move" onclick="setBattleMode('move')">
+                <span>👟</span> Движение (2 AP)
+              </button>
+              <button class="action-btn" id="btn-mode-attack" onclick="setBattleMode('attack')">
+                <span>🎯</span> Атака по узлам (3 AP)
+              </button>
+              <button class="action-btn end-turn" onclick="endTurn()">
+                <span>⏳</span> Завершить ход
+              </button>
+            </div>
+          </div>
+
+          <aside class="battle-sidebar">
+            <div class="sidebar-title">Цель в прицеле</div>
+            <div class="target-box">
+              <div class="target-header">
+                <span class="target-name">Автономный Дрон-Центурион</span>
+                <span class="target-sub">СИСТЕМА ЗАЩИТЫ ЛАЙНЕРА</span>
+              </div>
+
+              <div class="sidebar-title" style="margin-top:4px">Узлы поражения (Body Parts)</div>
+              
+              <div class="part-target-row selected" onclick="selectPartTarget('core')">
+                <div>
+                  <div class="part-name">Ядро (Core)</div>
+                  <div style="font-size:9px; color:#64748b">Урон ×2.0 | Шанс 65%</div>
+                </div>
+                <div class="part-hp-bar"><div class="part-hp-fill" id="hp-enemy-core" style="width:100%"></div></div>
+              </div>
+
+              <div class="part-target-row" onclick="selectPartTarget('arm')">
+                <div>
+                  <div class="part-name">Оружейная турель (Arm)</div>
+                  <div style="font-size:9px; color:#64748b">Срезает атаку | Шанс 85%</div>
+                </div>
+                <div class="part-hp-bar"><div class="part-hp-fill" id="hp-enemy-arm" style="width:100%"></div></div>
+              </div>
+
+              <div class="part-target-row" onclick="selectPartTarget('thruster')">
+                <div>
+                  <div class="part-name">Маневровые дюзы (Wings)</div>
+                  <div style="font-size:9px; color:#64748b">Блокирует ход | Шанс 90%</div>
+                </div>
+                <div class="part-hp-bar"><div class="part-hp-fill" id="hp-enemy-thruster" style="width:100%"></div></div>
+              </div>
+            </div>
+
+            <div class="sidebar-title">Бортовой журнал боя & Мысли пилота</div>
+            <div class="combat-log" id="combatLog">
+              <div class="log-line">--- Боевая система Воплощения активирована ---</div>
+              <div class="log-line">[Логика]: Сканирую протоколы безопасности "Примарха". Дроны вышли из-под контроля капитана.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 4. THOUGHT CABINET -->
+      <section id="tab-cabinet" class="tab-view">
+        <div class="cabinet-layout" id="cabinetGrid">
+          <!-- Rendered from Sheet 3: 63 thoughts -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /* ========================================================
+       GAME STATE & DATA
+       ======================================================== */
+    const state = {
+      pilot: {
+        name: "Иероним",
+        stats: {
+          logic: 2,
+          mind: 2,
+          charm: 2,
+          intellect: 3,
+          rhetoric: 2,
+          strength: 1,
+          accuracy: 1
+        }
+      },
+      mechSlots: {
+        shoulderL: { name: "Левое плечо", item: "Ракетный контейнер Zedong", vendor: "Zedong", type: "Пусковая установка" },
+        shoulderR: { name: "Правое плечо", item: "ЭМИ-излучатель Haruki", vendor: "Haruki", type: "Электромагнитное" },
+        armL: { name: "Левая рука", item: "Тяжелый молот Gagarin", vendor: "Gagarin", type: "Молот" },
+        armR: { name: "Правая рука", item: "Лазерная винтовка Lumier", vendor: "Lumier", type: "Лазерное" },
+        body: { name: "Тело (Корпус)", item: "Композитный каркас Hermann", vendor: "Hermann", type: "Тяжелая броня" },
+        core: { name: "Ядро", item: "Квантовый сингулярник Lumier-Q", vendor: "Lumier", type: "Ядро" },
+        legL: { name: "Левая нога", item: "Гидравлический привод Gagarin", vendor: "Gagarin", type: "Привод" },
+        legR: { name: "Правая нога", item: "Гидравлический привод Gagarin", vendor: "Gagarin", type: "Привод" },
+        wingL: { name: "Левое крыло", item: "Векторные дюзы Haruki V-1", vendor: "Haruki", type: "Крыло" },
+        wingR: { name: "Правое крыло", item: "Векторные дюзы Haruki V-1", vendor: "Haruki", type: "Крыло" }
+      },
+      currentSlotKey: "armR",
+      battle: {
+        round: 1,
+        playerAP: 6,
+        playerPos: { x: 2, y: 3 },
+        enemyPos: { x: 6, y: 3 },
+        mode: 'move', // 'move' or 'attack'
+        targetPart: 'core',
+        enemyHP: { core: 100, arm: 60, thruster: 50 },
+        playerHP: 150
+      }
+    };
+
+    /* Available Equips for Catalog */
+    const WEAPON_CATALOG = [
+      { name: "Лазерная винтовка Lumier L-9", vendor: "Lumier", slot: "armR", type: "Лазерное", dmg: 75, range: 4, desc: "Высокая точность, игнорирует лёгкую кинетическую броню." },
+      { name: "Штурмовой автомат Hermann-7", vendor: "Hermann", slot: "armR", type: "Автомат", dmg: 60, range: 3, desc: "Очередь с гарантированным подавлением." },
+      { name: "Энергетический меч Haruki Katana", vendor: "Haruki", slot: "armR", type: "Меч", dmg: 110, range: 1, desc: "Колоссальный урон в ближнем бою." },
+      { name: "Тяжелый молот Gagarin Titan", vendor: "Gagarin", slot: "armL", type: "Молот", dmg: 140, range: 1, desc: "Дробит каркас и отрывает узлы брони." },
+      { name: "Плазменный дробовик Sapkowski SP-4", vendor: "Sapkowski", slot: "armL", type: "Дробовик", dmg: 95, range: 2, desc: "Разрушительный конус на короткой дистанции." },
+      { name: "Ракетная батарея Zedong Hail", vendor: "Zedong", slot: "shoulderL", type: "Пусковая установка", dmg: 120, range: 5, desc: "Залповый огонь по площади." }
+    ];
+
+    /* Sound FX (Web Audio API) */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq = 440, type = 'sine', duration = 0.08) {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    /* Switch Tabs */
+    function switchTab(tabId) {
+      playBeep(620, 'sine', 0.05);
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      if (tabId === 'battle') {
+        renderBattle();
+      }
+    }
+
+    /* ========================================================
+       DIALOGUE SYSTEM FLOW (DISCO ELYSIUM STYLE)
+       ======================================================== */
+    const DIALOGUE_NODES = {
+      start: {
+        entries: [
+          { type: 'narrative', text: 'Марс встречает вас своим естественным шумом. Ветер и бескрайняя пустыня провинции Фарсид. Долгий перелет позади.' },
+          { type: 'narrative', text: 'На посадочной площадке станции Накамура вас встречает невысокая девушка в скафандре с эмблемой Lumier Inc.' },
+          { type: 'thought', skill: 'Логика', skillType: 'logic', text: '«Lumier? Это та самая французская корпорация, финансирующая прыжки сознания. Судя по её осанке, она здесь главный научный куратор».' },
+          { type: 'thought', skill: 'Обаяние', skillType: 'charm', text: '«А она довольно миловидная, хотя скафандр слегка скрадывает черты лица. Скажи ей, что она похожа на маленького дельфина!»' },
+          { type: 'thought', skill: 'Психика', skillType: 'mind', text: '«Держи себя в руках. Надеюсь, она сможет объяснить, зачем моё сознание упаковывают в боевого меха».' },
+          { type: 'character', author: 'Лара Фликер', authorClass: 'author-lara', text: 'Добро пожаловать на станцию Накамура, Иероним. Мы с нетерпением ждали вас. Я провожу вас внутрь и отвечу на любые вопросы.' }
+        ],
+        choices: [
+          { id: 'station', text: '1. Расскажите подробнее о станции Накамура и горе Олимп.' },
+          { id: 'purpose', text: '2. Чем именно мы здесь занимаемся? Зачем понадобился проект «Воплощение»?' },
+          { id: 'dolphin', tag: 'Обаяние 2.0', text: '3. [Шутка] Вы в этом скафандре похожи на маленького дельфина, Лара.' },
+          { id: 'hangar_go', text: '4. Не будем терять время. Проводите меня в ангар к моему Воплощению.' }
+        ]
+      },
+      station: {
+        entries: [
+          { type: 'character', author: 'Иероним', authorClass: 'author-hieronymus', text: 'Расскажите о станции Накамура. Почему именно гора Олимп?' },
+          { type: 'character', author: 'Лара Фликер', authorClass: 'author-lara', text: 'Гора Олимп — высочайшая точка Солнечной системы, 26 километров над поверхностью. Атмосфера здесь предельно разрежена. Это идеальная стартовая позиция, чтобы сфокусировать луч проекции сознания через адронный коллайдер и отправить ваш разум сквозь пространство.' },
+          { type: 'thought', skill: 'Интеллект', skillType: 'intellect', text: '«Адронный коллайдер станции работает как квантовая пушка. Моё тело останется в капсуле на Марсе, а разум будет управлять стальной махиной на краю галактики».' }
+        ],
+        choices: [
+          { id: 'purpose', text: '1. А какая цель у этой программы?' },
+          { id: 'hangar_go', text: '2. Понятно. Идём в сборочный цех.' }
+        ]
+      },
+      dolphin: {
+        entries: [
+          { type: 'character', author: 'Иероним', authorClass: 'author-hieronymus', text: 'Вы в этом скафандре похожи на маленького дельфина, Лара.' },
+          { type: 'check', text: 'ПРОВЕРКА НАВЫКА: [Обаяние 2.0] — УСПЕХ (Значение пилота: 2.0)' },
+          { type: 'character', author: 'Лара Фликер', authorClass: 'author-lara', text: '...На дельфина? (Она тихо смеётся через динамик связи). Знаете, за все два года на этой красной пустоши меня ещё никто не сравнивал с морскими обитателями. Надеюсь, ваше чувство юмора сохранится, когда вас швырнёт к двойной звезде Сириуса.' },
+          { type: 'thought', skill: 'Психика', skillType: 'mind', text: '«Лед тронулся. Напряжение спало, теперь она доверяет вам значительно больше».' }
+        ],
+        choices: [
+          { id: 'purpose', text: '1. Что насчёт проекта «Воплощение»? Что замышляет совет директоров?' },
+          { id: 'hangar_go', text: '2. Пора готовить машину. Пойдёмте в ангар.' }
+        ]
+      },
+      purpose: {
+        entries: [
+          { type: 'character', author: 'Иероним', authorClass: 'author-hieronymus', text: 'Зачем я вам понадобился? В чём истинная суть «Воплощения»?' },
+          { type: 'character', author: 'Лара Фликер', authorClass: 'author-lara', text: 'Человеческое тело слишком хрупко для дальнего космоса. Перелёт на световых скоростях занимает десятилетия. Но мы научились оцифровывать и проецировать нейронную матрицу в материализованные боевые аватары — Воплощения. Вы будете решать кризисы в реальном времени, меняя судьбы колоний.' }
+        ],
+        choices: [
+          { id: 'hangar_go', text: '1. Впечатляет. Покажите мне моё Воплощение (Перейти в Ангар).' }
+        ]
+      }
+    };
+
+    function selectDialogueChoice(nodeId) {
+      playBeep(520, 'sine', 0.08);
+      if (nodeId === 'hangar_go') {
+        switchTab('hangar');
+        return;
+      }
+      const node = DIALOGUE_NODES[nodeId];
+      if (!node) return;
+
+      const history = document.getElementById('dialogueHistory');
+      
+      node.entries.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'msg-entry';
+        
+        if (entry.type === 'narrative') {
+          div.innerHTML = `<div class="msg-narrative">${entry.text}</div>`;
+        } else if (entry.type === 'character') {
+          div.innerHTML = `
+            <div class="msg-character">
+              <div class="msg-author ${entry.authorClass}">${entry.author}</div>
+              <div class="msg-text">${entry.text}</div>
+            </div>`;
+        } else if (entry.type === 'thought') {
+          div.innerHTML = `
+            <div class="msg-thought thought-${entry.skillType}">
+              <div class="thought-header">
+                <span class="thought-badge">${entry.skill}</span>
+                <span>ПОРОГ: OK</span>
+              </div>
+              <div class="thought-text">${entry.text}</div>
+            </div>`;
+        } else if (entry.type === 'check') {
+          div.innerHTML = `<div class="msg-check"><span>🎲</span> ${entry.text}</div>`;
+        }
+        history.appendChild(div);
+      });
+
+      renderChoices(node.choices);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    function renderChoices(choices) {
+      const container = document.getElementById('dialogueChoices');
+      container.innerHTML = '';
+      choices.forEach(ch => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.onclick = () => selectDialogueChoice(ch.id);
+        btn.innerHTML = `
+          <span class="choice-num">►</span>
+          <div>${ch.tag ? `<span class="choice-tag">${ch.tag}</span>` : ''}${ch.text}</div>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    // Init first dialogue
+    selectDialogueChoice('start');
+
+    /* ========================================================
+       HANGAR & MECH SLOTS
+       ======================================================== */
+    function renderSlots() {
+      const list = document.getElementById('slotsList');
+      list.innerHTML = '';
+      for (const [key, slot] of Object.entries(state.mechSlots)) {
+        const div = document.createElement('div');
+        div.className = `slot-row ${state.currentSlotKey === key ? 'active' : ''}`;
+        div.onclick = () => selectSlot(key);
+        div.innerHTML = `
+          <div class="slot-header">
+            <span class="slot-label">${slot.name}</span>
+            <span class="slot-vendor">${slot.vendor}</span>
+          </div>
+          <div class="slot-installed">${slot.item}</div>
+        `;
+        list.appendChild(div);
+      }
+    }
+
+    function selectSlot(key) {
+      playBeep(480, 'sine', 0.05);
+      state.currentSlotKey = key;
+      renderSlots();
+      document.getElementById('equipSlotTitle').innerText = `Доступно для слота: ${state.mechSlots[key].name}`;
+      renderEquipItems();
+    }
+
+    function renderEquipItems() {
+      const container = document.getElementById('equipItems');
+      container.innerHTML = '';
+      
+      const filtered = WEAPON_CATALOG.filter(item => item.slot === state.currentSlotKey || state.currentSlotKey.startsWith('arm'));
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="font-size:11px; color:#64748b; padding:10px;">В данный момент установлен штатный модуль от ${state.mechSlots[state.currentSlotKey].vendor}. Альтернативные узлы разблокируются в миссиях.</div>`;
+        return;
+      }
+
+      filtered.forEach(eq => {
+        const div = document.createElement('div');
+        div.className = `equip-card ${state.mechSlots[state.currentSlotKey].item === eq.name ? 'selected' : ''}`;
+        div.onclick = () => {
+          playBeep(700, 'square', 0.08);
+          state.mechSlots[state.currentSlotKey].item = eq.name;
+          state.mechSlots[state.currentSlotKey].vendor = eq.vendor;
+          state.mechSlots[state.currentSlotKey].type = eq.type;
+          renderSlots();
+          renderEquipItems();
+        };
+        div.innerHTML = `
+          <div class="equip-name">${eq.name}</div>
+          <div class="equip-desc">${eq.desc}</div>
+          <div class="equip-stats">
+            <span>УРОН: ${eq.dmg}</span>
+            <span>ДИСТ: ${eq.range} гекс</span>
+            <span>ТИП: ${eq.type}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function startBattle() {
+      playBeep(880, 'sine', 0.15);
+      switchTab('battle');
+      addCombatLog('🚀 Квантовый скачок завершён! Воплощение материализовано на верхней палубе "Примарха".', 'log-hit');
+      addCombatLog('[Оскар]: Телеметрия устойчивая! Перед вами дрон охранного периметра.', '');
+    }
+
+    renderSlots();
+    renderEquipItems();
+
+    /* ========================================================
+       TRPG BATTLE SYSTEM (GRID & TARGETING)
+       ======================================================== */
+    const canvas = document.getElementById('battleGrid');
+    const ctx = canvas.getContext('2d');
+    const CELL_SIZE = 50;
+    const GRID_COLS = 11;
+    const GRID_ROWS = 8;
+
+    function renderBattle() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Grid
+      for (let c = 0; c < GRID_COLS; c++) {
+        for (let r = 0; r < GRID_ROWS; r++) {
+          const x = 30 + c * CELL_SIZE;
+          const y = 30 + r * CELL_SIZE;
+          
+          ctx.strokeStyle = '#1e293b';
+          ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+          
+          // Movement range highlight
+          if (state.battle.mode === 'move') {
+            const dist = Math.abs(state.battle.playerPos.x - c) + Math.abs(state.battle.playerPos.y - r);
+            if (dist <= 2 && dist > 0) {
+              ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
+              ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+            }
+          }
+        }
+      }
+
+      // Draw Player Mech
+      const px = 30 + state.battle.playerPos.x * CELL_SIZE + CELL_SIZE/2;
+      const py = 30 + state.battle.playerPos.y * CELL_SIZE + CELL_SIZE/2;
+      ctx.fillStyle = '#00f0ff';
+      ctx.beginPath();
+      ctx.arc(px, py, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('MECH', px, py + 4);
+
+      // Draw Enemy Drone
+      const ex = 30 + state.battle.enemyPos.x * CELL_SIZE + CELL_SIZE/2;
+      const ey = 30 + state.battle.enemyPos.y * CELL_SIZE + CELL_SIZE/2;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(ex, ey, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.fillText('DRON', ex, ey + 4);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      const col = Math.floor((clickX - 30) / CELL_SIZE);
+      const row = Math.floor((clickY - 30) / CELL_SIZE);
+
+      if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
+        handleGridClick(col, row);
+      }
+    });
+
+    function handleGridClick(col, row) {
+      if (state.battle.mode === 'move') {
+        const dist = Math.abs(state.battle.playerPos.x - col) + Math.abs(state.battle.playerPos.y - row);
+        if (dist > 0 && dist <= 2) {
+          if (state.battle.playerAP >= 2) {
+            playBeep(350, 'sine', 0.1);
+            state.battle.playerPos = { x: col, y: row };
+            state.battle.playerAP -= 2;
+            document.getElementById('playerAP').innerText = `${state.battle.playerAP} / 6`;
+            addCombatLog(`Воплощение переместилось в сектор [${col}, ${row}]. (-2 AP)`);
+            renderBattle();
+          } else {
+            addCombatLog('Недостаточно очков действий (AP)!', 'log-destroy');
+          }
+        }
+      } else if (state.battle.mode === 'attack') {
+        // If clicked on enemy or near
+        const distToEnemy = Math.abs(state.battle.playerPos.x - state.battle.enemyPos.x) + Math.abs(state.battle.playerPos.y - state.battle.enemyPos.y);
+        if (col === state.battle.enemyPos.x && row === state.battle.enemyPos.y) {
+          executeAttack();
+        }
+      }
+    }
+
+    function setBattleMode(mode) {
+      playBeep(580, 'sine', 0.05);
+      state.battle.mode = mode;
+      document.getElementById('btn-mode-move').classList.toggle('active', mode === 'move');
+      document.getElementById('btn-mode-attack').classList.toggle('active', mode === 'attack');
+      if (mode === 'attack') {
+        executeAttack();
+      }
+      renderBattle();
+    }
+
+    function selectPartTarget(part) {
+      playBeep(450, 'sine', 0.05);
+      state.battle.targetPart = part;
+      document.querySelectorAll('.part-target-row').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      addCombatLog(`Прицел захватил узел: ${part.toUpperCase()}`);
+    }
+
+    function executeAttack() {
+      if (state.battle.playerAP < 3) {
+        addCombatLog('Недостаточно AP для выстрела! Нужно 3 AP.', 'log-destroy');
+        return;
+      }
+
+      state.battle.playerAP -= 3;
+      document.getElementById('playerAP').innerText = `${state.battle.playerAP} / 6`;
+      playBeep(220, 'sawtooth', 0.2);
+
+      const target = state.battle.targetPart;
+      let hitChance = 0.85;
+      let dmg = 45;
+
+      if (target === 'core') {
+        hitChance = 0.65;
+        dmg = 70;
+      } else if (target === 'thruster') {
+        hitChance = 0.90;
+        dmg = 35;
+      }
+
+      const roll = Math.random();
+      if (roll <= hitChance) {
+        state.battle.enemyHP[target] = Math.max(0, state.battle.enemyHP[target] - dmg);
+        addCombatLog(`🎯 ПОПАДАНИЕ! Выстрел из [${state.mechSlots.armR.item}] нанес ${dmg} урона по узлу [${target}].`, 'log-hit');
+        
+        // Voice of pilot
+        if (target === 'core') {
+          addCombatLog(`[Логика 2.0]: «Критическая сигнатура ядра дрона упала на ${dmg}%. Прекрасная точность!»`, 'log-crit');
+        }
+
+        // Update HP Bars
+        const el = document.getElementById(`hp-enemy-${target}`);
+        if (el) {
+          const maxHp = target === 'core' ? 100 : (target === 'arm' ? 60 : 50);
+          const pct = (state.battle.enemyHP[target] / maxHp) * 100;
+          el.style.width = pct + '%';
+          if (pct < 30) el.classList.add('danger');
+        }
+
+        if (state.battle.enemyHP.core <= 0) {
+          addCombatLog(`💥 ВРАЖЕСКИЙ ДРОН УНИЧТОЖЕН! Верхняя палуба лайнера «Примарх» зачищена.`, 'log-destroy');
+          addCombatLog(`[Капитан Сол Купер]: «Черт возьми, кто бы ты ни был, ты спас нас от разгерметизации!»`, 'log-hit');
+        }
+      } else {
+        addCombatLog(`❌ ПРОМАХ! Дрон совершил противозенитный маневр.`, 'log-crit');
+        addCombatLog(`[Психика 2.0]: «Спокойно. Не паникуй, перезаряди конденсоры».`);
+      }
+    }
+
+    function endTurn() {
+      playBeep(300, 'sine', 0.15);
+      state.battle.round++;
+      state.battle.playerAP = 6;
+      document.getElementById('battleRound').innerText = state.battle.round;
+      document.getElementById('playerAP').innerText = '6 / 6';
+      addCombatLog(`=== РАУНД ${state.battle.round} ===`, 'log-crit');
+
+      // Simple AI action
+      if (state.battle.enemyHP.core > 0) {
+        addCombatLog('Ход противника: Дрон открывает ответный огонь из плазменного резака!');
+        playBeep(180, 'square', 0.15);
+        state.battle.playerHP -= 20;
+        addCombatLog(`Получено 20 урона в корпус Воплощения. Текущая прочность: ${state.battle.playerHP} AP`, 'log-destroy');
+      }
+      renderBattle();
+    }
+
+    function addCombatLog(msg, cssClass = '') {
+      const log = document.getElementById('combatLog');
+      const div = document.createElement('div');
+      div.className = `log-line ${cssClass}`;
+      div.innerText = msg;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    /* ========================================================
+       4. THOUGHT CABINET RENDERING (FROM SHEET 3)
+       ======================================================== */
+    const THOUGHTS_CATALOG = [
+      { name: "Расчётливость", attr: "Логика", color: "#06b6d4", desc: "Уменьшает расход AP на тактическое перемещение по сетке." },
+      { name: "Траектория", attr: "Логика", color: "#06b6d4", desc: "Подсвечивает сектор ответного огня противника." },
+      { name: "Дедукция", attr: "Логика", color: "#06b6d4", desc: "Открывает скрытые мотивы NPC в диалогах." },
+      { name: "Антидепрессанты", attr: "Психика", color: "#a855f7", desc: "Защита от ментального шока при разрыве связи с аватаром." },
+      { name: "Устойчивость", attr: "Психика", color: "#a855f7", desc: "Снижает панику при повреждении жизненно важных систем ядра." },
+      { name: "Очарование", attr: "Обаяние", color: "#f59e0b", desc: "Позволяет заставить офицеров сомневаться в приказе открыть огонь." },
+      { name: "Гениальность", attr: "Интеллект", color: "#3b82f6", desc: "Возможность взламывать боевые дроны прямо во время сражения." },
+      { name: "Критическое мышление", attr: "Интеллект", color: "#3b82f6", desc: "Выявляет ошибки в навигационных системах чужих кораблей." },
+      { name: "Дипломат", attr: "Риторика", color: "#ec4899", desc: "Позволяет мирно разрешить конфликт между капитаном Солом и пассажирами." },
+      { name: "Берсерк", attr: "Сила", color: "#ef4444", desc: "Удваивает урон молота и меча при критическом повреждении корпуса." },
+      { name: "Баллистика", attr: "Точность", color: "#10b981", desc: "Повышает шанс поражения уязвимых маневровых крыльев на 25%." },
+      { name: "Амбидекстр", attr: "Точность", color: "#10b981", desc: "Позволяет вести синхронный огонь из оружия в обеих руках." }
+    ];
+
+    function renderCabinet() {
+      const grid = document.getElementById('cabinetGrid');
+      grid.innerHTML = '';
+      THOUGHTS_CATALOG.forEach(th => {
+        const card = document.createElement('div');
+        card.className = 'concept-card';
+        card.innerHTML = `
+          <div class="concept-header">
+            <span class="concept-title">${th.name}</span>
+            <span class="concept-attr" style="background:${th.color}22; color:${th.color}; border:1px solid ${th.color}44">${th.attr}</span>
+          </div>
+          <div class="concept-desc">${th.desc}</div>
+          <div class="concept-status" style="color:${th.color}">● ИНТЕГРИРОВАНО В СОЗНАНИЕ</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    renderCabinet();
+  </script>
+</body>
+</html>
